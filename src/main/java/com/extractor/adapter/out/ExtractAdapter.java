@@ -35,8 +35,6 @@ public class ExtractAdapter implements ExtractPort {
     @Value("${env.snf-path}")
     private String SNF_PATH;
 
-    private final FilePort filePort;
-
     /**
      * 한글 문서 추출
      * @param originalDocument 원본 문서 정보
