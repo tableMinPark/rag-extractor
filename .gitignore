@@ -41,3 +41,6 @@ out/
 
 ### file ###
 filter/
+
+### lib ###
+libs/snf/
