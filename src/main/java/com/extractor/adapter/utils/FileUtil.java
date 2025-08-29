@@ -1,58 +1,15 @@
 package com.extractor.adapter.utils;
 
-import com.extractor.domain.vo.document.OriginalDocumentVo;
-import com.extractor.global.utils.StringUtil;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class FileUtil {
-
-    /**
-     * 멀티 파트 파일 업로드
-     * @param multipartFile 멀티 파트 파일
-     */
-    public static OriginalDocumentVo uploadFile(String dir, MultipartFile multipartFile) {
-
-        if (multipartFile == null || multipartFile.getOriginalFilename() == null) {
-            throw new RuntimeException("multipart filename is null");
-        }
-
-        String fileName = StringUtil.generateRandomId();
-        String originalFileName = multipartFile.getOriginalFilename();
-        String extension = multipartFile.getContentType();
-        Path path = Paths.get(dir);
-        Path fullPath = path.resolve(fileName);
-
-        if (!path.toFile().exists()) {
-            path.toFile().mkdirs();
-        }
-
-        int dotIndex = originalFileName.lastIndexOf(".");
-        if (dotIndex == -1) throw new RuntimeException("multipart file extension is empty");
-
-        try {
-            multipartFile.transferTo(fullPath);
-        } catch (IOException e) {
-            throw new RuntimeException("upload file error");
-        }
-
-        return OriginalDocumentVo.builder()
-                .fileName(fileName)
-                .originalFileName(originalFileName)
-                .path(path)
-                .fullPath(fullPath)
-                .extension(extension)
-                .build();
-    }
 
     /**
      * 파일 삭제

@@ -2,7 +2,6 @@ package com.extractor.adapter.in;
 
 import com.extractor.adapter.in.dto.ExtractHwpxRequestDto;
 import com.extractor.adapter.in.dto.ExtractHwpxResponseDto;
-import com.extractor.adapter.utils.FileUtil;
 import com.extractor.application.usecase.ChunkUseCase;
 import com.extractor.domain.model.HwpxDocument;
 import com.extractor.domain.model.PdfDocument;
@@ -17,7 +16,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,10 +31,7 @@ public class ExtractController {
 
     private final ChunkUseCase chunkUseCase;
 
-    @Value("${env.upload-path}")
-    private String UPLOAD_PATH;
-
-    @PostMapping(path = "/hwp", consumes =  MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(path = "/hwp", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Success", content = {@Content(schema = @Schema(implementation = ExtractHwpxResponseDto.class))}),
             @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = Map.class))}),
@@ -56,30 +51,16 @@ public class ExtractController {
             throw new RuntimeException("only hwp and hwpx");
         }
 
-            // 파일 업로드
-        OriginalDocumentVo originalDocumentVo = FileUtil.uploadFile(UPLOAD_PATH, multipartFile);
+        HwpxDocument hwpxDocument = chunkUseCase.chunkHwpxDocument(new OriginalDocumentVo(multipartFile), new ChunkPatternVo(
+                extractHwpxRequestDto.getPatterns(), extractHwpxRequestDto.getStopPatterns()));
 
-        HwpxDocument hwpxDocument = null;
-        try {
-            hwpxDocument = chunkUseCase.chunkHwpxDocument(originalDocumentVo, new ChunkPatternVo(
-                    extractHwpxRequestDto.getPatterns(), extractHwpxRequestDto.getStopPatterns()));
-
-            return ResponseEntity.ok(ExtractHwpxResponseDto.builder()
-                    .lines(hwpxDocument.getLines())
-                    .passages(hwpxDocument.getPassages())
-                    .build());
-        } finally {
-            // 파일 삭제
-            FileUtil.deleteFile(originalDocumentVo.getFullPath());
-
-            if (hwpxDocument != null) {
-                // 압축 해제 폴더 삭제
-                FileUtil.deleteDirectory(hwpxDocument.getUnZipPath());
-            }
-        }
+        return ResponseEntity.ok(ExtractHwpxResponseDto.builder()
+                .lines(hwpxDocument.getLines())
+                .passages(hwpxDocument.getPassages())
+                .build());
     }
 
-    @PostMapping(path = "/pdf", consumes =  MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(path = "/pdf", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Success", content = {@Content(schema = @Schema(implementation = ExtractHwpxResponseDto.class))}),
             @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = Map.class))}),
@@ -94,26 +75,18 @@ public class ExtractController {
             @RequestPart("uploadFile")
             MultipartFile multipartFile
     ) {
-        // 한글 파일 체크
+        // PDF 파일 체크
         if (!FileExtension.PDF.isEquals(multipartFile.getContentType())) {
             throw new RuntimeException("only pdf");
         }
 
-        // 파일 업로드
-        OriginalDocumentVo originalDocumentVo = FileUtil.uploadFile(UPLOAD_PATH, multipartFile);
+        PdfDocument pdfDocument = chunkUseCase.chunkPdfDocument(new OriginalDocumentVo(multipartFile), new ChunkPatternVo(
+                extractHwpxRequestDto.getPatterns(), extractHwpxRequestDto.getStopPatterns()));
 
-        try {
-            PdfDocument pdfDocument = chunkUseCase.chunkPdfDocument(originalDocumentVo, new ChunkPatternVo(
-                    extractHwpxRequestDto.getPatterns(), extractHwpxRequestDto.getStopPatterns()));
-
-            return ResponseEntity.ok(ExtractHwpxResponseDto.builder()
-                    .lines(pdfDocument.getLines())
-                    .passages(pdfDocument.getPassages())
-                    .build());
-        } finally {
-            // 파일 삭제
-            FileUtil.deleteFile(originalDocumentVo.getFullPath());
-        }
+        return ResponseEntity.ok(ExtractHwpxResponseDto.builder()
+                .lines(pdfDocument.getLines())
+                .passages(pdfDocument.getPassages())
+                .build());
     }
 
     /**
