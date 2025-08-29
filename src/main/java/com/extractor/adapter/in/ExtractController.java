@@ -3,10 +3,12 @@ package com.extractor.adapter.in;
 import com.extractor.adapter.in.dto.ExtractHwpxRequestDto;
 import com.extractor.adapter.in.dto.ExtractHwpxResponseDto;
 import com.extractor.adapter.utils.FileUtil;
-import com.extractor.application.usecase.ChunkHwpxUseCase;
+import com.extractor.application.usecase.ChunkUseCase;
 import com.extractor.domain.model.HwpxDocument;
+import com.extractor.domain.model.PdfDocument;
 import com.extractor.domain.vo.document.OriginalDocumentVo;
 import com.extractor.domain.vo.pattern.ChunkPatternVo;
+import com.extractor.global.enums.FileExtension;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -29,7 +31,7 @@ import java.util.Map;
 @RestController
 public class ExtractController {
 
-    private final ChunkHwpxUseCase chunkHwpxUseCase;
+    private final ChunkUseCase chunkUseCase;
 
     @Value("${env.upload-path}")
     private String UPLOAD_PATH;
@@ -39,7 +41,7 @@ public class ExtractController {
             @ApiResponse(responseCode = "200", description = "Success", content = {@Content(schema = @Schema(implementation = ExtractHwpxResponseDto.class))}),
             @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = Map.class))}),
     })
-    @Operation(summary = "한글 문서 전처리")
+    @Operation(summary = "한글 문서 전처리 정규식 테스트")
     public ResponseEntity<ExtractHwpxResponseDto> extractHwpx(
             @Parameter(name = "extractHwpxRequestDto", description = "전처리 요청 정보", required = true)
             @RequestPart("requestDto")
@@ -49,22 +51,69 @@ public class ExtractController {
             @RequestPart("uploadFile")
             MultipartFile multipartFile
     ) {
+        // 한글 파일 체크
+        if (!FileExtension.HWP.isEquals(multipartFile.getContentType()) && !FileExtension.HWPX.isEquals(multipartFile.getContentType())) {
+            throw new RuntimeException("only hwp and hwpx");
+        }
+
+            // 파일 업로드
+        OriginalDocumentVo originalDocumentVo = FileUtil.uploadFile(UPLOAD_PATH, multipartFile);
+
+        HwpxDocument hwpxDocument = null;
+        try {
+            hwpxDocument = chunkUseCase.chunkHwpxDocument(originalDocumentVo, new ChunkPatternVo(
+                    extractHwpxRequestDto.getPatterns(), extractHwpxRequestDto.getStopPatterns()));
+
+            return ResponseEntity.ok(ExtractHwpxResponseDto.builder()
+                    .lines(hwpxDocument.getLines())
+                    .passages(hwpxDocument.getPassages())
+                    .build());
+        } finally {
+            // 파일 삭제
+            FileUtil.deleteFile(originalDocumentVo.getFullPath());
+
+            if (hwpxDocument != null) {
+                // 압축 해제 폴더 삭제
+                FileUtil.deleteDirectory(hwpxDocument.getUnZipPath());
+            }
+        }
+    }
+
+    @PostMapping(path = "/pdf", consumes =  MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Success", content = {@Content(schema = @Schema(implementation = ExtractHwpxResponseDto.class))}),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = Map.class))}),
+    })
+    @Operation(summary = "PDF 문서 전처리 정규식 테스트")
+    public ResponseEntity<ExtractHwpxResponseDto> extractPdf(
+            @Parameter(name = "extractHwpxRequestDto", description = "전처리 요청 정보", required = true)
+            @RequestPart("requestDto")
+            ExtractHwpxRequestDto extractHwpxRequestDto,
+
+            @Parameter(name = "uploadFile", description = "업로드 파일", required = true)
+            @RequestPart("uploadFile")
+            MultipartFile multipartFile
+    ) {
+        // 한글 파일 체크
+        if (!FileExtension.PDF.isEquals(multipartFile.getContentType())) {
+            throw new RuntimeException("only pdf");
+        }
+
         // 파일 업로드
         OriginalDocumentVo originalDocumentVo = FileUtil.uploadFile(UPLOAD_PATH, multipartFile);
 
-        HwpxDocument hwpxDocument = chunkHwpxUseCase.chunkHwpxDocument(originalDocumentVo, new ChunkPatternVo(
-                extractHwpxRequestDto.getPatterns(), extractHwpxRequestDto.getStopPatterns()));
+        try {
+            PdfDocument pdfDocument = chunkUseCase.chunkPdfDocument(originalDocumentVo, new ChunkPatternVo(
+                    extractHwpxRequestDto.getPatterns(), extractHwpxRequestDto.getStopPatterns()));
 
-        // 파일 삭제
-        FileUtil.deleteFile(originalDocumentVo.getFullPath());
-
-        // 압축 해제 폴더 삭제
-        FileUtil.deleteDirectory(hwpxDocument.getUnZipPath());
-
-        return ResponseEntity.ok(ExtractHwpxResponseDto.builder()
-                .lines(hwpxDocument.getLines())
-                .passages(hwpxDocument.getPassages())
-                .build());
+            return ResponseEntity.ok(ExtractHwpxResponseDto.builder()
+                    .lines(pdfDocument.getLines())
+                    .passages(pdfDocument.getPassages())
+                    .build());
+        } finally {
+            // 파일 삭제
+            FileUtil.deleteFile(originalDocumentVo.getFullPath());
+        }
     }
 
     /**

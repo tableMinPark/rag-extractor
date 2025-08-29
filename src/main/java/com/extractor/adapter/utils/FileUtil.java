@@ -1,6 +1,7 @@
 package com.extractor.adapter.utils;
 
 import com.extractor.domain.vo.document.OriginalDocumentVo;
+import com.extractor.global.utils.StringUtil;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -10,7 +11,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -26,10 +26,9 @@ public class FileUtil {
             throw new RuntimeException("multipart filename is null");
         }
 
-
-
-        String fileName = UUID.randomUUID().toString().replace("-", "");
+        String fileName = StringUtil.generateRandomId();
         String originalFileName = multipartFile.getOriginalFilename();
+        String extension = multipartFile.getContentType();
         Path path = Paths.get(dir);
         Path fullPath = path.resolve(fileName);
 
@@ -39,8 +38,6 @@ public class FileUtil {
 
         int dotIndex = originalFileName.lastIndexOf(".");
         if (dotIndex == -1) throw new RuntimeException("multipart file extension is empty");
-
-        String extension = originalFileName.substring(dotIndex + 1).toLowerCase();
 
         try {
             multipartFile.transferTo(fullPath);
