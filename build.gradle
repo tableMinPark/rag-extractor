@@ -16,7 +16,7 @@ plugins {
 }
 
 group = "com"
-version = "0.0.1-SNAPSHOT"
+version = "0.0.2"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
@@ -37,6 +37,11 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-web"
     developmentOnly "org.springframework.boot:spring-boot-devtools"
 
+    // hwpx lib
+    implementation 'kr.dogfoot:hwplib:1.1.10'
+    implementation 'kr.dogfoot:hwpxlib:1.0.7'
+    implementation fileTree(dir: 'libs', includes: ['*.jar'])
+
     // lombok
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
@@ -49,11 +54,8 @@ dependencies {
     testImplementation "org.mockito:mockito-junit-jupiter:${mockitoVersion}"
     testImplementation "org.assertj:assertj-core:${assertjVersion}"
 
-    // hwpx lib
-    implementation 'kr.dogfoot:hwplib:1.1.10'
-    implementation 'kr.dogfoot:hwpxlib:1.0.7'
-
-    implementation fileTree(dir: 'libs', includes: ['*.jar'])
+    //Swagger
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
 }
 
 tasks.named("test") {
