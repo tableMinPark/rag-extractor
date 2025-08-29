@@ -3,8 +3,8 @@ package com.extractor.adapter.out;
 import com.extractor.adapter.utils.FileUtil;
 import com.extractor.application.port.ExtractPort;
 import com.extractor.domain.model.HwpxDocument;
+import com.extractor.domain.model.OriginalDocument;
 import com.extractor.domain.model.PdfDocument;
-import com.extractor.domain.vo.document.OriginalDocumentVo;
 import com.extractor.global.enums.FileExtension;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,7 +40,7 @@ class ExtractAdapterTest {
         Path path = Paths.get("./filter");
         Path fullPath = Paths.get("./filter", fileName);
 
-        OriginalDocumentVo originalDocumentVo = OriginalDocumentVo.builder()
+        OriginalDocument originalDocument = OriginalDocument.builder()
                 .fileName(fileName)
                 .originalFileName(originalFileName)
                 .path(path)
@@ -49,7 +49,7 @@ class ExtractAdapterTest {
                 .build();
 
         // act
-        HwpxDocument hwpxDocument = extractPort.extractHwpxDocumentPort(originalDocumentVo);
+        HwpxDocument hwpxDocument = extractPort.extractHwpxDocumentPort(originalDocument);
 
         var expected = FileUtil.deleteDirectory(hwpxDocument.getUnZipPath());
 
@@ -68,7 +68,7 @@ class ExtractAdapterTest {
         Path path = Paths.get("./filter");
         Path fullPath = Paths.get("./filter", fileName);
 
-        OriginalDocumentVo originalDocumentVo = OriginalDocumentVo.builder()
+        OriginalDocument originalDocument = OriginalDocument.builder()
                 .fileName(fileName)
                 .originalFileName(originalFileName)
                 .path(path)
@@ -77,7 +77,7 @@ class ExtractAdapterTest {
                 .build();
 
         // act
-        PdfDocument pdfDocument = extractPort.extractPdfDocumentPort(originalDocumentVo);
+        PdfDocument pdfDocument = extractPort.extractPdfDocumentPort(originalDocument);
 
         assertNotNull(pdfDocument);
         assertFalse(pdfDocument.getContent().isBlank());

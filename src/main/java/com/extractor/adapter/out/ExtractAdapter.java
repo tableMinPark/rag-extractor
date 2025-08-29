@@ -2,19 +2,16 @@ package com.extractor.adapter.out;
 
 import com.extractor.adapter.utils.FileUtil;
 import com.extractor.application.port.ExtractPort;
+import com.extractor.application.port.FilePort;
 import com.extractor.domain.model.HwpxDocument;
+import com.extractor.domain.model.OriginalDocument;
 import com.extractor.domain.model.PdfDocument;
-import com.extractor.domain.vo.document.OriginalDocumentVo;
 import com.extractor.domain.vo.hwpx.HwpxImageVo;
 import com.extractor.domain.vo.hwpx.HwpxSectionVo;
 import com.extractor.global.enums.FileExtension;
 import com.extractor.global.utils.StringUtil;
 import com.extractor.global.utils.XmlUtil;
-import kr.dogfoot.hwp2hwpx.Hwp2Hwpx;
-import kr.dogfoot.hwplib.object.HWPFile;
-import kr.dogfoot.hwplib.reader.HWPReader;
-import kr.dogfoot.hwpxlib.object.HWPXFile;
-import kr.dogfoot.hwpxlib.writer.HWPXWriter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -32,34 +29,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ExtractAdapter implements ExtractPort {
 
     @Value("${env.snf-path}")
     private String SNF_PATH;
 
+    private final FilePort filePort;
+
     /**
      * 한글 문서 추출
-     * @param originalDocumentVo 원본 문서 정보
+     * @param originalDocument 원본 문서 정보
      */
     @Override
-    public HwpxDocument extractHwpxDocumentPort(OriginalDocumentVo originalDocumentVo) {
-
-        // HWP 변환
-        if (FileExtension.HWP.isEquals(originalDocumentVo.getExtension())) {
-            try {
-                HWPFile fromFile = HWPReader.fromFile(originalDocumentVo.getFullPath().toString());
-                HWPXFile toFile = Hwp2Hwpx.toHWPX(fromFile);
-                HWPXWriter.toFilepath(toFile, originalDocumentVo.getFullPath().toString());
-            } catch (Exception e) {
-                throw new RuntimeException("convert hwp to hwpx error");
-            }
-        }
+    public HwpxDocument extractHwpxDocumentPort(OriginalDocument originalDocument) {
 
         // 문서 ID 생성
         String docId = StringUtil.generateRandomId();
 
         // 한글 파일 압축 해제
-        File zipFile = originalDocumentVo.getFullPath().toFile();
+        File zipFile = originalDocument.getFullPath().toFile();
         Path unZipPath = Paths.get(zipFile.getParent(), docId);
 
         if (!zipFile.exists()) throw new RuntimeException("not exists zip file");
@@ -67,54 +56,54 @@ public class ExtractAdapter implements ExtractPort {
 
         Path decompressionPath = FileUtil.decompression(zipFile, unZipPath.toFile());
 
-        // metadata 추출
-        String metaData = FileUtil.readFile(decompressionPath.resolve("Contents/content.hpf"));
-
-        // XML DOM 파싱
-        Document document = XmlUtil.parseXml(metaData);
-        Element root = document.getDocumentElement();
-        NodeList items = root.getElementsByTagName("opf:item");
-
         // 데이터 저장
         List<HwpxSectionVo> sections = new ArrayList<>();
         List<HwpxImageVo> images = new ArrayList<>();
 
-        for (int itemIndex = 0; itemIndex < items.getLength(); itemIndex++) {
-            Node item = items.item(itemIndex);
+            // metadata 추출
+            String metaData = FileUtil.readFile(decompressionPath.resolve("Contents/content.hpf"));
 
-            String id = item.getAttributes().getNamedItem("id").getTextContent();
-            String filePath = item.getAttributes().getNamedItem("href").getTextContent();
-            String mediaType = item.getAttributes().getNamedItem("media-type").getTextContent();
+            // XML DOM 파싱
+            Document document = XmlUtil.parseXml(metaData);
+            Element root = document.getDocumentElement();
+            NodeList items = root.getElementsByTagName("opf:item");
 
-            if (FileExtension.XML.isEquals(mediaType) && id.startsWith("section")) {
-                File xmlFile = decompressionPath.resolve(filePath).toFile();
+            for (int itemIndex = 0; itemIndex < items.getLength(); itemIndex++) {
+                Node item = items.item(itemIndex);
 
-                if (xmlFile.exists()) {
-                    String content = FileUtil.readFile(xmlFile.toPath())
-                            .replace("<hp:lineBreak/>", "\n");
+                String id = item.getAttributes().getNamedItem("id").getTextContent();
+                String filePath = item.getAttributes().getNamedItem("href").getTextContent();
+                String mediaType = item.getAttributes().getNamedItem("media-type").getTextContent();
 
-                    sections.add(HwpxSectionVo.builder()
-                            .id(id)
-                            .content(content)
-                            .build());
-                }
-            } else if (mediaType.startsWith("image/")) {
-                File imageFile = decompressionPath.resolve(filePath).toFile();
+                if (FileExtension.XML.isEquals(mediaType) && id.startsWith("section")) {
+                    File xmlFile = decompressionPath.resolve(filePath).toFile();
 
-                if (imageFile.exists()) {
-                    images.add(HwpxImageVo.builder()
-                            .id(id)
-                            .path(imageFile.toPath())
-                            .extension(mediaType)
-                            .build());
+                    if (xmlFile.exists()) {
+                        String content = FileUtil.readFile(xmlFile.toPath())
+                                .replace("<hp:lineBreak/>", "\n");
+
+                        sections.add(HwpxSectionVo.builder()
+                                .id(id)
+                                .content(content)
+                                .build());
+                    }
+                } else if (mediaType.startsWith("image/")) {
+                    File imageFile = decompressionPath.resolve(filePath).toFile();
+
+                    if (imageFile.exists()) {
+                        images.add(HwpxImageVo.builder()
+                                .id(id)
+                                .path(imageFile.toPath())
+                                .extension(mediaType)
+                                .build());
+                    }
                 }
             }
-        }
 
         return HwpxDocument.builder()
                 .docId(docId)
-                .name(originalDocumentVo.getOriginalFileName())
-                .path(originalDocumentVo.getPath())
+                .name(originalDocument.getOriginalFileName())
+                .path(originalDocument.getPath())
                 .sections(sections)
                 .images(images)
                 .unZipPath(unZipPath)
@@ -123,10 +112,10 @@ public class ExtractAdapter implements ExtractPort {
 
     /**
      * PDF 문서 추출
-     * @param originalDocumentVo 원본 문서 정보
+     * @param originalDocument 원본 문서 정보
      */
     @Override
-    public PdfDocument extractPdfDocumentPort(OriginalDocumentVo originalDocumentVo) {
+    public PdfDocument extractPdfDocumentPort(OriginalDocument originalDocument) {
 
         // 문서 ID 생성
         String docId = StringUtil.generateRandomId();
@@ -138,11 +127,11 @@ public class ExtractAdapter implements ExtractPort {
 
             String[] cmd;
             if (os.contains("windows")) {
-                cmd = new String[]{"cmd.exe", "/c", SNF_PATH, "-NO_WITHPAGE", "-C", "utf8", originalDocumentVo.getFullPath().toString()};
-            } else if(os.contains("mac")) {
-                cmd = new String[]{SNF_PATH, "-NO_WITHPAGE", "-C", "utf8", originalDocumentVo.getFullPath().toString()};
+                cmd = new String[]{"cmd.exe", "/c", SNF_PATH, "-NO_WITHPAGE", "-C", "utf8", originalDocument.getFullPath().toString()};
+            } else if (os.contains("mac")) {
+                cmd = new String[]{SNF_PATH, "-NO_WITHPAGE", "-C", "utf8", originalDocument.getFullPath().toString()};
             } else {
-                cmd = new String[]{SNF_PATH, "-NO_WITHPAGE", "-C", "utf8", originalDocumentVo.getFullPath().toString()};
+                cmd = new String[]{SNF_PATH, "-NO_WITHPAGE", "-C", "utf8", originalDocument.getFullPath().toString()};
             }
 
             Process process = Runtime.getRuntime().exec(cmd);
@@ -153,15 +142,14 @@ public class ExtractAdapter implements ExtractPort {
             while ((line = reader.readLine()) != null) {
                 contentBuilder.append(line).append("\n");
             }
-
         } catch (IOException e) {
             throw new RuntimeException("snf extract error");
         }
 
         return PdfDocument.builder()
                 .docId(docId)
-                .name(originalDocumentVo.getOriginalFileName())
-                .path(originalDocumentVo.getPath())
+                .name(originalDocument.getOriginalFileName())
+                .path(originalDocument.getPath())
                 .content(contentBuilder.toString())
                 .build();
     }
