@@ -138,7 +138,7 @@ public class ExtractAdapter implements ExtractPort {
 
             String[] cmd;
             if (os.contains("windows")) {
-                cmd = new String[]{"cmd.exe", "/c", SNF_PATH, "-NO_WITHPAGE", "-C", "cp949", originalDocumentVo.getFullPath().toString()};
+                cmd = new String[]{"cmd.exe", "/c", SNF_PATH, "-NO_WITHPAGE", "-C", "utf8", originalDocumentVo.getFullPath().toString()};
             } else if(os.contains("mac")) {
                 cmd = new String[]{SNF_PATH, "-NO_WITHPAGE", "-C", "utf8", originalDocumentVo.getFullPath().toString()};
             } else {
