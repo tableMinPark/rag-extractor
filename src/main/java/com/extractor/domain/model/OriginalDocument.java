@@ -1,5 +1,6 @@
 package com.extractor.domain.model;
 
+import com.extractor.global.enums.FileExtension;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -8,19 +9,19 @@ import java.nio.file.Path;
 @Getter
 public class OriginalDocument {
 
-    private String fileName;
+    private final String docId;
 
-    private String originalFileName;
+    private final String originalFileName;
 
-    private Path path;
+    private final Path path;
 
-    private Path fullPath;
+    private final Path fullPath;
 
-    private String extension;
+    private final FileExtension extension;
 
     @Builder
-    public OriginalDocument(String fileName, String originalFileName, Path path, Path fullPath, String extension) {
-        this.fileName = fileName;
+    public OriginalDocument(String docId, String originalFileName, Path path, Path fullPath, FileExtension extension) {
+        this.docId = docId;
         this.originalFileName = originalFileName;
         this.path = path;
         this.fullPath = fullPath;

@@ -6,20 +6,64 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class FileUtil {
 
     /**
+     * 폴더 생성
+     * @param path 디렉토리 경로
+     */
+    public static void mkdirs(Path path) {
+
+        boolean isSuccess = path.toFile().mkdirs();
+
+        if (!isSuccess) {
+            throw new RuntimeException("make directory error");
+        }
+    }
+
+    /**
+     * 파일 이동
+     * @param src 현재 경로
+     * @param dst 이동 경로
+     */
+    public static Path moveFile(Path src, Path dst) {
+        boolean isSuccess = src.toFile().renameTo(dst.toFile());
+
+        if (!isSuccess) {
+            throw new RuntimeException("move file error");
+        }
+
+        return dst;
+    }
+
+    /**
+     * 파일 복사
+     * @param src 현재 경로
+     * @param dst 이동 경로
+     */
+    public static Path copyFile(Path src, Path dst) {
+        try {
+            return Files.copy(src, dst, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException(" copy file error");
+        }
+    }
+
+    /**
      * 파일 삭제
      * @param path 파일 경로
      */
-    public static boolean deleteFile(Path path) {
-        if (path.toFile().exists()) {
-            return path.toFile().delete();
+    public static void deleteFile(Path path) {
+
+        boolean isSuccess = path.toFile().exists() && path.toFile().delete();
+
+        if (!isSuccess) {
+            throw new RuntimeException("delete file error");
         }
-        return false;
     }
 
     /**
@@ -45,7 +89,11 @@ public class FileUtil {
             isSuccess &= path.toFile().delete();
         }
 
-        return isSuccess;
+        if (!isSuccess) {
+            throw new RuntimeException("delete directory error");
+        }
+
+        return true;
     }
 
     /**
@@ -70,7 +118,6 @@ public class FileUtil {
      */
     public static Path decompression(File zipFile, File destDir) {
         if (!destDir.exists()) {
-            destDir.mkdirs(); // 대상 폴더 없으면 생성
         }
 
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile))) {

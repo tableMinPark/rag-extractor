@@ -1,5 +1,6 @@
 package com.extractor.domain.vo.document;
 
+import com.extractor.global.enums.FileExtension;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,19 +12,20 @@ public class OriginalDocumentVo {
 
     private final String originalFileName;
 
-    private final String extension;
+    private final FileExtension extension;
 
     private final byte[] data;
 
     @Builder
     public OriginalDocumentVo(MultipartFile multipartFile) {
-        try {
-            if (multipartFile == null || multipartFile.getOriginalFilename() == null) {
-                throw new RuntimeException("multipart filename is null");
-            }
+        if (multipartFile == null || multipartFile.getOriginalFilename() == null) {
+            throw new RuntimeException("multipart filename is null");
+        }
 
-            this.originalFileName = multipartFile.getOriginalFilename();
-            this.extension = multipartFile.getContentType();
+        this.extension = FileExtension.find(multipartFile.getContentType());
+        this.originalFileName = multipartFile.getOriginalFilename().replace("." + extension.getSimpleExtension(), "");
+
+        try {
             this.data = multipartFile.getBytes();
         }  catch (IOException e) {
             throw new RuntimeException("get binary data error");

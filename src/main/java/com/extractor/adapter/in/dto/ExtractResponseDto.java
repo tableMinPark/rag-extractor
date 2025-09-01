@@ -12,14 +12,14 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ExtractHwpxResponseDto {
+public class ExtractResponseDto {
 
     private List<PassageDocument> passages;
 
     private List<DocumentLine> lines;
 
     @Builder
-    public ExtractHwpxResponseDto(List<PassageDocument> passages, List<DocumentLine> lines) {
+    public ExtractResponseDto(List<PassageDocument> passages, List<DocumentLine> lines) {
         this.passages = passages;
         this.lines = lines;
     }

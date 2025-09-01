@@ -2,14 +2,12 @@ package com.extractor.adapter.out;
 
 import com.extractor.adapter.utils.FileUtil;
 import com.extractor.application.port.ExtractPort;
-import com.extractor.application.port.FilePort;
 import com.extractor.domain.model.HwpxDocument;
 import com.extractor.domain.model.OriginalDocument;
 import com.extractor.domain.model.PdfDocument;
 import com.extractor.domain.vo.hwpx.HwpxImageVo;
 import com.extractor.domain.vo.hwpx.HwpxSectionVo;
 import com.extractor.global.enums.FileExtension;
-import com.extractor.global.utils.StringUtil;
 import com.extractor.global.utils.XmlUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,8 +21,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,24 +38,12 @@ public class ExtractAdapter implements ExtractPort {
     @Override
     public HwpxDocument extractHwpxDocumentPort(OriginalDocument originalDocument) {
 
-        // 문서 ID 생성
-        String docId = StringUtil.generateRandomId();
-
-        // 한글 파일 압축 해제
-        File zipFile = originalDocument.getFullPath().toFile();
-        Path unZipPath = Paths.get(zipFile.getParent(), docId);
-
-        if (!zipFile.exists()) throw new RuntimeException("not exists zip file");
-        if (unZipPath.toFile().exists()) throw new RuntimeException("already exists unzip target directory");
-
-        Path decompressionPath = FileUtil.decompression(zipFile, unZipPath.toFile());
-
         // 데이터 저장
         List<HwpxSectionVo> sections = new ArrayList<>();
         List<HwpxImageVo> images = new ArrayList<>();
 
             // metadata 추출
-            String metaData = FileUtil.readFile(decompressionPath.resolve("Contents/content.hpf"));
+            String metaData = FileUtil.readFile(originalDocument.getPath().resolve("Contents/content.hpf"));
 
             // XML DOM 파싱
             Document document = XmlUtil.parseXml(metaData);
@@ -74,7 +58,7 @@ public class ExtractAdapter implements ExtractPort {
                 String mediaType = item.getAttributes().getNamedItem("media-type").getTextContent();
 
                 if (FileExtension.XML.isEquals(mediaType) && id.startsWith("section")) {
-                    File xmlFile = decompressionPath.resolve(filePath).toFile();
+                    File xmlFile = originalDocument.getPath().resolve(filePath).toFile();
 
                     if (xmlFile.exists()) {
                         String content = FileUtil.readFile(xmlFile.toPath())
@@ -86,7 +70,7 @@ public class ExtractAdapter implements ExtractPort {
                                 .build());
                     }
                 } else if (mediaType.startsWith("image/")) {
-                    File imageFile = decompressionPath.resolve(filePath).toFile();
+                    File imageFile = originalDocument.getPath().resolve(filePath).toFile();
 
                     if (imageFile.exists()) {
                         images.add(HwpxImageVo.builder()
@@ -99,12 +83,11 @@ public class ExtractAdapter implements ExtractPort {
             }
 
         return HwpxDocument.builder()
-                .docId(docId)
+                .docId(originalDocument.getDocId())
                 .name(originalDocument.getOriginalFileName())
                 .path(originalDocument.getPath())
                 .sections(sections)
                 .images(images)
-                .unZipPath(unZipPath)
                 .build();
     }
 
@@ -114,9 +97,6 @@ public class ExtractAdapter implements ExtractPort {
      */
     @Override
     public PdfDocument extractPdfDocumentPort(OriginalDocument originalDocument) {
-
-        // 문서 ID 생성
-        String docId = StringUtil.generateRandomId();
 
         StringBuilder contentBuilder = new StringBuilder();
 
@@ -145,7 +125,7 @@ public class ExtractAdapter implements ExtractPort {
         }
 
         return PdfDocument.builder()
-                .docId(docId)
+                .docId(originalDocument.getDocId())
                 .name(originalDocument.getOriginalFileName())
                 .path(originalDocument.getPath())
                 .content(contentBuilder.toString())
