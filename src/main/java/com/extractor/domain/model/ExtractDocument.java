@@ -18,15 +18,15 @@ import java.util.regex.Pattern;
 @Getter
 public class ExtractDocument {
 
-    private String docId;
+    private final String docId;
 
-    private String name;
+    private final String name;
 
-    private Path path;
+    private final Path path;
 
-    private List<DocumentLine> lines;
+    private final List<DocumentLine> lines;
 
-    private List<PassageDocument> passages;
+    private final List<PassageDocument> passages;
 
     public ExtractDocument(String docId, String name, Path path) {
         this.docId = docId;
@@ -37,48 +37,12 @@ public class ExtractDocument {
     }
 
     /**
-     * 문자 데이터 등록
-     */
-    public void addText(String text) {
-        if (!text.trim().isBlank()) {
-            this.lines.add(DocumentLine.builder()
-                    .type(DocumentLine.LineType.TEXT)
-                    .content(text)
-                    .build());
-        }
-    }
-
-    /**
-     * 표 데이터 등록
-     */
-    public void addTable(String table) {
-        if (!table.trim().isBlank()) {
-            this.lines.add(DocumentLine.builder()
-                    .type(DocumentLine.LineType.TABLE)
-                    .content(table)
-                    .build());
-        }
-    }
-
-    /**
-     * 이미지 데이터 등록
-     */
-    public void addImage(String text) {
-        if (!text.trim().isBlank()) {
-            this.lines.add(DocumentLine.builder()
-                    .type(DocumentLine.LineType.IMAGE)
-                    .content(text)
-                    .build());
-        }
-    }
-
-    /**
-     * 패시지 분류
+     * 상위 -> 하위 순차 패시지 분류
      * @param chunkPatternVo 분류 패턴
      */
-    public void selectPassage(ChunkPatternVo chunkPatternVo) {
-
-        this.passages = new ArrayList<>();
+    public void topDownSelectPassage(ChunkPatternVo chunkPatternVo) {
+        // 기존 패시지 초기화
+        this.passages.clear();
 
         List<PatternVo> patterns = chunkPatternVo.getPatterns();
         List<PatternVo> stopPatterns = chunkPatternVo.getStopPatterns();
@@ -153,6 +117,57 @@ public class ExtractDocument {
             if (!passageDocument.getFullTitle().isBlank()) {
                 this.passages.add(passageDocument);
             }
+        }
+    }
+
+    /**
+     * TODO: 묶음 단위 패시지 처리
+     * ex)
+     * 1, 장 단위 묶음 처리
+     * 2. 장 단위 중 2000자 넘는 묶음만 절 단위 묶음 처리
+     * 3. 절 단위 중 2000자 넘는 묶음만 조 단위 묶음 처리
+     * ...
+     * ...
+     */
+    public void bundleSelectPassage(ChunkPatternVo chunkPatternVo) {
+
+
+
+    }
+
+    /**
+     * 문자 데이터 등록
+     */
+    public void addText(String text) {
+        if (!text.trim().isBlank()) {
+            this.lines.add(DocumentLine.builder()
+                    .type(DocumentLine.LineType.TEXT)
+                    .content(text)
+                    .build());
+        }
+    }
+
+    /**
+     * 표 데이터 등록
+     */
+    public void addTable(String table) {
+        if (!table.trim().isBlank()) {
+            this.lines.add(DocumentLine.builder()
+                    .type(DocumentLine.LineType.TABLE)
+                    .content(table)
+                    .build());
+        }
+    }
+
+    /**
+     * 이미지 데이터 등록
+     */
+    public void addImage(String text) {
+        if (!text.trim().isBlank()) {
+            this.lines.add(DocumentLine.builder()
+                    .type(DocumentLine.LineType.IMAGE)
+                    .content(text)
+                    .build());
         }
     }
 
