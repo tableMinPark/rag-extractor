@@ -17,9 +17,9 @@ import java.util.List;
 @Getter
 public class HwpxDocument extends ExtractDocument {
 
-    private List<HwpxSectionVo> sections;
+    private final List<HwpxSectionVo> sections;
 
-    private List<HwpxImageVo> images;
+    private final List<HwpxImageVo> images;
 
     @Builder
     public HwpxDocument(String docId, String name, List<HwpxSectionVo> sections, List<HwpxImageVo> images, Path path) {
@@ -70,12 +70,13 @@ public class HwpxDocument extends ExtractDocument {
 
     /**
      * XML 표 데이터 HTML 변환 (재귀)
+     *
      * @param element 표 태그 노드
      * @return 표 데이터 HTML 문자열
      */
     private String convertTableXmlToHtml(Element element, int depth) {
 
-        StringBuilder tableHtmlBuilder  = new StringBuilder();
+        StringBuilder tableHtmlBuilder = new StringBuilder();
 
         tableHtmlBuilder.append("<table>");
 
@@ -90,13 +91,13 @@ public class HwpxDocument extends ExtractDocument {
                     String colSpan = cellSpan.getAttribute("colSpan");
                     String rowSpan = cellSpan.getAttribute("rowSpan");
 
-                    if (!"1".equals(colSpan) &&  !"1".equals(rowSpan)) {
+                    if (!"1".equals(colSpan) && !"1".equals(rowSpan)) {
                         tableHtmlBuilder
                                 .append("<td")
                                 .append(" ").append("colspan=\"").append(colSpan).append("\"")
                                 .append(" ").append("rowspan=\"").append(rowSpan).append("\"")
                                 .append(">");
-                    } else if ("1".equals(colSpan) &&  !"1".equals(rowSpan)) {
+                    } else if ("1".equals(colSpan) && !"1".equals(rowSpan)) {
                         tableHtmlBuilder
                                 .append("<td")
                                 .append(" ").append("rowspan=\"").append(rowSpan).append("\"")
@@ -113,20 +114,20 @@ public class HwpxDocument extends ExtractDocument {
                 XmlUtil.findChildElementsByTagName(td, "hp:subList").forEach(subList -> {
                     List<Element> ps = XmlUtil.findChildElementsByTagName(subList, "hp:p");
                     for (int pIndex = 0; pIndex < ps.size(); pIndex++) {
-                        XmlUtil.findChildElementsByTagName(ps.get(pIndex), "hp:run").forEach(run -> {
-                            XmlUtil.findChildElements(run).forEach(node -> {
-                                switch (node.getNodeName()) {
-                                    // 텍스트
-                                    case "hp:t" -> tableHtmlBuilder.append(node.getTextContent());
-                                    // 표
-                                    case "hp:tbl" -> tableHtmlBuilder.append(convertTableXmlToHtml(node, depth + 1));
-                                    // 이미지
-                                    case "hp:pic" -> {
-                                        // TODO: Image -> Text 추출 (OCR)
+                        XmlUtil.findChildElementsByTagName(ps.get(pIndex), "hp:run").forEach(run ->
+                                XmlUtil.findChildElements(run).forEach(node -> {
+                                    switch (node.getNodeName()) {
+                                        // 텍스트
+                                        case "hp:t" -> tableHtmlBuilder.append(node.getTextContent());
+                                        // 표
+                                        case "hp:tbl" ->
+                                                tableHtmlBuilder.append(convertTableXmlToHtml(node, depth + 1));
+                                        // 이미지
+                                        case "hp:pic" -> {
+                                            // TODO: Image -> Text 추출 (OCR)
+                                        }
                                     }
-                                }
-                            });
-                        });
+                                }));
 
                         if (pIndex < ps.size() - 1) {
                             tableHtmlBuilder.append("<br>");
