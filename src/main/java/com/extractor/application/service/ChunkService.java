@@ -33,7 +33,7 @@ public class ChunkService implements ChunkUseCase {
         try {
             HwpxDocument hwpxDocument = extractPort.extractHwpxDocumentPort(originalDocument);
             hwpxDocument.extract();
-            hwpxDocument.selectPassage(chunkPatternVo);
+            hwpxDocument.topDownSelectPassage(chunkPatternVo);
 
             return hwpxDocument;
 
@@ -56,7 +56,7 @@ public class ChunkService implements ChunkUseCase {
         try {
             PdfDocument pdfDocument = extractPort.extractPdfDocumentPort(originalDocument);
             pdfDocument.extract();
-            pdfDocument.selectPassage(chunkPatternVo);
+            pdfDocument.topDownSelectPassage(chunkPatternVo);
 
             return pdfDocument;
 
