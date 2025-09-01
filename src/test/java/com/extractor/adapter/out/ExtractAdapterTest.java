@@ -16,7 +16,8 @@ import org.springframework.test.context.ContextConfiguration;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -30,18 +31,28 @@ class ExtractAdapterTest {
         this.extractPort = extractPort;
     }
 
+    private static final String UPLOAD_PATH = "./test";
+
     @Test
-    @DisplayName("HWPX 한글 문서를 압축 해제 후, 데이터를 추출하여 반환 한다.")
+    @DisplayName("HWPX 한글 문서의 데이터를 추출하여 반환 한다.")
     void extractHwpxDocumentPort() {
         // arrange
-        String fileName = "test_document.hwpx";
-        String originalFileName = "test_document.hwpx";
-        String extension = FileExtension.HWPX.getExtension();
-        Path path = Paths.get("./filter");
-        Path fullPath = Paths.get("./filter", fileName);
+        String docId = "hwpx_test_document";
+        String originalFileName = "한글_테스트_문서";
+        Path path = Paths.get(UPLOAD_PATH);
+
+        FileExtension extension = FileExtension.HWPX;
+        String fileName = docId + "." + extension.getSimpleExtension();
+        Path fullPath = path.resolve(fileName);
+
+        // 압축 해제 경로
+        Path unZipPath = path.resolve(docId);
+        FileUtil.mkdirs(unZipPath);
+
+        fullPath = FileUtil.copyFile(fullPath, unZipPath.resolve(fileName));
+        path = FileUtil.decompression(fullPath.toFile(), unZipPath.toFile());
 
         OriginalDocument originalDocument = OriginalDocument.builder()
-                .fileName(fileName)
                 .originalFileName(originalFileName)
                 .path(path)
                 .fullPath(fullPath)
@@ -51,25 +62,27 @@ class ExtractAdapterTest {
         // act
         HwpxDocument hwpxDocument = extractPort.extractHwpxDocumentPort(originalDocument);
 
-        var expected = FileUtil.deleteDirectory(hwpxDocument.getUnZipPath());
+        // 압축 해제 디렉토리 삭제
+        FileUtil.deleteDirectory(originalDocument.getPath());
 
         // assert
         assertNotNull(hwpxDocument);
-        assertTrue(expected);
+        assertFalse(hwpxDocument.getSections().isEmpty());
     }
 
     @Test
-    @DisplayName("PDF 한글 문서를 SNF을 통해 추출하여 반환 한다.")
+    @DisplayName("PDF의 데이터를 추출하여 반환 한다.")
     void extractPdfDocumentPort() {
         // arrange
-        String fileName = "test_document.pdf";
-        String originalFileName = "test_document.pdf";
-        String extension = FileExtension.PDF.getExtension();
-        Path path = Paths.get("./filter");
-        Path fullPath = Paths.get("./filter", fileName);
+        String docId = "pdf_test_document";
+        String originalFileName = "PDF_테스트_문서";
+        Path path = Paths.get(UPLOAD_PATH);
+
+        FileExtension extension = FileExtension.PDF;
+        String fileName = docId + "." + extension.getSimpleExtension();
+        Path fullPath = path.resolve(fileName);
 
         OriginalDocument originalDocument = OriginalDocument.builder()
-                .fileName(fileName)
                 .originalFileName(originalFileName)
                 .path(path)
                 .fullPath(fullPath)

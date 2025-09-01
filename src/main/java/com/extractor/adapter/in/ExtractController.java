@@ -1,7 +1,7 @@
 package com.extractor.adapter.in;
 
-import com.extractor.adapter.in.dto.ExtractHwpxRequestDto;
-import com.extractor.adapter.in.dto.ExtractHwpxResponseDto;
+import com.extractor.adapter.in.dto.ExtractRequestDto;
+import com.extractor.adapter.in.dto.ExtractResponseDto;
 import com.extractor.application.usecase.ChunkUseCase;
 import com.extractor.domain.model.HwpxDocument;
 import com.extractor.domain.model.PdfDocument;
@@ -31,59 +31,73 @@ public class ExtractController {
 
     private final ChunkUseCase chunkUseCase;
 
+    /**
+     * HWP 문서 전처리
+     * @param extractRequestDto 전처리 요청 정보
+     * @param multipartFile 업로드 파일
+     */
     @PostMapping(path = "/hwp", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Success", content = {@Content(schema = @Schema(implementation = ExtractHwpxResponseDto.class))}),
+            @ApiResponse(responseCode = "200", description = "Success", content = {@Content(schema = @Schema(implementation = ExtractResponseDto.class))}),
             @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = Map.class))}),
     })
     @Operation(summary = "한글 문서 전처리 정규식 테스트")
-    public ResponseEntity<ExtractHwpxResponseDto> extractHwpx(
-            @Parameter(name = "extractHwpxRequestDto", description = "전처리 요청 정보", required = true)
+    public ResponseEntity<ExtractResponseDto> extractHwpx(
+            @Parameter(name = "extractRequestDto", description = "전처리 요청 정보", required = true)
             @RequestPart("requestDto")
-            ExtractHwpxRequestDto extractHwpxRequestDto,
+            ExtractRequestDto extractRequestDto,
 
             @Parameter(name = "uploadFile", description = "업로드 파일", required = true)
             @RequestPart("uploadFile")
             MultipartFile multipartFile
     ) {
         // 한글 파일 체크
-        if (!FileExtension.HWP.isEquals(multipartFile.getContentType()) && !FileExtension.HWPX.isEquals(multipartFile.getContentType())) {
-            throw new RuntimeException("only hwp and hwpx");
+        String extension = multipartFile.getContentType();
+        if (!FileExtension.HWP.equals(FileExtension.find(extension)) && !FileExtension.HWPX.equals(FileExtension.find(extension))) {
+            throw new RuntimeException("possible hwp or hwpx only");
         }
 
-        HwpxDocument hwpxDocument = chunkUseCase.chunkHwpxDocument(new OriginalDocumentVo(multipartFile), new ChunkPatternVo(
-                extractHwpxRequestDto.getPatterns(), extractHwpxRequestDto.getStopPatterns()));
+        HwpxDocument hwpxDocument = chunkUseCase.chunkHwpxDocument(
+                new OriginalDocumentVo(multipartFile),
+                new ChunkPatternVo(extractRequestDto.getPatterns(), extractRequestDto.getStopPatterns()));
 
-        return ResponseEntity.ok(ExtractHwpxResponseDto.builder()
+        return ResponseEntity.ok(ExtractResponseDto.builder()
                 .lines(hwpxDocument.getLines())
                 .passages(hwpxDocument.getPassages())
                 .build());
     }
 
+    /**
+     * PDF 문서 전처리
+     * @param extractRequestDto 전처리 요청 정보 Dto
+     * @param multipartFile 업로드 파일
+     */
     @PostMapping(path = "/pdf", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Success", content = {@Content(schema = @Schema(implementation = ExtractHwpxResponseDto.class))}),
+            @ApiResponse(responseCode = "200", description = "Success", content = {@Content(schema = @Schema(implementation = ExtractResponseDto.class))}),
             @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = Map.class))}),
     })
     @Operation(summary = "PDF 문서 전처리 정규식 테스트")
-    public ResponseEntity<ExtractHwpxResponseDto> extractPdf(
-            @Parameter(name = "extractHwpxRequestDto", description = "전처리 요청 정보", required = true)
+    public ResponseEntity<ExtractResponseDto> extractPdf(
+            @Parameter(name = "extractRequestDto", description = "전처리 요청 정보", required = true)
             @RequestPart("requestDto")
-            ExtractHwpxRequestDto extractHwpxRequestDto,
+            ExtractRequestDto extractRequestDto,
 
             @Parameter(name = "uploadFile", description = "업로드 파일", required = true)
             @RequestPart("uploadFile")
             MultipartFile multipartFile
     ) {
         // PDF 파일 체크
-        if (!FileExtension.PDF.isEquals(multipartFile.getContentType())) {
-            throw new RuntimeException("only pdf");
+        String extension = multipartFile.getContentType();
+        if (!FileExtension.PDF.equals(FileExtension.find(extension))) {
+            throw new RuntimeException("possible pdf only");
         }
 
-        PdfDocument pdfDocument = chunkUseCase.chunkPdfDocument(new OriginalDocumentVo(multipartFile), new ChunkPatternVo(
-                extractHwpxRequestDto.getPatterns(), extractHwpxRequestDto.getStopPatterns()));
+        PdfDocument pdfDocument = chunkUseCase.chunkPdfDocument(
+                new OriginalDocumentVo(multipartFile),
+                new ChunkPatternVo(extractRequestDto.getPatterns(), extractRequestDto.getStopPatterns()));
 
-        return ResponseEntity.ok(ExtractHwpxResponseDto.builder()
+        return ResponseEntity.ok(ExtractResponseDto.builder()
                 .lines(pdfDocument.getLines())
                 .passages(pdfDocument.getPassages())
                 .build());

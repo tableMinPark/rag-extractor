@@ -33,14 +33,16 @@ public class FileAdapter implements FilePort {
     @Override
     public OriginalDocument uploadFilePort(OriginalDocumentVo originalDocumentVo) {
 
+        String docId = StringUtil.generateRandomId();
         String originalFileName = originalDocumentVo.getOriginalFileName();
-        String extension = originalDocumentVo.getExtension();
-        String fileName = StringUtil.generateRandomId();
         Path path = Paths.get(UPLOAD_PATH);
+
+        FileExtension extension = originalDocumentVo.getExtension();
+        String fileName = docId + "." + extension.getSimpleExtension();
         Path fullPath = path.resolve(fileName);
 
         if (!path.toFile().exists()) {
-            path.toFile().mkdirs();
+            FileUtil.mkdirs(path);
         }
 
         try {
@@ -49,19 +51,53 @@ public class FileAdapter implements FilePort {
             throw new RuntimeException("upload file error");
         }
 
-        if (FileExtension.HWP.isEquals(extension)) {
+        // HWP 파일 변환
+        if (FileExtension.HWP.equals(extension)) {
             try {
+                // HWP 파일 읽기
                 HWPFile fromFile = HWPReader.fromFile(fullPath.toString());
                 HWPXFile toFile = Hwp2Hwpx.toHWPX(fromFile);
+
+                // HWP 파일 삭제
+                FileUtil.deleteFile(fullPath);
+
+                // 파일 메타 데이터 변경
+                extension = FileExtension.HWPX;
+                fileName = docId + "." + extension.getSimpleExtension();
+                fullPath = path.resolve(fileName);
+
+                // HWPX 파일 쓰기
                 HWPXWriter.toFilepath(toFile, fullPath.toString());
-                extension = FileExtension.HWPX.getExtension();
+
             } catch (Exception e) {
                 throw new RuntimeException("convert hwp to hwpx error");
             }
         }
 
+        // HWPX 파일 압축 해제
+        if (FileExtension.HWPX.equals(extension)) {
+            // 압축 해제 경로
+            Path unZipPath = path.resolve(docId);
+
+            // 압축 해제 경로 존재 여부 확인
+            if (!unZipPath.toFile().exists()) {
+                FileUtil.mkdirs(unZipPath);
+            }
+
+            // HWPX 파일 이동
+            fullPath = FileUtil.moveFile(fullPath, unZipPath.resolve(fileName));
+
+            // 압축 파일 존재 여부 확인
+            if (!fullPath.toFile().exists()) {
+                throw new RuntimeException("not exists zip file");
+            }
+
+            // 압축 해제 및 path 변경
+            path = FileUtil.decompression(fullPath.toFile(), unZipPath.toFile());
+        }
+
         return OriginalDocument.builder()
-                .fileName(fileName)
+                .docId(docId)
                 .originalFileName(originalFileName)
                 .path(path)
                 .fullPath(fullPath)
@@ -77,5 +113,10 @@ public class FileAdapter implements FilePort {
     public void clearFilePort(OriginalDocument originalDocument) {
         // 파일 삭제
         FileUtil.deleteFile(originalDocument.getFullPath());
+
+        // HWPX 압축 폴더 삭제
+        if (FileExtension.HWPX.equals(originalDocument.getExtension())) {
+            FileUtil.deleteDirectory(originalDocument.getPath());
+        }
     }
 }
