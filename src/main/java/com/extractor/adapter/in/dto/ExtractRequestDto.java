@@ -19,9 +19,4 @@ public class ExtractRequestDto {
 
     @Schema(description = "전처리 중단 패턴", example = "[{\"depth\":0,\"prefix\":\"^[\\\\[\\\\(][^\\\\]\\\\)]*(별지|별첨|서식)[^\\\\]\\\\)]*[\\\\]\\\\)]\"}]")
     private List<PatternVo> stopPatterns;
-
-    public ExtractRequestDto(List<PatternVo> patterns, List<PatternVo> stopPatterns) {
-        this.patterns = patterns;
-        this.stopPatterns = stopPatterns;
-    }
 }

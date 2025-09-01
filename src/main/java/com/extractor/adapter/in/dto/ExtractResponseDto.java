@@ -2,25 +2,18 @@ package com.extractor.adapter.in.dto;
 
 import com.extractor.domain.model.DocumentLine;
 import com.extractor.domain.model.PassageDocument;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
+@Builder
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class ExtractResponseDto {
 
     private List<PassageDocument> passages;
 
     private List<DocumentLine> lines;
-
-    @Builder
-    public ExtractResponseDto(List<PassageDocument> passages, List<DocumentLine> lines) {
-        this.passages = passages;
-        this.lines = lines;
-    }
 }

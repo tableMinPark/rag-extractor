@@ -118,6 +118,9 @@ public class FileUtil {
      */
     public static Path decompression(File zipFile, File destDir) {
         if (!destDir.exists()) {
+            mkdirs(destDir.toPath());
+        } else {
+            throw new RuntimeException("already exist destDir");
         }
 
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile))) {
