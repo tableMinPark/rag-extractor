@@ -79,9 +79,6 @@ public class FileAdapter implements FilePort {
             // 압축 해제 경로
             Path unZipPath = path.resolve(docId);
 
-            // HWPX 파일 이동
-            fullPath = FileUtil.moveFile(fullPath, unZipPath.resolve(fileName));
-
             // 압축 파일 존재 여부 확인
             if (!fullPath.toFile().exists()) {
                 throw new RuntimeException("not exists zip file");
@@ -89,6 +86,10 @@ public class FileAdapter implements FilePort {
 
             // 압축 해제 및 path 변경
             path = FileUtil.decompression(fullPath.toFile(), unZipPath.toFile());
+
+            // HWPX 파일 이동
+            fullPath = FileUtil.moveFile(fullPath, unZipPath.resolve(fileName));
+
         }
 
         return OriginalDocument.builder()
