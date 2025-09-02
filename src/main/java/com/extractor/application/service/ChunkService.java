@@ -33,7 +33,8 @@ public class ChunkService implements ChunkUseCase {
         try {
             HwpxDocument hwpxDocument = extractPort.extractHwpxDocumentPort(originalDocument);
             hwpxDocument.extract();
-            hwpxDocument.topDownSelectPassage(chunkPatternVo);
+//            hwpxDocument.topDownSelectPassage(chunkPatternVo);    // TODO: 테스트 이후 변경 예정
+            hwpxDocument.bundleSelectPassage(chunkPatternVo);       // TODO: 테스트 이후 변경 예정
 
             return hwpxDocument;
 
