@@ -24,7 +24,7 @@ public enum FileExtension {
     public static FileExtension find(String extension) {
 
         for (FileExtension ext : FileExtension.values()) {
-            if (ext.isEquals(extension)) {
+            if (extension != null && extension.endsWith(ext.simpleExtension)) {
                 return ext;
             }
         }
