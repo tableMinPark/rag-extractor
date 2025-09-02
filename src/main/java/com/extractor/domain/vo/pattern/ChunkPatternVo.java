@@ -7,13 +7,16 @@ import java.util.List;
 @Getter
 public class ChunkPatternVo {
 
-    private int depthSize;
+    private final int tokenSize;
 
-    private List<PatternVo> patterns;
+    private final int depthSize;
 
-    private List<PatternVo> stopPatterns;
+    private final List<PatternVo> patterns;
 
-    public ChunkPatternVo(List<PatternVo> patterns, List<PatternVo> stopPatterns) {
+    private final List<PatternVo> stopPatterns;
+
+    public ChunkPatternVo(int tokenSize, List<PatternVo> patterns, List<PatternVo> stopPatterns) {
+        this.tokenSize = tokenSize;
         this.patterns = patterns;
         this.stopPatterns = stopPatterns;
 

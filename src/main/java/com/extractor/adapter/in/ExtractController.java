@@ -59,7 +59,7 @@ public class ExtractController {
 
         HwpxDocument hwpxDocument = chunkUseCase.chunkHwpxDocument(
                 new OriginalDocumentVo(multipartFile),
-                new ChunkPatternVo(extractRequestDto.getPatterns(), extractRequestDto.getStopPatterns()));
+                new ChunkPatternVo(extractRequestDto.getTokenSize(),extractRequestDto.getPatterns(),extractRequestDto.getStopPatterns()));
 
         return ResponseEntity.ok(ExtractResponseDto.builder()
                 .lines(hwpxDocument.getLines())
@@ -95,7 +95,7 @@ public class ExtractController {
 
         PdfDocument pdfDocument = chunkUseCase.chunkPdfDocument(
                 new OriginalDocumentVo(multipartFile),
-                new ChunkPatternVo(extractRequestDto.getPatterns(), extractRequestDto.getStopPatterns()));
+                new ChunkPatternVo(extractRequestDto.getTokenSize(),extractRequestDto.getPatterns(),extractRequestDto.getStopPatterns()));
 
         return ResponseEntity.ok(ExtractResponseDto.builder()
                 .lines(pdfDocument.getLines())
@@ -108,6 +108,7 @@ public class ExtractController {
      */
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, ?>> handleRuntimeException(RuntimeException e) {
+        e.printStackTrace();        // TODO: 디버깅 이후 삭제 예정
         return ResponseEntity.internalServerError().body(Map.of("message", e.getMessage()));
     }
 }

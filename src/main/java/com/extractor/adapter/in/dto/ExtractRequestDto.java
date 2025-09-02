@@ -14,6 +14,9 @@ import java.util.List;
 @Schema(description = "전처리 패턴 정보")
 public class ExtractRequestDto {
 
+    @Schema(description = "최대 토큰 사이즈", example = "2000")
+    private Integer tokenSize;
+
     @Schema(description = "전처리 패턴", example = "[{\"depth\":0,\"prefix\":\"^[\\\\[\\\\(][^\\\\]\\\\)]*별표[^\\\\]\\\\)]*[\\\\]\\\\)]\"},{\"depth\":0,\"prefix\":\"^부(\\\\s+)?칙\"},{\"depth\":0,\"prefix\":\"^제[0-9]{1,3}장[가-힣]+\"},{\"depth\":1,\"prefix\":\"^제[0-9]{1,3}절[가-힣]+\"},{\"depth\":2,\"prefix\":\"^제[0-9]{1,3}조(\\\\([가-힣]+\\\\))?\"}]")
     private List<PatternVo> patterns;
 
