@@ -9,11 +9,11 @@ import lombok.ToString;
 @Getter
 public class DocumentLine {
     
-    private LineType type;
+    private final LineType type;
 
-    private String content;
+    private final String content;
 
-    private int sum;
+    private final int sum;
 
     @Setter
     private String prefix;
