@@ -59,7 +59,7 @@ public class ExtractController {
 
         HwpxDocument hwpxDocument = chunkUseCase.chunkHwpxDocument(
                 new OriginalDocumentVo(multipartFile),
-                new ChunkPatternVo(extractRequestDto.getTokenSize(),extractRequestDto.getPatterns(),extractRequestDto.getStopPatterns()));
+                new ChunkPatternVo(extractRequestDto.getTokenSize(), extractRequestDto.getPatterns(), extractRequestDto.getStopPatterns()));
 
         return ResponseEntity.ok(ExtractResponseDto.builder()
                 .lines(hwpxDocument.getLines())
@@ -95,7 +95,7 @@ public class ExtractController {
 
         PdfDocument pdfDocument = chunkUseCase.chunkPdfDocument(
                 new OriginalDocumentVo(multipartFile),
-                new ChunkPatternVo(extractRequestDto.getTokenSize(),extractRequestDto.getPatterns(),extractRequestDto.getStopPatterns()));
+                new ChunkPatternVo(extractRequestDto.getTokenSize(), extractRequestDto.getPatterns(), extractRequestDto.getStopPatterns()));
 
         return ResponseEntity.ok(ExtractResponseDto.builder()
                 .lines(pdfDocument.getLines())

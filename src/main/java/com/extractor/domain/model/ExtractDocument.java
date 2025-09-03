@@ -30,7 +30,7 @@ public class ExtractDocument {
 
     // 버퍼
     private List<PatternVo> patterns;
-    private List<PatternVo> stopPatterns;
+    private List<String> stopPatterns;
     private String[][] titleBuffers;
     private StringBuilder contentBuffer;
 
@@ -48,17 +48,21 @@ public class ExtractDocument {
      * @param stopPatterns 중단 패턴
      * @return 유효 라인 범위 (0: head, 1: tail)
      */
-    private int[] getLineArrange(List<PatternVo> patterns, List<PatternVo> stopPatterns) {
+    private int[] getLineArrange(List<PatternVo> patterns, List<String> stopPatterns) {
 
         int head = 0;
         int tail = 0;
+
+        List<String> prefixes = patterns.stream()
+                .map(PatternVo::getPrefix)
+                .toList();
 
         while (tail < this.lines.size()) {
             DocumentLine line = this.lines.get(tail++);
             // 중단 조건 확인
             if (isPatternMatch(line, stopPatterns)) break;
             // 일치 조건 확인
-            if (isPatternMatch(line, patterns) && head == 0) {
+            if (isPatternMatch(line, prefixes) && head == 0) {
                 head = tail - 1;
             }
         }
@@ -213,7 +217,7 @@ public class ExtractDocument {
                 DocumentLine line = this.lines.get(lineIndex);
 
                 for (PatternVo pattern : patterns) {
-                    if (isPatternMatch(line, pattern)) {
+                    if (isPatternMatch(line, pattern.getPrefix())) {
                         this.bundleSelectPassage(nowHead, lineIndex, depth + 1, chunkPatternVo);
                         nowHead = lineIndex;
                         break;
@@ -279,28 +283,28 @@ public class ExtractDocument {
     /**
      * 패턴 확인
      * @param line 문서 라인
-     * @param pattern 패턴
+     * @param prefixes 패턴 목록
      * @return 패턴 일치 여부
      */
-    private static boolean isPatternMatch(DocumentLine line, PatternVo pattern) {
-        return isPatternMatch(line, List.of(pattern));
+    private static boolean isPatternMatch(DocumentLine line, List<String> prefixes) {
+        for (String prefix : prefixes) {
+            if (isPatternMatch(line, prefix)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
      * 패턴 확인
      * @param line 문서 라인
-     * @param patterns 패턴 목록
+     * @param prefix 정규식
      * @return 패턴 일치 여부
      */
-    private static boolean isPatternMatch(DocumentLine line, List<PatternVo> patterns) {
-        for (PatternVo patternVo : patterns) {
-            String prefix = patternVo.getPrefix();
-            Pattern pattern = Pattern.compile(prefix, Pattern.MULTILINE);
-            Matcher matcher = pattern.matcher(line.getContent());
-
-            if (matcher.find()) return true;
-        }
-
-        return false;
+    private static boolean isPatternMatch(DocumentLine line, String prefix) {
+        Pattern pattern = Pattern.compile(prefix, Pattern.MULTILINE);
+        Matcher matcher = pattern.matcher(line.getContent());
+        return matcher.find();
     }
 }

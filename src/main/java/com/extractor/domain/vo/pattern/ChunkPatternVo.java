@@ -13,9 +13,9 @@ public class ChunkPatternVo {
 
     private final List<PatternVo> patterns;
 
-    private final List<PatternVo> stopPatterns;
+    private final List<String> stopPatterns;
 
-    public ChunkPatternVo(int tokenSize, List<PatternVo> patterns, List<PatternVo> stopPatterns) {
+    public ChunkPatternVo(int tokenSize, List<PatternVo> patterns, List<String> stopPatterns) {
         this.tokenSize = tokenSize;
         this.patterns = patterns;
         this.stopPatterns = stopPatterns;
