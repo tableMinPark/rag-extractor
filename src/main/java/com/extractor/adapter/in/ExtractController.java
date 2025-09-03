@@ -7,6 +7,7 @@ import com.extractor.domain.model.HwpxDocument;
 import com.extractor.domain.model.PdfDocument;
 import com.extractor.domain.vo.document.OriginalDocumentVo;
 import com.extractor.domain.vo.pattern.ChunkPatternVo;
+import com.extractor.domain.vo.pattern.PatternVo;
 import com.extractor.global.enums.FileExtension;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -21,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Map;
 
 @Tag(name = "ExtractController")
@@ -57,9 +59,13 @@ public class ExtractController {
             throw new RuntimeException("possible hwp or hwpx only");
         }
 
+        List<PatternVo> patterns = extractRequestDto.getPatterns().stream()
+                .map(patternDto -> new PatternVo(patternDto.getTokenSize(), patternDto.getPrefixes()))
+                .toList();
+
         HwpxDocument hwpxDocument = chunkUseCase.chunkHwpxDocument(
                 new OriginalDocumentVo(multipartFile),
-                new ChunkPatternVo(extractRequestDto.getTokenSize(), extractRequestDto.getPatterns(), extractRequestDto.getStopPatterns()));
+                new ChunkPatternVo(patterns, extractRequestDto.getStopPatterns()));
 
         return ResponseEntity.ok(ExtractResponseDto.builder()
                 .lines(hwpxDocument.getLines())
@@ -93,9 +99,13 @@ public class ExtractController {
             throw new RuntimeException("possible pdf only");
         }
 
+        List<PatternVo> patterns = extractRequestDto.getPatterns().stream()
+                .map(patternDto -> new PatternVo(patternDto.getTokenSize(), patternDto.getPrefixes()))
+                .toList();
+
         PdfDocument pdfDocument = chunkUseCase.chunkPdfDocument(
                 new OriginalDocumentVo(multipartFile),
-                new ChunkPatternVo(extractRequestDto.getTokenSize(), extractRequestDto.getPatterns(), extractRequestDto.getStopPatterns()));
+                new ChunkPatternVo(patterns, extractRequestDto.getStopPatterns()));
 
         return ResponseEntity.ok(ExtractResponseDto.builder()
                 .lines(pdfDocument.getLines())

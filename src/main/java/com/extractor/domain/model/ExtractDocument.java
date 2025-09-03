@@ -29,6 +29,7 @@ public class ExtractDocument {
     private final List<PassageDocument> passages;
 
     // 버퍼
+    private int depthSize;
     private List<PatternVo> patterns;
     private List<String> stopPatterns;
     private String[][] titleBuffers;
@@ -44,23 +45,21 @@ public class ExtractDocument {
 
     /**
      * 유효 라인 범위 확인
-     * @param patterns 허용 패턴
-     * @param stopPatterns 중단 패턴
      * @return 유효 라인 범위 (0: head, 1: tail)
      */
-    private int[] getLineArrange(List<PatternVo> patterns, List<String> stopPatterns) {
+    private int[] getLineArrange() {
+        int head = 0, tail = 0;
 
-        int head = 0;
-        int tail = 0;
+        List<String> prefixes = new ArrayList<>();
 
-        List<String> prefixes = patterns.stream()
-                .map(PatternVo::getPrefix)
-                .toList();
+        for (PatternVo pattern : this.patterns) {
+            prefixes.addAll(pattern.getPrefixes());
+        }
 
         while (tail < this.lines.size()) {
             DocumentLine line = this.lines.get(tail++);
             // 중단 조건 확인
-            if (isPatternMatch(line, stopPatterns)) break;
+            if (isPatternMatch(line, this.stopPatterns)) break;
             // 일치 조건 확인
             if (isPatternMatch(line, prefixes) && head == 0) {
                 head = tail - 1;
@@ -77,12 +76,54 @@ public class ExtractDocument {
     private void resetBuffer(ChunkPatternVo chunkPatternVo) {
         // 기존 패시지 초기화
         this.passages.clear();
-
+        this.depthSize = chunkPatternVo.getPatterns().size();
         this.patterns = chunkPatternVo.getPatterns();
         this.stopPatterns = chunkPatternVo.getStopPatterns();
-        this.titleBuffers = new String[chunkPatternVo.getDepthSize()][patterns.size()];
         this.contentBuffer = new StringBuilder();
-        for (String[] titleBuffer : this.titleBuffers) Arrays.fill(titleBuffer, "");
+
+        this.titleBuffers = new String[this.depthSize][];
+        for (int depth = 0; depth < depthSize; depth++) {
+            int titleBufferSize = this.patterns.get(depth).getPrefixes().size();
+            this.titleBuffers[depth] = new String[titleBufferSize];
+            Arrays.fill(this.titleBuffers[depth], "");
+        }
+    }
+
+    /**
+     * 타이틀 버퍼 정리
+     * @param depth 현재 depth
+     * @param prefixIndex 현재 prefixIndex
+     */
+    private void titleBufferClear(int depth, int prefixIndex) {
+        for (int nowDepth = depth; nowDepth < this.depthSize; nowDepth++) {
+            int nowPrefixIndex = nowDepth != depth ? 0 : prefixIndex;
+
+            while (nowPrefixIndex < this.titleBuffers[nowDepth].length) {
+                this.titleBuffers[nowDepth][nowPrefixIndex] = "";
+                nowPrefixIndex++;
+            }
+        }
+    }
+
+    /**
+     * 타이틀 설정
+     * @param depth 현재 depth
+     * @param prefixIndex 현재 prefixIndex
+     */
+    private void setTitleBuffer(int depth, int prefixIndex, String title) {
+        this.titleBuffers[depth][prefixIndex] = title;
+    }
+
+    /**
+     * 본문 버퍼 플러시
+     */
+    private void contentBufferFlush() {
+        if (!this.contentBuffer.toString().trim().isBlank()) {
+            this.passages.add(PassageDocument.of(this.docId, this.passages.size(), this.depthSize, this.titleBuffers, this.contentBuffer));
+
+            // 본문 버퍼 초기화
+            this.contentBuffer = new StringBuilder();
+        }
     }
 
     /**
@@ -93,7 +134,7 @@ public class ExtractDocument {
         // 초기화
         this.resetBuffer(chunkPatternVo);
 
-        int[] lineArrange = this.getLineArrange(this.patterns, this.stopPatterns);
+        int[] lineArrange = this.getLineArrange();
         int head = lineArrange[0];
         int tail = lineArrange[1];
 
@@ -103,51 +144,39 @@ public class ExtractDocument {
             switch (line.getType()) {
                 case DocumentLine.LineType.TEXT -> {
                     boolean isMatched = false;
-                    for (int patternIndex = 0; patternIndex < this.patterns.size(); patternIndex++) {
-                        PatternVo patternVo = this.patterns.get(patternIndex);
 
-                        String prefix = patternVo.getPrefix();
-                        Pattern pattern = Pattern.compile(prefix, Pattern.MULTILINE);
-                        Matcher matcher = pattern.matcher(line.getContent());
+                    for (int depth = 0; depth < this.patterns.size(); depth++) {
+                        PatternVo patternVo = this.patterns.get(depth);
 
-                        if (matcher.find()) {
-                            // 본문 버퍼 플러시
-                            if (!this.contentBuffer.toString().trim().isBlank()) {
-                                // 목록 저장
-                                PassageDocument passageDocument = PassageDocument.of(
-                                        this.docId, this.passages.size(), chunkPatternVo.getDepthSize(), this.titleBuffers, this.contentBuffer);
+                        for (int prefixIndex = 0; prefixIndex < patternVo.getPrefixes().size(); prefixIndex++) {
+                            String prefix = patternVo.getPrefixes().get(prefixIndex);
+                            Pattern pattern = Pattern.compile(prefix, Pattern.MULTILINE);
+                            Matcher matcher = pattern.matcher(line.getContent());
 
-                                if (!passageDocument.getFullTitle().isBlank()) {
-                                    this.passages.add(passageDocument);
-                                }
+                            if (matcher.find()) {
+                                // 본문 버퍼 플러시
+                                this.contentBufferFlush();
 
-                                // 본문 버퍼 초기화
-                                this.contentBuffer = new StringBuilder();
+                                // 타이틀 버퍼 정리
+                                this.titleBufferClear(depth, prefixIndex);
+
+                                // 타이틀 저장
+                                this.setTitleBuffer(depth, prefixIndex, matcher.group().trim());
+
+                                // 타이틀 내 본문 내용 확인
+                                String contentInTitle = line.getContent().replaceFirst(prefix, "").trim();
+
+                                // 타이틀 라인에 본문 내용이 있는 경우 본문 버퍼에 포함
+                                if (!contentInTitle.isBlank()) this.contentBuffer.append("\n").append(contentInTitle);
+
+                                // 매칭
+                                isMatched = true;
+                                line.setPrefix(prefix);
+                                break;
                             }
-
-                            // 타이틀 버퍼 정리
-                            for (int depth = patternVo.getDepth(); depth < this.titleBuffers.length; depth++) {
-                                int childPatternIndex = depth == patternVo.getDepth() ? patternIndex : 0;
-
-                                while (childPatternIndex < this.titleBuffers[depth].length) {
-                                    this.titleBuffers[depth][childPatternIndex] = "";
-                                    childPatternIndex++;
-                                }
-                            }
-
-                            // 타이틀 저장
-                            String title = matcher.group().trim();
-                            this.titleBuffers[patternVo.getDepth()][patternIndex] = title;
-                            String content = line.getContent().replaceFirst(prefix, "").trim();
-
-                            // 타이틀 라인에 본문 내용이 있는 경우
-                            if (!content.isBlank()) this.contentBuffer.append("\n").append(content);
-
-                            isMatched = true;
-                            line.setPrefix(prefix);
-                            break;
                         }
                     }
+
 
                     if (!isMatched) this.contentBuffer.append("\n").append(line.getContent());
                 }
@@ -156,14 +185,7 @@ public class ExtractDocument {
         }
 
         // 본문 버퍼 플러시
-        if (!this.contentBuffer.toString().trim().isBlank()) {
-            // 목록 저장
-            PassageDocument passageDocument = PassageDocument.of(
-                    this.docId, this.passages.size(), chunkPatternVo.getDepthSize(), this.titleBuffers, this.contentBuffer);
-            if (!passageDocument.getFullTitle().isBlank()) {
-                this.passages.add(passageDocument);
-            }
-        }
+        this.contentBufferFlush();
     }
 
     /**
@@ -179,68 +201,21 @@ public class ExtractDocument {
     public void bundleSelectPassage(ChunkPatternVo chunkPatternVo) {
         // 초기화
         this.resetBuffer(chunkPatternVo);
-
-        int[] lineArrange = this.getLineArrange(this.patterns, this.stopPatterns);
-        int head = lineArrange[0];
-        int tail = lineArrange[1];
-
-        this.bundleSelectPassage(head, tail, 0, chunkPatternVo);
-    }
-
-    /**
-     * 묶음 단위 패시지 처리 재귀 함수
-     * @param head 라인 시작점
-     * @param tail 라인 종료점
-     * @param depth 깊이
-     * @param chunkPatternVo 패시지 패턴
-     */
-    private void bundleSelectPassage(int head, int tail, int depth, ChunkPatternVo chunkPatternVo) {
-
-        int tokenSize = head == 0
-                ? this.lines.get(tail - 1).getSum()
-                : this.lines.get(tail - 1).getSum() - this.lines.get(head - 1).getSum();
-        List<PatternVo> patterns = this.patterns.stream()
-                .filter(patternVo -> patternVo.getDepth() == depth)
-                .toList();
-
-        // TODO: PatternVo 에서 최대 토큰 수를 받아오도록 변경 필요
-        if (tokenSize <= chunkPatternVo.getTokenSize()) {
-            // TODO: 테스트 출력
-            System.out.printf("토큰수 적합 >> [%d] <%2d <-> %-2d> (%d) %s%n", depth, head, tail, tokenSize, this.lines.get(head).getContent());
-        } else if (patterns.isEmpty()) {
-            // TODO: 테스트 출력
-            System.out.printf("마지막 패턴 >> [%d] <%2d <-> %-2d> (%d) %s%n", depth, head, tail, tokenSize, this.lines.get(head).getContent());
-        } else {
-            // 가능 토큰 수 초과
-            int nowHead = head;
-            for (int lineIndex = head + 1; lineIndex < tail; lineIndex++) {
-                DocumentLine line = this.lines.get(lineIndex);
-
-                for (PatternVo pattern : patterns) {
-                    if (isPatternMatch(line, pattern.getPrefix())) {
-                        this.bundleSelectPassage(nowHead, lineIndex, depth + 1, chunkPatternVo);
-                        nowHead = lineIndex;
-                        break;
-                    }
-                }
-            }
-
-            this.bundleSelectPassage(nowHead, tail, depth + 1, chunkPatternVo);
-        }
     }
 
     /**
      * 문자 데이터 등록
      */
     public void addText(String text) {
+        String content = text.trim();
         int sum = this.lines.isEmpty()
-                ? text.length()
-                : this.lines.getLast().getSum() + text.length();
+                ? content.length()
+                : this.lines.getLast().getSum() + content.length();
 
         if (!text.trim().isBlank()) {
             this.lines.add(DocumentLine.builder()
                     .type(DocumentLine.LineType.TEXT)
-                    .content(text)
+                    .content(content)
                     .sum(sum)
                     .build());
         }
@@ -250,14 +225,15 @@ public class ExtractDocument {
      * 표 데이터 등록
      */
     public void addTable(String table) {
+        String content = table.trim();
         int sum = this.lines.isEmpty()
-                ? table.length()
-                : this.lines.getLast().getSum() + table.length();
+                ? content.length()
+                : this.lines.getLast().getSum() + content.length();
 
         if (!table.trim().isBlank()) {
             this.lines.add(DocumentLine.builder()
                     .type(DocumentLine.LineType.TABLE)
-                    .content(table)
+                    .content(content)
                     .sum(sum)
                     .build());
         }
@@ -267,14 +243,15 @@ public class ExtractDocument {
      * 이미지 데이터 등록
      */
     public void addImage(String text) {
+        String content = text.trim();
         int sum = this.lines.isEmpty()
-                ? text.length()
-                : this.lines.getLast().getSum() + text.length();
+                ? content.length()
+                : this.lines.getLast().getSum() + content.length();
 
         if (!text.trim().isBlank()) {
             this.lines.add(DocumentLine.builder()
                     .type(DocumentLine.LineType.IMAGE)
-                    .content(text)
+                    .content(content)
                     .sum(sum)
                     .build());
         }

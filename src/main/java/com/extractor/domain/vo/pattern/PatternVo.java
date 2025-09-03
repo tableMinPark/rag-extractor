@@ -1,23 +1,18 @@
 package com.extractor.domain.vo.pattern;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
+
+import java.util.List;
 
 @Getter
 public class PatternVo {
 
-    @Schema(description = "제목 번호")
-    private final int depth;
-
-    @Schema(description = "제약 토큰 수")
     private final int tokenSize;
 
-    @Schema(description = "정규식")
-    private final String prefix;
+    private final List<String> prefixes;
 
-    public PatternVo(int depth, int tokenSize, String prefix) {
-        this.depth = depth;
+    public PatternVo(int tokenSize, List<String> prefixes) {
         this.tokenSize = tokenSize;
-        this.prefix = prefix;
+        this.prefixes = prefixes;
     }
 }
