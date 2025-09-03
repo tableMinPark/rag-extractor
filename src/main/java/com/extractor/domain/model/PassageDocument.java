@@ -2,7 +2,6 @@ package com.extractor.domain.model;
 
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 
 import java.util.Arrays;
@@ -11,21 +10,24 @@ import java.util.Arrays;
 @Getter
 public class PassageDocument {
 
-    private String docId;
+    private final String docId;
 
-    private int num;
+    private final int num;
 
     private String fullTitle;
 
-    private String[] titles;
+    private final String[] titles;
 
     private String content;
+
+    private int tokenSize;
 
     @Builder
     public PassageDocument(String docId, int num, int depthSize) {
         this.docId = docId;
         this.num = num;
         this.titles = new String[depthSize];
+        this.tokenSize = 0;
         Arrays.fill(this.titles, "");
     }
 
@@ -87,6 +89,7 @@ public class PassageDocument {
      */
     public void setContent(String content) {
         this.content = content.trim();
+        this.tokenSize = this.content.length();
     }
 
     /**
