@@ -13,17 +13,22 @@ public class DocumentLine {
 
     private final String content;
 
-    private final int sum;
-
     @Setter
     private String prefix;
 
     @Builder
-    public DocumentLine(LineType type, String content, int sum) {
+    public DocumentLine(LineType type, String content) {
         this.type = type;
         this.content = content;
         this.prefix = "";
-        this.sum = sum;
+    }
+
+    public String getContent() {
+        if (this.prefix != null && !this.prefix.isBlank()) {
+            return this.content.replaceFirst(this.prefix, "");
+        } else {
+            return this.content;
+        }
     }
 
     public enum LineType {

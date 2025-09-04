@@ -5,6 +5,7 @@ import com.extractor.application.port.FilePort;
 import com.extractor.application.usecase.ChunkUseCase;
 import com.extractor.domain.model.HwpxDocument;
 import com.extractor.domain.model.OriginalDocument;
+import com.extractor.domain.model.PassageDocument;
 import com.extractor.domain.model.PdfDocument;
 import com.extractor.domain.vo.document.OriginalDocumentVo;
 import com.extractor.domain.vo.pattern.ChunkPatternVo;
@@ -33,8 +34,14 @@ public class ChunkService implements ChunkUseCase {
         try {
             HwpxDocument hwpxDocument = extractPort.extractHwpxDocumentPort(originalDocument);
             hwpxDocument.extract();
-            hwpxDocument.topDownSelectPassage(chunkPatternVo);
-//            hwpxDocument.bundleSelectPassage(chunkPatternVo);     // TODO: 테스트 이후 삭제 예정
+
+            PassageDocument passageDocument = new PassageDocument(
+                    hwpxDocument.getDocId(),
+                    chunkPatternVo.getPatterns().size(),
+                    hwpxDocument.getLines());
+
+            hwpxDocument.setPassages(passageDocument.chunk(
+                    chunkPatternVo.getPatterns(), chunkPatternVo.getStopPatterns()));
 
             return hwpxDocument;
 
@@ -57,7 +64,14 @@ public class ChunkService implements ChunkUseCase {
         try {
             PdfDocument pdfDocument = extractPort.extractPdfDocumentPort(originalDocument);
             pdfDocument.extract();
-            pdfDocument.topDownSelectPassage(chunkPatternVo);
+
+            PassageDocument passageDocument = new PassageDocument(
+                    pdfDocument.getDocId(),
+                    chunkPatternVo.getPatterns().size(),
+                    pdfDocument.getLines());
+
+            pdfDocument.setPassages(passageDocument.chunk(
+                    chunkPatternVo.getPatterns(), chunkPatternVo.getStopPatterns()));
 
             return pdfDocument;
 
