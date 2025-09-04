@@ -33,7 +33,7 @@ public class ExtractDocument {
     private List<PatternVo> patterns;
     private List<String> stopPatterns;
     private String[][] titleBuffers;
-    private StringBuilder contentBuffer;
+    private List<DocumentLine> contentBuffer;
 
     public ExtractDocument(String docId, String name, Path path) {
         this.docId = docId;
@@ -79,7 +79,7 @@ public class ExtractDocument {
         this.depthSize = chunkPatternVo.getPatterns().size();
         this.patterns = chunkPatternVo.getPatterns();
         this.stopPatterns = chunkPatternVo.getStopPatterns();
-        this.contentBuffer = new StringBuilder();
+        this.contentBuffer = new ArrayList<>();
 
         this.titleBuffers = new String[this.depthSize][];
         for (int depth = 0; depth < depthSize; depth++) {
@@ -119,10 +119,10 @@ public class ExtractDocument {
      */
     private void contentBufferFlush() {
         if (!this.contentBuffer.toString().trim().isBlank()) {
-            this.passages.add(PassageDocument.of(this.docId, this.passages.size(), this.depthSize, this.titleBuffers, this.contentBuffer));
+            this.passages.add(new PassageDocument(this.docId, this.passages.size(), this.titleBuffers, this.contentBuffer));
 
             // 본문 버퍼 초기화
-            this.contentBuffer = new StringBuilder();
+            this.contentBuffer = new ArrayList<>();
         }
     }
 
@@ -154,6 +154,8 @@ public class ExtractDocument {
                             Matcher matcher = pattern.matcher(line.getContent());
 
                             if (matcher.find()) {
+                                line.setPrefix(prefix);
+
                                 // 본문 버퍼 플러시
                                 this.contentBufferFlush();
 
@@ -167,20 +169,19 @@ public class ExtractDocument {
                                 String contentInTitle = line.getContent().replaceFirst(prefix, "").trim();
 
                                 // 타이틀 라인에 본문 내용이 있는 경우 본문 버퍼에 포함
-                                if (!contentInTitle.isBlank()) this.contentBuffer.append("\n").append(contentInTitle);
+                                if (!contentInTitle.isBlank()) this.contentBuffer.add(line);
 
                                 // 매칭
                                 isMatched = true;
-                                line.setPrefix(prefix);
                                 break;
                             }
                         }
                     }
 
 
-                    if (!isMatched) this.contentBuffer.append("\n").append(line.getContent());
+                    if (!isMatched) this.contentBuffer.add(line);
                 }
-                case DocumentLine.LineType.TABLE, DocumentLine.LineType.IMAGE -> this.contentBuffer.append("\n").append(line.getContent());
+                case DocumentLine.LineType.TABLE, DocumentLine.LineType.IMAGE -> this.contentBuffer.add(line);
             }
         }
 
@@ -199,8 +200,6 @@ public class ExtractDocument {
      * ...
      */
     public void bundleSelectPassage(ChunkPatternVo chunkPatternVo) {
-        // 초기화
-        this.resetBuffer(chunkPatternVo);
     }
 
     /**

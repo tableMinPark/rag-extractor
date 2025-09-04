@@ -1,10 +1,12 @@
 package com.extractor.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 
 import java.util.Arrays;
+import java.util.List;
 
 @ToString
 @Getter
@@ -16,41 +18,49 @@ public class PassageDocument {
 
     private String fullTitle;
 
-    private final String[] titles;
+    private String[] titles;
 
     private String content;
 
     private int tokenSize;
 
+    @JsonIgnore
+    private final String[][] titleBuffers;
+
+    @JsonIgnore
+    private final List<DocumentLine> lines;
+
     @Builder
-    public PassageDocument(String docId, int num, int depthSize) {
+    public PassageDocument(String docId, int num, String[][] titleBuffers, List<DocumentLine> lines) {
         this.docId = docId;
         this.num = num;
-        this.titles = new String[depthSize];
-        this.tokenSize = 0;
-        Arrays.fill(this.titles, "");
+        this.fullTitle = "";
+        this.titles = new String[titleBuffers.length];
+        this.content = "";
+        this.titleBuffers = new String[titleBuffers.length][];
+        this.lines = lines;
+
+        for (int titleBufferIndex = 0; titleBufferIndex < titleBuffers.length; titleBufferIndex++) {
+            this.titleBuffers[titleBufferIndex] = Arrays.copyOf(titleBuffers[titleBufferIndex], titleBuffers[titleBufferIndex].length);
+        }
     }
 
+//    /**
+//     * DFS 청킹
+//     */
+//    public List<PassageDocument> chunk() {
+//
+//    }
+
     /**
-     * 패시지 문서 생성
-     * @param docId 추출 문서 식별자
-     * @param num 번호
-     * @param depthSize 최대 깊이
-     * @param titleBuffers 타이틀 버퍼 목록
-     * @param contentBuffer 본문 버퍼
-     * @return 패시지 문서
+     * 타이틀 배열 조회
+     * @return 타이틀 배열
      */
-    public static PassageDocument of(String docId, int num, int depthSize, String[][] titleBuffers, StringBuilder contentBuffer) {
+    public String[] getTitles() {
 
-        // 패시지 문서 생성
-        PassageDocument passageDocument = PassageDocument.builder()
-                .docId(docId)
-                .num(num)
-                .depthSize(depthSize)
-                .build();
+        this.titles = new String[this.titleBuffers.length];
+        Arrays.fill(this.titles, "");
 
-        // 타이틀 생성
-        StringBuilder fullTitleBuilder = new StringBuilder();
         for (int depth = 0; depth < titleBuffers.length; depth++) {
             StringBuilder titleBuilder = new StringBuilder();
             for (String titleBuffer : titleBuffers[depth]) {
@@ -60,43 +70,59 @@ public class PassageDocument {
             }
             // 타이틀 추가
             if (!titleBuilder.isEmpty()) {
-                fullTitleBuilder.append(titleBuilder);
-                passageDocument.addTitle(depth, titleBuilder.toString());
+                this.titles[depth] += " " + titleBuilder;
+                this.titles[depth] = this.titles[depth].trim();
             }
         }
 
-        // 전체 타이틀 설정
-        passageDocument.setFullTitle(fullTitleBuilder.toString());
-        // 본문 추가
-        passageDocument.setContent(contentBuffer.toString());
-
-        return passageDocument;
+        return this.titles;
     }
 
     /**
-     * 필드 데이터 추가
+     * 전체 타이틀 조회
+     * @return 전체 타이틀 문자열
      */
-    public void addTitle(int depth, String title) {
-        if (depth < this.titles.length) {
-            this.titles[depth] += " " + title;
-            this.titles[depth] = this.titles[depth].trim();
+    public String getFullTitle() {
+        StringBuilder fullTitleBuilder = new StringBuilder();
+        for (String[] buffer : this.titleBuffers) {
+            StringBuilder titleBuilder = new StringBuilder();
+            for (String titleBuffer : buffer) {
+                if (!titleBuffer.isBlank()) {
+                    titleBuilder.append(" ").append(titleBuffer);
+                }
+            }
+            // 타이틀 추가
+            if (!titleBuilder.isEmpty()) {
+                fullTitleBuilder.append(titleBuilder);
+            }
         }
+        return this.fullTitle = fullTitleBuilder.toString().trim();
     }
 
     /**
-     * 본문 설정
-     * @param content 본문
+     * 본문 조회
+     * @return 본문 문자열
      */
-    public void setContent(String content) {
-        this.content = content.trim();
-        this.tokenSize = this.content.length();
+    public String getContent() {
+        StringBuilder contentBuilder = new StringBuilder();
+        for (DocumentLine line : this.lines) {
+            String prefix = line.getPrefix();
+            String content = line.getContent().trim();
+
+            if (!prefix.isBlank()) {
+                content = content.replaceFirst(prefix, "");
+            }
+
+            contentBuilder.append("\n").append(content.trim());
+        }
+        return this.content = contentBuilder.toString().trim();
     }
 
-    /**
-     * 전체 타이틀 설정
-     * @param fullTitle 전체 타이틀
-     */
-    public void setFullTitle(String fullTitle) {
-        this.fullTitle = fullTitle.trim();
-    }
+//    /**
+//     * 토큰 사이즈 조회
+//     * @return 토큰 사이즈
+//     */
+//    public int getTokenSize() {
+//
+//    }
 }
