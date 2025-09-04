@@ -11,7 +11,7 @@ import java.util.Arrays;
 @Getter
 public class PdfDocument extends ExtractDocument {
 
-    private String content;
+    private final String content;
 
     @Builder
     public PdfDocument(String docId, String name, Path path, String content) {

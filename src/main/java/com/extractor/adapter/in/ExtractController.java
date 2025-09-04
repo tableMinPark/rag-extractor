@@ -2,6 +2,7 @@ package com.extractor.adapter.in;
 
 import com.extractor.adapter.in.dto.ExtractRequestDto;
 import com.extractor.adapter.in.dto.ExtractResponseDto;
+import com.extractor.adapter.in.dto.PatternDto;
 import com.extractor.application.usecase.ChunkUseCase;
 import com.extractor.domain.model.HwpxDocument;
 import com.extractor.domain.model.PdfDocument;
@@ -22,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -59,17 +61,15 @@ public class ExtractController {
             throw new RuntimeException("possible hwp or hwpx only");
         }
 
-        List<PatternVo> patterns = extractRequestDto.getPatterns().stream()
-                .map(patternDto -> new PatternVo(patternDto.getTokenSize(), patternDto.getPrefixes()))
-                .toList();
+        ChunkPatternVo chunkPatternVo = new ChunkPatternVo(
+                validationPattern(extractRequestDto.getPatterns()), extractRequestDto.getStopPatterns());
 
-        HwpxDocument hwpxDocument = chunkUseCase.chunkHwpxDocument(
-                new OriginalDocumentVo(multipartFile),
-                new ChunkPatternVo(patterns, extractRequestDto.getStopPatterns()));
+        HwpxDocument hwpxDocument = chunkUseCase.chunkHwpxDocument(new OriginalDocumentVo(multipartFile), chunkPatternVo);
 
         return ResponseEntity.ok(ExtractResponseDto.builder()
                 .lines(hwpxDocument.getLines())
                 .passages(hwpxDocument.getPassages())
+                .pattern(chunkPatternVo)
                 .build());
     }
 
@@ -99,18 +99,35 @@ public class ExtractController {
             throw new RuntimeException("possible pdf only");
         }
 
-        List<PatternVo> patterns = extractRequestDto.getPatterns().stream()
-                .map(patternDto -> new PatternVo(patternDto.getTokenSize(), patternDto.getPrefixes()))
-                .toList();
+        ChunkPatternVo chunkPatternVo = new ChunkPatternVo(
+                validationPattern(extractRequestDto.getPatterns()), extractRequestDto.getStopPatterns());
 
-        PdfDocument pdfDocument = chunkUseCase.chunkPdfDocument(
-                new OriginalDocumentVo(multipartFile),
-                new ChunkPatternVo(patterns, extractRequestDto.getStopPatterns()));
+        PdfDocument pdfDocument = chunkUseCase.chunkPdfDocument(new OriginalDocumentVo(multipartFile), chunkPatternVo);
 
         return ResponseEntity.ok(ExtractResponseDto.builder()
                 .lines(pdfDocument.getLines())
                 .passages(pdfDocument.getPassages())
+                .pattern(chunkPatternVo)
                 .build());
+    }
+
+    /**
+     * 패턴 검증
+     * @param patternDtos 패턴 Dto
+     * @return 검증 이후 패턴 Vo 목록
+     */
+    List<PatternVo> validationPattern(List<PatternDto> patternDtos) {
+        List<PatternVo> patterns = new ArrayList<>();
+        int maxTokenSize = 0;
+        for (PatternDto patternDto : patternDtos) {
+            if (maxTokenSize > patternDto.getTokenSize()) {
+                patterns.add(new PatternVo(maxTokenSize, patternDto.getPrefixes()));
+            } else {
+                patterns.add(new PatternVo(patternDto.getTokenSize(), patternDto.getPrefixes()));
+                maxTokenSize = patternDto.getTokenSize();
+            }
+        }
+        return patterns;
     }
 
     /**

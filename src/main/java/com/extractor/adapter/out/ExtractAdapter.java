@@ -57,7 +57,7 @@ public class ExtractAdapter implements ExtractPort {
                 String filePath = item.getAttributes().getNamedItem("href").getTextContent();
                 String mediaType = item.getAttributes().getNamedItem("media-type").getTextContent();
 
-                if (FileExtension.XML.isEquals(mediaType) && id.startsWith("section")) {
+                if (mediaType.endsWith(FileExtension.XML.getSimpleExtension()) && id.startsWith("section")) {
                     File xmlFile = originalDocument.getPath().resolve(filePath).toFile();
 
                     if (xmlFile.exists()) {
