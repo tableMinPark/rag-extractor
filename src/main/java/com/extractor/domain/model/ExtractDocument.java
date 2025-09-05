@@ -1,7 +1,7 @@
 package com.extractor.domain.model;
 
+import com.extractor.global.enums.FileExtension;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,19 +18,18 @@ public class ExtractDocument {
 
     private final String name;
 
+    private final FileExtension extension;
+
     private final Path path;
 
     private final List<DocumentLine> lines;
 
-    @Setter
-    private List<PassageDocument> passages;
-
-    public ExtractDocument(String docId, String name, Path path) {
+    public ExtractDocument(String docId, String name, FileExtension extension, Path path) {
         this.docId = docId;
         this.name = name;
+        this.extension = extension;
         this.path = path;
         this.lines = new ArrayList<>();
-        this.passages = new ArrayList<>();
     }
 
     /**

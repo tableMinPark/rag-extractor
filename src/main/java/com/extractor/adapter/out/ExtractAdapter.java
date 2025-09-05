@@ -86,6 +86,7 @@ public class ExtractAdapter implements ExtractPort {
         return HwpxDocument.builder()
                 .docId(originalDocument.getDocId())
                 .name(originalDocument.getOriginalFileName())
+                .extension(originalDocument.getExtension())
                 .path(originalDocument.getPath())
                 .sections(sections)
                 .images(images)
@@ -101,6 +102,7 @@ public class ExtractAdapter implements ExtractPort {
         return PdfDocument.builder()
                 .docId(originalDocument.getDocId())
                 .name(originalDocument.getOriginalFileName())
+                .extension(originalDocument.getExtension())
                 .path(originalDocument.getPath())
                 .content(this.extractWithSnf(originalDocument.getFullPath()))
                 .build();
