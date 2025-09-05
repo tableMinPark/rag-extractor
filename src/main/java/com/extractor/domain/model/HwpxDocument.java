@@ -2,6 +2,7 @@ package com.extractor.domain.model;
 
 import com.extractor.domain.vo.hwpx.HwpxImageVo;
 import com.extractor.domain.vo.hwpx.HwpxSectionVo;
+import com.extractor.global.enums.FileExtension;
 import com.extractor.global.utils.XmlUtil;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,8 +23,8 @@ public class HwpxDocument extends ExtractDocument {
     private final List<HwpxImageVo> images;
 
     @Builder
-    public HwpxDocument(String docId, String name, List<HwpxSectionVo> sections, List<HwpxImageVo> images, Path path) {
-        super(docId, name, path);
+    public HwpxDocument(String docId, String name, FileExtension extension, List<HwpxSectionVo> sections, List<HwpxImageVo> images, Path path) {
+        super(docId, name, extension, path);
         this.sections = sections;
         this.images = images;
     }
