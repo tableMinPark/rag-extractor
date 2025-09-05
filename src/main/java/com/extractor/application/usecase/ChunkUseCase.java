@@ -19,4 +19,9 @@ public interface ChunkUseCase {
      */
     PdfDocument chunkPdfDocument(OriginalDocumentVo originalDocumentVo, ChunkPatternVo chunkPatternVo);
 
+    /**
+     * 문서 텍스트 추출
+     * @param originalDocumentVo 원본 문서 정보
+     */
+    String extractDocument(OriginalDocumentVo originalDocumentVo);
 }

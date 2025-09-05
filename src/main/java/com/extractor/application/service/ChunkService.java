@@ -80,4 +80,22 @@ public class ChunkService implements ChunkUseCase {
             filePort.clearFilePort(originalDocument);
         }
     }
+
+    /**
+     * 문서 텍스트 추출
+     * @param originalDocumentVo 원본 문서 정보
+     */
+    @Override
+    public String extractDocument(OriginalDocumentVo originalDocumentVo) {
+
+        // 파일 업로드
+        OriginalDocument originalDocument = filePort.uploadFilePort(originalDocumentVo);
+
+        try {
+            return extractPort.extractDocumentPort(originalDocument);
+        } finally {
+            // 파일 삭제
+            filePort.clearFilePort(originalDocument);
+        }
+    }
 }
