@@ -1,6 +1,7 @@
 package com.extractor.domain.model;
 
 import com.extractor.domain.vo.pattern.PatternVo;
+import com.extractor.domain.vo.pattern.PrefixVo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Getter;
@@ -95,7 +96,7 @@ public class PassageDocument {
         int head = 0, tail = 0;
 
         List<String> prefixes = new ArrayList<>();
-        for (PatternVo pattern : patterns) prefixes.addAll(pattern.getPrefixes());
+        for (PatternVo pattern : patterns) prefixes.addAll(pattern.getPrefixes().stream().map(PrefixVo::getPrefix).toList());
 
         while (tail < this.lines.size()) {
             DocumentLine line = this.lines.get(tail++);
@@ -143,13 +144,13 @@ public class PassageDocument {
         for (int lineIndex = 0; lineIndex < passage.lines.size(); lineIndex++) {
             DocumentLine line = passage.lines.get(lineIndex);
             for (int prefixIndex = 0; prefixIndex < patternVo.getPrefixes().size(); prefixIndex++) {
-                String prefix = patternVo.getPrefixes().get(prefixIndex);
-                Pattern pattern = Pattern.compile(prefix, Pattern.MULTILINE);
+                PrefixVo prefix = patternVo.getPrefixes().get(prefixIndex);
+                Pattern pattern = Pattern.compile(prefix.getPrefix(), Pattern.MULTILINE);
                 Matcher matcher = pattern.matcher(line.getContent());
 
                 if (matcher.find()) {
                     // 정규식 설정
-                    line.setPrefix(prefix);
+                    line.setPrefix(prefix.getPrefix());
                     // 재귀
                     passages.addAll(chunk(patterns, PassageDocument.builder()
                             .docId(passage.docId)
@@ -162,7 +163,10 @@ public class PassageDocument {
                     // 타이틀 버퍼 정리
                     passage.titleBufferClear(nextDepth, prefixIndex);
                     // 타이틀 지정
-                    passage.titleBuffers[nextDepth][prefixIndex] = matcher.group().trim();
+
+                    if (!prefix.getIsDeleting()) {
+                        passage.titleBuffers[nextDepth][prefixIndex] = matcher.group().trim();
+                    }
                     break;
                 }
             }
@@ -231,12 +235,17 @@ public class PassageDocument {
      * @return 본문 문자열
      */
     public String getContent() {
-        StringBuilder contentBuilder = new StringBuilder();
-        for (DocumentLine line : this.lines) {
-            String content = line.getContent().trim();
-            contentBuilder.append("\n").append(content.trim());
+
+        if (!this.lines.isEmpty()) {
+            StringBuilder contentBuilder = new StringBuilder(this.lines.getFirst().getSimpleContent());
+            for (int lineIndex = 1; lineIndex < this.lines.size(); lineIndex++) {
+                DocumentLine line = this.lines.get(lineIndex);
+                String content = line.getContent().trim();
+                contentBuilder.append("\n").append(content.trim());
+            }
+            this.content = contentBuilder.toString().trim();
         }
-        return this.content = contentBuilder.toString().trim();
+        return this.content;
     }
 
     /**

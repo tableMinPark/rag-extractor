@@ -23,11 +23,12 @@ public class DocumentLine {
         this.prefix = "";
     }
 
-    public String getContent() {
+    public String getSimpleContent() {
+        String content = this.content;
         if (this.prefix != null && !this.prefix.isBlank()) {
-            return this.content.replaceFirst(this.prefix, "");
+            return content.replaceFirst(this.prefix, "").trim();
         } else {
-            return this.content;
+            return content;
         }
     }
 

@@ -1,15 +1,16 @@
 package com.extractor.adapter.in;
 
-import com.extractor.adapter.in.dto.ErrorResponseDto;
-import com.extractor.adapter.in.dto.ExtractRequestDto;
-import com.extractor.adapter.in.dto.ExtractResponseDto;
-import com.extractor.adapter.in.dto.PatternDto;
+import com.extractor.adapter.in.dto.response.ErrorResponseDto;
+import com.extractor.adapter.in.dto.request.ExtractRequestDto;
+import com.extractor.adapter.in.dto.response.ExtractResponseDto;
+import com.extractor.adapter.in.dto.etc.PatternDto;
 import com.extractor.application.usecase.ChunkUseCase;
 import com.extractor.domain.model.HwpxDocument;
 import com.extractor.domain.model.PdfDocument;
 import com.extractor.domain.vo.document.OriginalDocumentVo;
 import com.extractor.domain.vo.pattern.ChunkPatternVo;
 import com.extractor.domain.vo.pattern.PatternVo;
+import com.extractor.domain.vo.pattern.PrefixVo;
 import com.extractor.global.enums.FileExtension;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -168,13 +169,21 @@ public class ExtractController {
     List<PatternVo> validationPattern(List<PatternDto> patternDtos) {
         List<PatternVo> patterns = new ArrayList<>();
         int maxTokenSize = 0;
+
         for (PatternDto patternDto : patternDtos) {
-            if (maxTokenSize > patternDto.getTokenSize()) {
-                patterns.add(new PatternVo(maxTokenSize, patternDto.getPrefixes()));
-            } else {
-                patterns.add(new PatternVo(patternDto.getTokenSize(), patternDto.getPrefixes()));
-                maxTokenSize = patternDto.getTokenSize();
-            }
+
+            List<PrefixVo> prefixes = patternDto.getPrefixes().stream()
+                    .map(prefixDto -> new PrefixVo(prefixDto.getPrefix(), prefixDto.getIsDeleting()))
+                    .toList();
+
+            patterns.add(PatternVo.builder()
+                    .prefixes(prefixes)
+                    .tokenSize(maxTokenSize > patternDto.getTokenSize()
+                            ? maxTokenSize
+                            : patternDto.getTokenSize())
+                    .build());
+
+            maxTokenSize = Math.max(maxTokenSize, patternDto.getTokenSize());
         }
         return patterns;
     }
