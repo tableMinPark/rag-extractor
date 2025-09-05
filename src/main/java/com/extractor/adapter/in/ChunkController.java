@@ -1,12 +1,13 @@
 package com.extractor.adapter.in;
 
 import com.extractor.adapter.in.dto.etc.PatternDto;
-import com.extractor.adapter.in.dto.request.ChunkRequestDto;
+import com.extractor.adapter.in.dto.request.ChunkDocumentRequestDto;
+import com.extractor.adapter.in.dto.request.ChunkLawRequestDto;
 import com.extractor.adapter.in.dto.response.ChunkResponseDto;
 import com.extractor.adapter.in.dto.response.ErrorResponseDto;
 import com.extractor.application.usecase.ChunkUseCase;
-import com.extractor.domain.vo.document.OriginalDocumentVo;
 import com.extractor.application.vo.PassageDocumentVo;
+import com.extractor.domain.vo.document.OriginalDocumentVo;
 import com.extractor.domain.vo.pattern.ChunkPatternVo;
 import com.extractor.domain.vo.pattern.PatternVo;
 import com.extractor.domain.vo.pattern.PrefixVo;
@@ -32,7 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-@Tag(name = "ChunkController", description = "패시지 셀렉트 (청킹)")
+@Tag(name = "ChunkController", description = "문서 청킹")
 @RequiredArgsConstructor
 @RequestMapping("/chunk")
 @RestController
@@ -42,7 +43,7 @@ public class ChunkController {
 
     /**
      * 문서 전처리
-     * @param chunkRequestDto 전처리 요청 정보
+     * @param chunkDocumentRequestDto 전처리 요청 정보
      * @param multipartFile 업로드 파일
      */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -50,11 +51,11 @@ public class ChunkController {
             @ApiResponse(responseCode = "200", description = "Success", content = {@Content(schema = @Schema(implementation = ChunkResponseDto.class, description = "전처리 응답"))}),
             @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ErrorResponseDto.class, description = "에러 응답"))}),
     })
-    @Operation(summary = "전처리 전처리")
-    public ResponseEntity<?> extractHwpx(
-            @Parameter(name = "chunkRequestDto", description = "전처리 요청 정보", required = true)
+    @Operation(summary = "문서 전처리")
+    public ResponseEntity<?> chunkDocument(
+            @Parameter(name = "chunkDocumentRequestDto", description = "전처리 요청 정보", required = true)
             @RequestPart("requestDto")
-            ChunkRequestDto chunkRequestDto,
+            ChunkDocumentRequestDto chunkDocumentRequestDto,
 
             @Parameter(name = "uploadFile", description = "업로드 파일", required = true)
             @RequestPart("uploadFile")
@@ -64,7 +65,7 @@ public class ChunkController {
             FileExtension extension = FileExtension.find(multipartFile.getContentType());
 
             ChunkPatternVo chunkPatternVo = new ChunkPatternVo(
-                    convertPatternVo(chunkRequestDto.getPatterns()), chunkRequestDto.getStopPatterns());
+                    convertPatternVo(chunkDocumentRequestDto.getPatterns()), chunkDocumentRequestDto.getStopPatterns());
 
             List<PassageDocumentVo> passages;
             switch (extension) {
@@ -84,7 +85,7 @@ public class ChunkController {
 
         } catch (RuntimeException e) {
 
-            log.error("{} | {}", multipartFile.getOriginalFilename(), e.getMessage());
+            log.error("/chunk | {} | {}", multipartFile.getOriginalFilename(), e.getMessage());
 
             return ResponseEntity.internalServerError().body(ErrorResponseDto.builder()
                     .message(e.getMessage())
@@ -92,6 +93,38 @@ public class ChunkController {
                     .build());
         }
     }
+
+    /**
+     * TODO: 법령 전처리
+     * @param chunkLawRequestDto 전처리 요청 정보
+     */
+    @PostMapping()
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Success", content = {@Content(schema = @Schema(implementation = ChunkResponseDto.class, description = "전처리 응답"))}),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ErrorResponseDto.class, description = "에러 응답"))}),
+    })
+    @Operation(summary = "법령 전처리")
+    public ResponseEntity<?> chunkLaw(
+            @Parameter(name = "chunkLawRequestDto", description = "전처리 요청 정보", required = true)
+            @RequestPart("requestDto")
+            ChunkLawRequestDto chunkLawRequestDto
+    ) {
+        try {
+            // TODO: 법령 전처리
+
+            return ResponseEntity.ok(null);
+
+        } catch (RuntimeException e) {
+
+            log.error("/chunk/law | {} | {}", chunkLawRequestDto.getLawIds(), e.getMessage());
+
+            return ResponseEntity.internalServerError().body(ErrorResponseDto.builder()
+                    .message(e.getMessage())
+                    .stackTrace(e.getStackTrace())
+                    .build());
+        }
+    }
+
 
     /**
      * 패턴 검증
