@@ -1,4 +1,4 @@
-package com.extractor.adapter.in.dto;
+package com.extractor.adapter.in.dto.etc;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -6,17 +6,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PatternDto {
-
-    @Schema(description = "제약 토큰 수")
-    private int tokenSize;
+public class PrefixDto {
 
     @Schema(description = "정규식")
-    private List<String> prefixes;
+    private String prefix;
+
+    @Schema(description = "삭제 여부")
+    private Boolean isDeleting;
 }
