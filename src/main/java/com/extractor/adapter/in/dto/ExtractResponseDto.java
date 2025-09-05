@@ -14,9 +14,9 @@ import java.util.List;
 @AllArgsConstructor
 public class ExtractResponseDto {
 
+    private ChunkPatternVo pattern;
+
     private List<PassageDocument> passages;
 
     private List<DocumentLine> lines;
-
-    private ChunkPatternVo pattern;
 }

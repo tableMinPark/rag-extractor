@@ -17,4 +17,10 @@ public interface ExtractPort {
      * @param originalDocument 원본 문서 정보
      */
     PdfDocument extractPdfDocumentPort(OriginalDocument originalDocument);
+
+    /**
+     * 문서 텍스트 추출
+     * @param originalDocument 원본 문서 정보
+     */
+    String extractDocumentPort(OriginalDocument originalDocument);
 }

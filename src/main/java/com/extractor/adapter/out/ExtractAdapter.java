@@ -21,6 +21,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -97,7 +98,29 @@ public class ExtractAdapter implements ExtractPort {
      */
     @Override
     public PdfDocument extractPdfDocumentPort(OriginalDocument originalDocument) {
+        return PdfDocument.builder()
+                .docId(originalDocument.getDocId())
+                .name(originalDocument.getOriginalFileName())
+                .path(originalDocument.getPath())
+                .content(this.extractWithSnf(originalDocument.getFullPath()))
+                .build();
+    }
 
+    /**
+     * 문서 텍스트 추출
+     * @param originalDocument 원본 문서 정보
+     */
+    @Override
+    public String extractDocumentPort(OriginalDocument originalDocument) {
+        return this.extractWithSnf(originalDocument.getFullPath()).trim();
+    }
+
+    /**
+     * SNF 텍스트 추출
+     * @param path 파일 경로
+     * @return 추출 문자열
+     */
+    private String extractWithSnf(Path path) {
         StringBuilder contentBuilder = new StringBuilder();
 
         try {
@@ -105,11 +128,11 @@ public class ExtractAdapter implements ExtractPort {
 
             String[] cmd;
             if (os.contains("windows")) {
-                cmd = new String[]{"cmd.exe", "/c", SNF_PATH, "-NO_WITHPAGE", "-C", "utf8", originalDocument.getFullPath().toString()};
+                cmd = new String[]{"cmd.exe", "/c", SNF_PATH, "-NO_WITHPAGE", "-C", "utf8", path.toString()};
             } else if (os.contains("mac")) {
-                cmd = new String[]{SNF_PATH, "-NO_WITHPAGE", "-C", "utf8", originalDocument.getFullPath().toString()};
+                cmd = new String[]{SNF_PATH, "-NO_WITHPAGE", "-C", "utf8", path.toString()};
             } else {
-                cmd = new String[]{SNF_PATH, "-NO_WITHPAGE", "-C", "utf8", originalDocument.getFullPath().toString()};
+                cmd = new String[]{SNF_PATH, "-NO_WITHPAGE", "-C", "utf8", path.toString()};
             }
 
             Process process = Runtime.getRuntime().exec(cmd);
@@ -124,11 +147,6 @@ public class ExtractAdapter implements ExtractPort {
             throw new RuntimeException("snf extract error");
         }
 
-        return PdfDocument.builder()
-                .docId(originalDocument.getDocId())
-                .name(originalDocument.getOriginalFileName())
-                .path(originalDocument.getPath())
-                .content(contentBuilder.toString())
-                .build();
+        return contentBuilder.toString();
     }
 }

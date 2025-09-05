@@ -25,13 +25,13 @@ public class PassageDocument {
     @JsonIgnore
     private List<DocumentLine> lines;
 
+    private int tokenSize;
+
     private String fullTitle;
 
     private String[] titles;
 
     private String content;
-
-    private int tokenSize;
 
     private final int depth;
 

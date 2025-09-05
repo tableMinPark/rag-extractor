@@ -8,13 +8,13 @@ import lombok.ToString;
 @ToString
 @Getter
 public class DocumentLine {
-    
-    private final LineType type;
 
     private final String content;
 
     @Setter
     private String prefix;
+
+    private final LineType type;
 
     @Builder
     public DocumentLine(LineType type, String content) {
