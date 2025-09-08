@@ -1,25 +1,25 @@
 package com.extractor.application.usecase;
 
 import com.extractor.application.vo.ExtractDocumentVo;
-import com.extractor.domain.vo.document.OriginalDocumentVo;
+import com.extractor.domain.vo.document.FileDocumentVo;
 
 public interface ExtractUseCase {
 
     /**
      * 한글 문서 추출
-     * @param originalDocumentVo 원본 문서 정보
+     * @param fileDocumentVo 원본 문서 정보
      */
-    ExtractDocumentVo extractHwpxDocumentUseCase(OriginalDocumentVo originalDocumentVo);
+    ExtractDocumentVo extractHwpxDocumentUseCase(FileDocumentVo fileDocumentVo);
 
     /**
      * PDf 문서 추출
-     * @param originalDocumentVo 원본 문서 정보
+     * @param fileDocumentVo 원본 문서 정보
      */
-    ExtractDocumentVo extractPdfDocumentUseCase(OriginalDocumentVo originalDocumentVo);
+    ExtractDocumentVo extractPdfDocumentUseCase(FileDocumentVo fileDocumentVo);
 
     /**
      * 문서 텍스트 추출
-     * @param originalDocumentVo 원본 문서 정보
+     * @param fileDocumentVo 원본 문서 정보
      */
-    String extractDocumentUseCase(OriginalDocumentVo originalDocumentVo);
+    String extractDocumentUseCase(FileDocumentVo fileDocumentVo);
 }

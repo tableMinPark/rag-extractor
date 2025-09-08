@@ -1,4 +1,4 @@
-package com.extractor.domain.model;
+package com.extractor.domain.model.pattern;
 
 import lombok.Builder;
 import lombok.Getter;

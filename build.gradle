@@ -16,7 +16,7 @@ plugins {
 }
 
 group = "com"
-version = "0.0.2"
+version = "0.0.3"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
@@ -35,16 +35,21 @@ repositories {
 dependencies {
     // spring
     implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
     developmentOnly "org.springframework.boot:spring-boot-devtools"
+
+    // lombok
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    // db
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'org.postgresql:postgresql'
 
     // hwpx lib
     implementation 'kr.dogfoot:hwplib:1.1.10'
     implementation 'kr.dogfoot:hwpxlib:1.0.7'
     implementation fileTree(dir: 'libs', includes: ['*.jar'])
-
-    // lombok
-    compileOnly "org.projectlombok:lombok:${lombokVersion}"
-    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
     // test
     testImplementation "org.springframework.boot:spring-boot-starter-test"
@@ -53,6 +58,7 @@ dependencies {
     testImplementation "org.mockito:mockito-core:${mockitoVersion}"
     testImplementation "org.mockito:mockito-junit-jupiter:${mockitoVersion}"
     testImplementation "org.assertj:assertj-core:${assertjVersion}"
+    testImplementation 'com.h2database:h2'
 
     //Swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'

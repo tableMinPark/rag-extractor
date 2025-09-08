@@ -4,7 +4,7 @@ import com.extractor.adapter.in.dto.response.ErrorResponseDto;
 import com.extractor.adapter.in.dto.response.ExtractResponseDto;
 import com.extractor.application.usecase.ExtractUseCase;
 import com.extractor.application.vo.ExtractDocumentVo;
-import com.extractor.domain.vo.document.OriginalDocumentVo;
+import com.extractor.domain.vo.document.FileDocumentVo;
 import com.extractor.global.enums.FileExtension;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -53,9 +53,9 @@ public class ExtractController {
             ExtractDocumentVo extractDocumentVo;
             switch (extension) {
                 case HWP, HWPX -> extractDocumentVo =
-                        extractUseCase.extractHwpxDocumentUseCase(new OriginalDocumentVo(multipartFile));
+                        extractUseCase.extractHwpxDocumentUseCase(new FileDocumentVo(multipartFile));
                 case PDF -> extractDocumentVo =
-                        extractUseCase.extractPdfDocumentUseCase(new OriginalDocumentVo(multipartFile));
+                        extractUseCase.extractPdfDocumentUseCase(new FileDocumentVo(multipartFile));
                 default -> throw new RuntimeException("미지원 파일 형식 (HWP, HWPX, PDF 만 지원)");
             }
 
@@ -95,7 +95,7 @@ public class ExtractController {
             MultipartFile multipartFile
     ) {
         try {
-            String text = extractUseCase.extractDocumentUseCase(new OriginalDocumentVo(multipartFile));
+            String text = extractUseCase.extractDocumentUseCase(new FileDocumentVo(multipartFile));
 
             log.info("/extract/text | {} ", multipartFile.getOriginalFilename());
 

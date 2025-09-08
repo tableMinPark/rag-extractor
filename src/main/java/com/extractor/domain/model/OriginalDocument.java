@@ -1,30 +1,33 @@
 package com.extractor.domain.model;
 
-import com.extractor.global.enums.FileExtension;
 import lombok.Builder;
 import lombok.Getter;
-
-import java.nio.file.Path;
 
 @Getter
 public class OriginalDocument {
 
+    private final Long originalId;
+
     private final String docId;
 
-    private final String originalFileName;
+    private final String docType;
 
-    private final Path path;
+    private final String categoryCode;
 
-    private final Path fullPath;
+    private final String name;
 
-    private final FileExtension extension;
+    private final String filePath;
+
+    private final String content;
 
     @Builder
-    public OriginalDocument(String docId, String originalFileName, Path path, Path fullPath, FileExtension extension) {
+    public OriginalDocument(Long originalId, String docId, String docType, String categoryCode, String name, String filePath, String content) {
+        this.originalId = originalId;
         this.docId = docId;
-        this.originalFileName = originalFileName;
-        this.path = path;
-        this.fullPath = fullPath;
-        this.extension = extension;
+        this.docType = docType;
+        this.categoryCode = categoryCode;
+        this.name = name;
+        this.filePath = filePath == null ? "" : filePath;
+        this.content = content == null ? "" : content;
     }
 }
