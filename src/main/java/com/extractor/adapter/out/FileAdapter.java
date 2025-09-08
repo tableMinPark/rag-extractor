@@ -2,8 +2,8 @@ package com.extractor.adapter.out;
 
 import com.extractor.adapter.utils.FileUtil;
 import com.extractor.application.port.FilePort;
-import com.extractor.domain.model.OriginalDocument;
-import com.extractor.domain.vo.document.OriginalDocumentVo;
+import com.extractor.domain.model.FileDocument;
+import com.extractor.domain.vo.document.FileDocumentVo;
 import com.extractor.global.enums.FileExtension;
 import com.extractor.global.utils.StringUtil;
 import kr.dogfoot.hwp2hwpx.Hwp2Hwpx;
@@ -27,17 +27,17 @@ public class FileAdapter implements FilePort {
 
     /**
      * 파일 업로드
-     * @param originalDocumentVo 원본 문서 Vo
+     * @param fileDocumentVo 원본 문서 Vo
      * @return 원본 문서 데이터
      */
     @Override
-    public OriginalDocument uploadFilePort(OriginalDocumentVo originalDocumentVo) {
+    public FileDocument uploadFilePort(FileDocumentVo fileDocumentVo) {
 
         String docId = StringUtil.generateRandomId();
-        String originalFileName = originalDocumentVo.getOriginalFileName();
+        String originalFileName = fileDocumentVo.getOriginalFileName();
         Path path = Paths.get(UPLOAD_PATH);
 
-        FileExtension extension = originalDocumentVo.getExtension();
+        FileExtension extension = fileDocumentVo.getExtension();
         String fileName = docId + "." + extension.getSimpleExtension();
         Path fullPath = path.resolve(fileName);
 
@@ -46,7 +46,7 @@ public class FileAdapter implements FilePort {
         }
 
         try {
-            Files.write(fullPath, originalDocumentVo.getData());
+            Files.write(fullPath, fileDocumentVo.getData());
         } catch (IOException e) {
             throw new RuntimeException("upload file error");
         }
@@ -92,7 +92,7 @@ public class FileAdapter implements FilePort {
 
         }
 
-        return OriginalDocument.builder()
+        return FileDocument.builder()
                 .docId(docId)
                 .originalFileName(originalFileName)
                 .path(path)
@@ -103,16 +103,16 @@ public class FileAdapter implements FilePort {
 
     /**
      * 파일 정리
-     * @param originalDocument 원본 문서 도메인 객체
+     * @param fileDocument 원본 문서 도메인 객체
      */
     @Override
-    public void clearFilePort(OriginalDocument originalDocument) {
+    public void clearFilePort(FileDocument fileDocument) {
         // 파일 삭제
-        FileUtil.deleteFile(originalDocument.getFullPath());
+        FileUtil.deleteFile(fileDocument.getFullPath());
 
         // HWPX 압축 폴더 삭제
-        if (FileExtension.HWPX.equals(originalDocument.getExtension())) {
-            FileUtil.deleteDirectory(originalDocument.getPath());
+        if (FileExtension.HWPX.equals(fileDocument.getExtension())) {
+            FileUtil.deleteDirectory(fileDocument.getPath());
         }
     }
 }

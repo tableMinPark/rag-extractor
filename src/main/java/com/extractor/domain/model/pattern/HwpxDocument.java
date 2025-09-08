@@ -1,4 +1,4 @@
-package com.extractor.domain.model;
+package com.extractor.domain.model.pattern;
 
 import com.extractor.domain.vo.hwpx.HwpxImageVo;
 import com.extractor.domain.vo.hwpx.HwpxSectionVo;

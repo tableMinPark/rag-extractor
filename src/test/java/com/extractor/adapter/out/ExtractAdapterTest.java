@@ -2,9 +2,9 @@ package com.extractor.adapter.out;
 
 import com.extractor.adapter.utils.FileUtil;
 import com.extractor.application.port.ExtractPort;
-import com.extractor.domain.model.HwpxDocument;
-import com.extractor.domain.model.OriginalDocument;
-import com.extractor.domain.model.PdfDocument;
+import com.extractor.domain.model.pattern.HwpxDocument;
+import com.extractor.domain.model.FileDocument;
+import com.extractor.domain.model.pattern.PdfDocument;
 import com.extractor.global.enums.FileExtension;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,7 +52,7 @@ class ExtractAdapterTest {
         fullPath = FileUtil.copyFile(fullPath, unZipPath.resolve(fileName));
         path = FileUtil.decompression(fullPath.toFile(), unZipPath.toFile());
 
-        OriginalDocument originalDocument = OriginalDocument.builder()
+        FileDocument fileDocument = FileDocument.builder()
                 .originalFileName(originalFileName)
                 .path(path)
                 .fullPath(fullPath)
@@ -60,10 +60,10 @@ class ExtractAdapterTest {
                 .build();
 
         // act
-        HwpxDocument hwpxDocument = extractPort.extractHwpxDocumentPort(originalDocument);
+        HwpxDocument hwpxDocument = extractPort.extractHwpxDocumentPort(fileDocument);
 
         // 압축 해제 디렉토리 삭제
-        FileUtil.deleteDirectory(originalDocument.getPath());
+        FileUtil.deleteDirectory(fileDocument.getPath());
 
         // assert
         assertNotNull(hwpxDocument);
@@ -82,7 +82,7 @@ class ExtractAdapterTest {
         String fileName = docId + "." + extension.getSimpleExtension();
         Path fullPath = path.resolve(fileName);
 
-        OriginalDocument originalDocument = OriginalDocument.builder()
+        FileDocument fileDocument = FileDocument.builder()
                 .originalFileName(originalFileName)
                 .path(path)
                 .fullPath(fullPath)
@@ -90,7 +90,7 @@ class ExtractAdapterTest {
                 .build();
 
         // act
-        PdfDocument pdfDocument = extractPort.extractPdfDocumentPort(originalDocument);
+        PdfDocument pdfDocument = extractPort.extractPdfDocumentPort(fileDocument);
 
         assertNotNull(pdfDocument);
         assertFalse(pdfDocument.getContent().isBlank());

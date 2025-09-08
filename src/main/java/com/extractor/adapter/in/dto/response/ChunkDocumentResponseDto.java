@@ -10,7 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ChunkResponseDto {
+public class ChunkDocumentResponseDto {
 
     @Schema(description = "패시지 목록")
     private List<PassageDocumentVo> passages;
@@ -19,7 +19,7 @@ public class ChunkResponseDto {
     private ChunkPatternVo chunkInfo;
 
     @Builder
-    public ChunkResponseDto(ChunkPatternVo chunkInfo, List<PassageDocumentVo> passages) {
+    public ChunkDocumentResponseDto(ChunkPatternVo chunkInfo, List<PassageDocumentVo> passages) {
         this.chunkInfo = chunkInfo;
         this.passages = passages;
     }

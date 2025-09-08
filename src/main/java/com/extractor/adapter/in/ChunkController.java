@@ -3,11 +3,12 @@ package com.extractor.adapter.in;
 import com.extractor.adapter.in.dto.etc.PatternDto;
 import com.extractor.adapter.in.dto.request.ChunkDocumentRequestDto;
 import com.extractor.adapter.in.dto.request.ChunkLawRequestDto;
-import com.extractor.adapter.in.dto.response.ChunkResponseDto;
+import com.extractor.adapter.in.dto.response.ChunkDocumentResponseDto;
+import com.extractor.adapter.in.dto.response.ChunkLawResponseDto;
 import com.extractor.adapter.in.dto.response.ErrorResponseDto;
 import com.extractor.application.usecase.ChunkUseCase;
 import com.extractor.application.vo.PassageDocumentVo;
-import com.extractor.domain.vo.document.OriginalDocumentVo;
+import com.extractor.domain.vo.document.FileDocumentVo;
 import com.extractor.domain.vo.pattern.ChunkPatternVo;
 import com.extractor.domain.vo.pattern.PatternVo;
 import com.extractor.domain.vo.pattern.PrefixVo;
@@ -45,7 +46,7 @@ public class ChunkController {
      */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Success", content = {@Content(schema = @Schema(implementation = ChunkResponseDto.class, description = "전처리 응답"))}),
+            @ApiResponse(responseCode = "200", description = "Success", content = {@Content(schema = @Schema(implementation = ChunkDocumentResponseDto.class, description = "전처리 응답"))}),
             @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ErrorResponseDto.class, description = "에러 응답"))}),
     })
     @Operation(summary = "문서 전처리")
@@ -67,15 +68,15 @@ public class ChunkController {
             List<PassageDocumentVo> passages;
             switch (extension) {
                 case HWP, HWPX -> passages =
-                        chunkUseCase.chunkHwpxDocumentUseCase(new OriginalDocumentVo(multipartFile), chunkPatternVo);
+                        chunkUseCase.chunkHwpxDocumentUseCase(new FileDocumentVo(multipartFile), chunkPatternVo);
                 case PDF -> passages =
-                        chunkUseCase.chunkPdfDocumentUseCase(new OriginalDocumentVo(multipartFile), chunkPatternVo);
+                        chunkUseCase.chunkPdfDocumentUseCase(new FileDocumentVo(multipartFile), chunkPatternVo);
                 default -> throw new RuntimeException("미지원 파일 형식 (HWP, HWPX, PDF 만 지원)");
             }
 
             log.info("/chunk | {} ", multipartFile.getOriginalFilename());
 
-            return ResponseEntity.ok(ChunkResponseDto.builder()
+            return ResponseEntity.ok(ChunkDocumentResponseDto.builder()
                     .chunkInfo(chunkPatternVo)
                     .passages(passages)
                     .build());
@@ -97,15 +98,20 @@ public class ChunkController {
      */
     @PostMapping(path = "/law")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Success", content = {@Content(schema = @Schema(implementation = ChunkResponseDto.class, description = "전처리 응답"))}),
+            @ApiResponse(responseCode = "200", description = "Success", content = {@Content(schema = @Schema(implementation = ChunkLawResponseDto.class, description = "전처리 응답"))}),
             @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ErrorResponseDto.class, description = "에러 응답"))}),
     })
     @Operation(summary = "법령 전처리")
     public ResponseEntity<?> chunkLaw(@Parameter(name = "chunkLawRequestDto", description = "전처리 요청 정보", required = true) @RequestBody ChunkLawRequestDto chunkLawRequestDto) {
         try {
-            // TODO: 법령 전처리
 
-            return ResponseEntity.ok(null);
+            List<PassageDocumentVo> passages = chunkUseCase.chunkLawDocumentUseCase(chunkLawRequestDto.getLawIds());
+
+            log.info("/chunk/law | {} ", chunkLawRequestDto.getLawIds());
+
+            return ResponseEntity.ok(ChunkLawResponseDto.builder()
+                    .passages(passages)
+                    .build());
 
         } catch (RuntimeException e) {
 

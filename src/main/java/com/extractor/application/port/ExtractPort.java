@@ -1,26 +1,26 @@
 package com.extractor.application.port;
 
-import com.extractor.domain.model.HwpxDocument;
-import com.extractor.domain.model.OriginalDocument;
-import com.extractor.domain.model.PdfDocument;
+import com.extractor.domain.model.pattern.HwpxDocument;
+import com.extractor.domain.model.FileDocument;
+import com.extractor.domain.model.pattern.PdfDocument;
 
 public interface ExtractPort {
 
     /**
      * 한글 문서 추출
-     * @param originalDocument 원본 문서 정보
+     * @param fileDocument 원본 문서 정보
      */
-    HwpxDocument extractHwpxDocumentPort(OriginalDocument originalDocument);
+    HwpxDocument extractHwpxDocumentPort(FileDocument fileDocument);
 
     /**
      * PDF 문서 추출
-     * @param originalDocument 원본 문서 정보
+     * @param fileDocument 원본 문서 정보
      */
-    PdfDocument extractPdfDocumentPort(OriginalDocument originalDocument);
+    PdfDocument extractPdfDocumentPort(FileDocument fileDocument);
 
     /**
      * 문서 텍스트 추출
-     * @param originalDocument 원본 문서 정보
+     * @param fileDocument 원본 문서 정보
      */
-    String extractDocumentPort(OriginalDocument originalDocument);
+    String extractDocumentPort(FileDocument fileDocument);
 }

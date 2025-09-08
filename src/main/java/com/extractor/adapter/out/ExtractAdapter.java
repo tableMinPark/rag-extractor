@@ -2,9 +2,9 @@ package com.extractor.adapter.out;
 
 import com.extractor.adapter.utils.FileUtil;
 import com.extractor.application.port.ExtractPort;
-import com.extractor.domain.model.HwpxDocument;
-import com.extractor.domain.model.OriginalDocument;
-import com.extractor.domain.model.PdfDocument;
+import com.extractor.domain.model.pattern.HwpxDocument;
+import com.extractor.domain.model.FileDocument;
+import com.extractor.domain.model.pattern.PdfDocument;
 import com.extractor.domain.vo.hwpx.HwpxImageVo;
 import com.extractor.domain.vo.hwpx.HwpxSectionVo;
 import com.extractor.global.enums.FileExtension;
@@ -34,17 +34,17 @@ public class ExtractAdapter implements ExtractPort {
 
     /**
      * 한글 문서 추출
-     * @param originalDocument 원본 문서 정보
+     * @param fileDocument 원본 문서 정보
      */
     @Override
-    public HwpxDocument extractHwpxDocumentPort(OriginalDocument originalDocument) {
+    public HwpxDocument extractHwpxDocumentPort(FileDocument fileDocument) {
 
         // 데이터 저장
         List<HwpxSectionVo> sections = new ArrayList<>();
         List<HwpxImageVo> images = new ArrayList<>();
 
             // metadata 추출
-            String metaData = FileUtil.readFile(originalDocument.getPath().resolve("Contents/content.hpf"));
+            String metaData = FileUtil.readFile(fileDocument.getPath().resolve("Contents/content.hpf"));
 
             // XML DOM 파싱
             Document document = XmlUtil.parseXml(metaData);
@@ -59,7 +59,7 @@ public class ExtractAdapter implements ExtractPort {
                 String mediaType = item.getAttributes().getNamedItem("media-type").getTextContent();
 
                 if (mediaType.endsWith(FileExtension.XML.getSimpleExtension()) && id.startsWith("section")) {
-                    File xmlFile = originalDocument.getPath().resolve(filePath).toFile();
+                    File xmlFile = fileDocument.getPath().resolve(filePath).toFile();
 
                     if (xmlFile.exists()) {
                         String content = FileUtil.readFile(xmlFile.toPath())
@@ -71,7 +71,7 @@ public class ExtractAdapter implements ExtractPort {
                                 .build());
                     }
                 } else if (mediaType.startsWith("image/")) {
-                    File imageFile = originalDocument.getPath().resolve(filePath).toFile();
+                    File imageFile = fileDocument.getPath().resolve(filePath).toFile();
 
                     if (imageFile.exists()) {
                         images.add(HwpxImageVo.builder()
@@ -84,10 +84,10 @@ public class ExtractAdapter implements ExtractPort {
             }
 
         return HwpxDocument.builder()
-                .docId(originalDocument.getDocId())
-                .name(originalDocument.getOriginalFileName())
-                .extension(originalDocument.getExtension())
-                .path(originalDocument.getPath())
+                .docId(fileDocument.getDocId())
+                .name(fileDocument.getOriginalFileName())
+                .extension(fileDocument.getExtension())
+                .path(fileDocument.getPath())
                 .sections(sections)
                 .images(images)
                 .build();
@@ -95,26 +95,26 @@ public class ExtractAdapter implements ExtractPort {
 
     /**
      * PDF 문서 추출
-     * @param originalDocument 원본 문서 정보
+     * @param fileDocument 원본 문서 정보
      */
     @Override
-    public PdfDocument extractPdfDocumentPort(OriginalDocument originalDocument) {
+    public PdfDocument extractPdfDocumentPort(FileDocument fileDocument) {
         return PdfDocument.builder()
-                .docId(originalDocument.getDocId())
-                .name(originalDocument.getOriginalFileName())
-                .extension(originalDocument.getExtension())
-                .path(originalDocument.getPath())
-                .content(this.extractWithSnf(originalDocument.getFullPath()))
+                .docId(fileDocument.getDocId())
+                .name(fileDocument.getOriginalFileName())
+                .extension(fileDocument.getExtension())
+                .path(fileDocument.getPath())
+                .content(this.extractWithSnf(fileDocument.getFullPath()))
                 .build();
     }
 
     /**
      * 문서 텍스트 추출
-     * @param originalDocument 원본 문서 정보
+     * @param fileDocument 원본 문서 정보
      */
     @Override
-    public String extractDocumentPort(OriginalDocument originalDocument) {
-        return this.extractWithSnf(originalDocument.getFullPath()).trim();
+    public String extractDocumentPort(FileDocument fileDocument) {
+        return this.extractWithSnf(fileDocument.getFullPath()).trim();
     }
 
     /**
