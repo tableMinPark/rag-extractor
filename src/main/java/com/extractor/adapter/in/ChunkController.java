@@ -23,10 +23,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
@@ -98,17 +95,13 @@ public class ChunkController {
      * TODO: 법령 전처리
      * @param chunkLawRequestDto 전처리 요청 정보
      */
-    @PostMapping()
+    @PostMapping(path = "/law")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Success", content = {@Content(schema = @Schema(implementation = ChunkResponseDto.class, description = "전처리 응답"))}),
             @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ErrorResponseDto.class, description = "에러 응답"))}),
     })
     @Operation(summary = "법령 전처리")
-    public ResponseEntity<?> chunkLaw(
-            @Parameter(name = "chunkLawRequestDto", description = "전처리 요청 정보", required = true)
-            @RequestPart("requestDto")
-            ChunkLawRequestDto chunkLawRequestDto
-    ) {
+    public ResponseEntity<?> chunkLaw(@Parameter(name = "chunkLawRequestDto", description = "전처리 요청 정보", required = true) @RequestBody ChunkLawRequestDto chunkLawRequestDto) {
         try {
             // TODO: 법령 전처리
 
