@@ -7,7 +7,7 @@ import com.extractor.adapter.in.dto.response.ChunkDocumentResponseDto;
 import com.extractor.adapter.in.dto.response.ChunkLawResponseDto;
 import com.extractor.adapter.in.dto.response.ErrorResponseDto;
 import com.extractor.application.usecase.ChunkUseCase;
-import com.extractor.application.vo.PassageDocumentVo;
+import com.extractor.application.vo.PassageVo;
 import com.extractor.domain.vo.document.FileDocumentVo;
 import com.extractor.domain.vo.pattern.ChunkPatternVo;
 import com.extractor.domain.vo.pattern.PatternVo;
@@ -41,8 +41,9 @@ public class ChunkController {
 
     /**
      * 문서 전처리
+     *
      * @param chunkDocumentRequestDto 전처리 요청 정보
-     * @param multipartFile 업로드 파일
+     * @param multipartFile           업로드 파일
      */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiResponses(value = {
@@ -65,7 +66,7 @@ public class ChunkController {
             ChunkPatternVo chunkPatternVo = new ChunkPatternVo(
                     convertPatternVo(chunkDocumentRequestDto.getPatterns()), chunkDocumentRequestDto.getStopPatterns());
 
-            List<PassageDocumentVo> passages;
+            List<PassageVo> passages;
             switch (extension) {
                 case HWP, HWPX -> passages =
                         chunkUseCase.chunkHwpxDocumentUseCase(new FileDocumentVo(multipartFile), chunkPatternVo);
@@ -93,7 +94,8 @@ public class ChunkController {
     }
 
     /**
-     * TODO: 법령 전처리
+     * 법령 전처리
+     *
      * @param chunkLawRequestDto 전처리 요청 정보
      */
     @PostMapping(path = "/law")
@@ -102,12 +104,18 @@ public class ChunkController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ErrorResponseDto.class, description = "에러 응답"))}),
     })
     @Operation(summary = "법령 전처리")
-    public ResponseEntity<?> chunkLaw(@Parameter(name = "chunkLawRequestDto", description = "전처리 요청 정보", required = true) @RequestBody ChunkLawRequestDto chunkLawRequestDto) {
+    public ResponseEntity<?> chunkLaw(
+            @Parameter(name = "chunkLawRequestDto", description = "전처리 요청 정보", required = true)
+            @RequestBody
+            ChunkLawRequestDto chunkLawRequestDto
+    ) {
         try {
+            ChunkPatternVo chunkPatternVo = new ChunkPatternVo(
+                    convertPatternVo(chunkLawRequestDto.getPatterns()), chunkLawRequestDto.getExcludeContentTypes());
 
-            List<PassageDocumentVo> passages = chunkUseCase.chunkLawDocumentUseCase(chunkLawRequestDto.getLawIds());
+            List<PassageVo> passages = chunkUseCase.chunkLawDocumentUseCase(chunkLawRequestDto.getLawId(), chunkPatternVo);
 
-            log.info("/chunk/law | {} ", chunkLawRequestDto.getLawIds());
+            log.info("/chunk/law | {} ", chunkLawRequestDto.getLawId());
 
             return ResponseEntity.ok(ChunkLawResponseDto.builder()
                     .passages(passages)
@@ -115,7 +123,9 @@ public class ChunkController {
 
         } catch (RuntimeException e) {
 
-            log.error("/chunk/law | {} | {}", chunkLawRequestDto.getLawIds(), e.getMessage());
+            e.printStackTrace();
+
+            log.error("/chunk/law | {} | {}", chunkLawRequestDto.getLawId(), e.getMessage());
 
             return ResponseEntity.internalServerError().body(ErrorResponseDto.builder()
                     .message(e.getMessage())
@@ -124,9 +134,9 @@ public class ChunkController {
         }
     }
 
-
     /**
      * 패턴 검증
+     *
      * @param patternDtos 패턴 Dto
      * @return 검증 이후 패턴 Vo 목록
      */

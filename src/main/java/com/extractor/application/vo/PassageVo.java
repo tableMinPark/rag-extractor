@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class PassageDocumentVo {
+public class PassageVo {
 
     private final String docId;
 
@@ -18,13 +18,16 @@ public class PassageDocumentVo {
 
     private final String content;
 
+    private final String subContent;
+
     @Builder
-    public PassageDocumentVo(String docId, int depth, int tokenSize, String fullTitle, String[] titles, String content) {
+    public PassageVo(String docId, int depth, int tokenSize, String fullTitle, String[] titles, String content, String subContent) {
         this.docId = docId;
         this.depth = depth;
         this.tokenSize = tokenSize;
         this.fullTitle = fullTitle;
         this.titles = titles;
         this.content = content;
+        this.subContent = subContent;
     }
 }

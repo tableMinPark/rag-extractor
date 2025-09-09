@@ -4,21 +4,20 @@ import lombok.Getter;
 import lombok.ToString;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 @ToString
-public class PassageDocument {
+public class Passage {
 
     @Getter
     protected final String docId;
 
-    protected int tokenSize;
-
-    protected String fullTitle;
-
-    protected String[] titles;
-
     @Getter
     protected String content;
+
+    @Getter
+    protected String subContent;
 
     @Getter
     protected final int depth;
@@ -27,20 +26,35 @@ public class PassageDocument {
 
     protected final String[][] titleBuffers;
 
-    public PassageDocument(String docId, int depth, int depthSize, String content, String[] titles, String fullTitle, int tokenSize, String[][] titleBuffers) {
+    public Passage(String docId, int depth, int depthSize) {
         this.docId = docId;
+        this.content = "";
+        this.subContent = "";
         this.depth = depth;
         this.depthSize = depthSize;
-        this.content = content;
-        this.titles = titles;
-        this.fullTitle = fullTitle;
-        this.tokenSize = tokenSize;
+        this.titleBuffers = new String[depthSize][];
+    }
+
+    public Passage(String docId, int depth, int depthSize, String[][] titleBuffers) {
+        this.docId = docId;
+        this.content = "";
+        this.subContent = "";
+        this.depth = depth;
+        this.depthSize = depthSize;
         this.titleBuffers = titleBuffers;
     }
 
     /**
+     * 패시지 셀렉트 (호출)
+     */
+    public List<Passage> chunk() {
+        return Collections.emptyList();
+    }
+
+    /**
      * 타이틀 버퍼 정리
-     * @param depth 현재 depth
+     *
+     * @param depth       현재 depth
      * @param prefixIndex 현재 prefixIndex
      */
     protected void titleBufferClear(int depth, int prefixIndex) {
@@ -55,63 +69,69 @@ public class PassageDocument {
     }
 
     /**
-     * 타이틀 배열 조회
-     * @return 타이틀 배열
+     * 토큰 사이즈 조회
+     *
+     * @return 토큰 사이즈
      */
-    public String[] getTitles() {
-
-        this.titles = new String[this.titleBuffers.length];
-        Arrays.fill(this.titles, "");
-
-        for (int depth = 0; depth < titleBuffers.length; depth++) {
-            StringBuilder titleBuilder = new StringBuilder();
-            for (String titleBuffer : titleBuffers[depth]) {
-                if (!titleBuffer.isBlank()) {
-                    titleBuilder.append(" ").append(titleBuffer);
-                }
-            }
-            // 타이틀 추가
-            if (!titleBuilder.isEmpty()) {
-                this.titles[depth] += " " + titleBuilder;
-                this.titles[depth] = this.titles[depth].trim();
-            }
-        }
-
-        return this.titles;
+    public int getTokenSize() {
+        return this.content.length() + this.subContent.length();
     }
 
     /**
      * 전체 타이틀 조회
+     *
      * @return 전체 타이틀 문자열
      */
     public String getFullTitle() {
         StringBuilder fullTitleBuilder = new StringBuilder();
         for (String[] buffer : this.titleBuffers) {
             StringBuilder titleBuilder = new StringBuilder();
+
             for (String titleBuffer : buffer) {
                 if (!titleBuffer.isBlank()) {
                     titleBuilder.append(" ").append(titleBuffer);
                 }
             }
+
             // 타이틀 추가
             if (!titleBuilder.isEmpty()) {
                 fullTitleBuilder.append(titleBuilder);
             }
         }
-        return this.fullTitle = fullTitleBuilder.toString().trim();
+        return fullTitleBuilder.toString().trim();
     }
 
     /**
-     * 토큰 사이즈 조회
-     * @return 토큰 사이즈
+     * 타이틀 배열 조회
+     *
+     * @return 타이틀 배열
      */
-    public int getTokenSize() {
-        String content = this.getContent();
-        return this.tokenSize = content.length();
+    public String[] getTitles() {
+        String[] titles = new String[this.titleBuffers.length];
+        Arrays.fill(titles, "");
+
+        for (int depth = 0; depth < titleBuffers.length; depth++) {
+            StringBuilder titleBuilder = new StringBuilder();
+
+            for (String titleBuffer : titleBuffers[depth]) {
+                if (!titleBuffer.isBlank()) {
+                    titleBuilder.append(" ").append(titleBuffer);
+                }
+            }
+
+            // 타이틀 추가
+            if (!titleBuilder.isEmpty()) {
+                titles[depth] += " " + titleBuilder;
+                titles[depth] = titles[depth].trim();
+            }
+        }
+
+        return titles;
     }
 
     /**
      * 타이틀 버퍼 배열 깊은 복사
+     *
      * @param titleBuffers 원천
      * @return 복사 배열
      */

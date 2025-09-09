@@ -10,9 +10,10 @@ public interface LawContentRepository extends JpaRepository<LawContentEntity, Lo
 
     /**
      * 법령 ID 기준 가장 최근 버전의 법령 본문 엔티티 목록 조회
+     *
      * @param lawId 법령 ID
      */
-    @Query( "SELECT lc " +
+    @Query("SELECT lc " +
             "  FROM LawContentEntity lc " +
             " WHERE lc.version = ( " +
             "SELECT lc2.version " +
@@ -23,4 +24,13 @@ public interface LawContentRepository extends JpaRepository<LawContentEntity, Lo
             " ) " +
             " ORDER BY lc.arrange ")
     List<LawContentEntity> findByLawId(Long lawId);
+
+    /**
+     * 링크 코드 목록 기준 법령 본문 엔티티 목록 조회
+     *
+     * @param lawId    법령 ID
+     * @param linkCode 링크 코드
+     * @param version  버전
+     */
+    List<LawContentEntity> findByLawIdAndLinkCodeAndVersion(Long lawId, String linkCode, Integer version);
 }

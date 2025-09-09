@@ -34,6 +34,7 @@ public class ExtractController {
 
     /**
      * 문서 추출
+     *
      * @param multipartFile 업로드 파일
      */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -65,7 +66,7 @@ public class ExtractController {
                     .docId(extractDocumentVo.getDocId())
                     .name(extractDocumentVo.getName())
                     .extension(extractDocumentVo.getExtension().getSimpleExtension())
-                    .lines(extractDocumentVo.getLines())
+                    .lines(extractDocumentVo.getExtractContents())
                     .build());
 
         } catch (RuntimeException e) {
@@ -81,6 +82,7 @@ public class ExtractController {
 
     /**
      * 문서 텍스트 추출
+     *
      * @param multipartFile 업로드 파일
      */
     @PostMapping(path = "/text", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

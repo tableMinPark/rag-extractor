@@ -3,11 +3,11 @@ package com.extractor.application.service;
 import com.extractor.application.port.ExtractPort;
 import com.extractor.application.port.FilePort;
 import com.extractor.application.usecase.ExtractUseCase;
-import com.extractor.domain.model.pattern.HwpxDocument;
-import com.extractor.domain.model.FileDocument;
-import com.extractor.domain.model.pattern.PdfDocument;
-import com.extractor.application.vo.DocumentLineVo;
+import com.extractor.application.vo.ExtractContentVo;
 import com.extractor.application.vo.ExtractDocumentVo;
+import com.extractor.domain.model.FileDocument;
+import com.extractor.domain.model.extract.ExtractHwpxDocument;
+import com.extractor.domain.model.extract.ExtractPdfDocument;
 import com.extractor.domain.vo.document.FileDocumentVo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +22,7 @@ public class ExtractService implements ExtractUseCase {
 
     /**
      * 한글 문서 추출
+     *
      * @param fileDocumentVo 원본 문서 정보
      */
     @Override
@@ -31,14 +32,14 @@ public class ExtractService implements ExtractUseCase {
         FileDocument fileDocument = filePort.uploadFilePort(fileDocumentVo);
 
         try {
-            HwpxDocument hwpxDocument = extractPort.extractHwpxDocumentPort(fileDocument);
-            hwpxDocument.extract();
+            ExtractHwpxDocument extractHwpxDocument = extractPort.extractHwpxDocumentPort(fileDocument);
+            extractHwpxDocument.extract();
             return ExtractDocumentVo.builder()
-                    .docId(hwpxDocument.getDocId())
-                    .name(hwpxDocument.getName())
-                    .extension(hwpxDocument.getExtension())
-                    .lines(hwpxDocument.getLines().stream()
-                            .map(line -> DocumentLineVo.builder()
+                    .docId(extractHwpxDocument.getDocId())
+                    .name(extractHwpxDocument.getName())
+                    .extension(extractHwpxDocument.getExtension())
+                    .extractContents(extractHwpxDocument.getExtractContents().stream()
+                            .map(line -> ExtractContentVo.builder()
                                     .type(line.getType().name())
                                     .content(line.getContent())
                                     .build())
@@ -52,6 +53,7 @@ public class ExtractService implements ExtractUseCase {
 
     /**
      * PDf 문서 추출
+     *
      * @param fileDocumentVo 원본 문서 정보
      */
     @Override
@@ -61,14 +63,14 @@ public class ExtractService implements ExtractUseCase {
         FileDocument fileDocument = filePort.uploadFilePort(fileDocumentVo);
 
         try {
-            PdfDocument pdfDocument = extractPort.extractPdfDocumentPort(fileDocument);
-            pdfDocument.extract();
+            ExtractPdfDocument extractPdfDocument = extractPort.extractPdfDocumentPort(fileDocument);
+            extractPdfDocument.extract();
             return ExtractDocumentVo.builder()
-                    .docId(pdfDocument.getDocId())
-                    .name(pdfDocument.getName())
-                    .extension(pdfDocument.getExtension())
-                    .lines(pdfDocument.getLines().stream()
-                            .map(line -> DocumentLineVo.builder()
+                    .docId(extractPdfDocument.getDocId())
+                    .name(extractPdfDocument.getName())
+                    .extension(extractPdfDocument.getExtension())
+                    .extractContents(extractPdfDocument.getExtractContents().stream()
+                            .map(line -> ExtractContentVo.builder()
                                     .type(line.getType().name())
                                     .content(line.getContent())
                                     .build())
@@ -82,6 +84,7 @@ public class ExtractService implements ExtractUseCase {
 
     /**
      * 문서 텍스트 추출
+     *
      * @param fileDocumentVo 원본 문서 정보
      */
     @Override

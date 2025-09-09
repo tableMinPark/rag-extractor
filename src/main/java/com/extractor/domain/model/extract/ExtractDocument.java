@@ -1,4 +1,4 @@
-package com.extractor.domain.model.pattern;
+package com.extractor.domain.model.extract;
 
 import com.extractor.global.enums.FileExtension;
 import lombok.Getter;
@@ -22,25 +22,25 @@ public class ExtractDocument {
 
     private final Path path;
 
-    private final List<DocumentLine> lines;
+    private final List<ExtractContent> extractContents;
 
     public ExtractDocument(String docId, String name, FileExtension extension, Path path) {
         this.docId = docId;
         this.name = name;
         this.extension = extension;
         this.path = path;
-        this.lines = new ArrayList<>();
+        this.extractContents = new ArrayList<>();
     }
 
     /**
      * 문자 데이터 등록
      */
-    public void addText(String text) {
+    public void addTextContent(String text) {
         String content = text.trim();
 
         if (!text.trim().isBlank()) {
-            this.lines.add(DocumentLine.builder()
-                    .type(DocumentLine.LineType.TEXT)
+            this.extractContents.add(ExtractContent.builder()
+                    .type(ExtractContent.LineType.TEXT)
                     .content(content)
                     .build());
         }
@@ -49,12 +49,12 @@ public class ExtractDocument {
     /**
      * 표 데이터 등록
      */
-    public void addTable(String table) {
+    public void addTableContent(String table) {
         String content = table.trim();
 
         if (!table.trim().isBlank()) {
-            this.lines.add(DocumentLine.builder()
-                    .type(DocumentLine.LineType.TABLE)
+            this.extractContents.add(ExtractContent.builder()
+                    .type(ExtractContent.LineType.TABLE)
                     .content(content)
                     .build());
         }
@@ -63,12 +63,12 @@ public class ExtractDocument {
     /**
      * 이미지 데이터 등록
      */
-    public void addImage(String text) {
+    public void addImageContent(String text) {
         String content = text.trim();
 
         if (!text.trim().isBlank()) {
-            this.lines.add(DocumentLine.builder()
-                    .type(DocumentLine.LineType.IMAGE)
+            this.extractContents.add(ExtractContent.builder()
+                    .type(ExtractContent.LineType.IMAGE)
                     .content(content)
                     .build());
         }

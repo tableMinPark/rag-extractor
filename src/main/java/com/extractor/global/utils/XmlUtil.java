@@ -20,6 +20,7 @@ public class XmlUtil {
 
     /**
      * XML 파싱
+     *
      * @param content XML 본문
      * @return DOM 객체
      */
@@ -39,6 +40,7 @@ public class XmlUtil {
 
     /**
      * 직계 자식 노드 리스트 반환
+     *
      * @param element 노드
      * @return 노드 리스트
      */
@@ -60,6 +62,7 @@ public class XmlUtil {
 
     /**
      * 직계 자식 노드 반환
+     *
      * @param element 노드
      * @param tagName 태그명
      * @return 노드
@@ -80,6 +83,7 @@ public class XmlUtil {
 
     /**
      * 직계 자식 노드 리스트 반환
+     *
      * @param element 노드
      * @param tagName 태그명
      * @return 노드 리스트
@@ -102,6 +106,7 @@ public class XmlUtil {
 
     /**
      * 자식 노드 리스트 반환
+     *
      * @param element 노드
      * @param tagName 태그명
      * @return 노드 리스트
@@ -112,8 +117,9 @@ public class XmlUtil {
 
     /**
      * 자식 노드 리스트 반환
-     * @param element 노드
-     * @param tagName 태그명
+     *
+     * @param element         노드
+     * @param tagName         태그명
      * @param excludeTagNames 제외할 부모 태그명
      * @return 노드 리스트
      */
@@ -133,7 +139,8 @@ public class XmlUtil {
 
     /**
      * 부모 노드 중 태그명 포함 여부 확인
-     * @param element 노드
+     *
+     * @param element  노드
      * @param tagNames 태그명 목록
      * @return 포함 여부
      */

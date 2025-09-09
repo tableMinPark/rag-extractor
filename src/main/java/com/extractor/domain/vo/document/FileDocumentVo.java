@@ -27,7 +27,7 @@ public class FileDocumentVo {
 
         try {
             this.data = multipartFile.getBytes();
-        }  catch (IOException e) {
+        } catch (IOException e) {
             throw new RuntimeException("get binary data error");
         }
     }

@@ -1,4 +1,4 @@
-package com.extractor.domain.model.pattern;
+package com.extractor.domain.model.extract;
 
 import com.extractor.global.enums.FileExtension;
 import lombok.Builder;
@@ -10,12 +10,12 @@ import java.util.Arrays;
 
 @ToString
 @Getter
-public class PdfDocument extends ExtractDocument {
+public class ExtractPdfDocument extends ExtractDocument {
 
     private final String content;
 
     @Builder
-    public PdfDocument(String docId, String name, FileExtension extension, Path path, String content) {
+    public ExtractPdfDocument(String docId, String name, FileExtension extension, Path path, String content) {
         super(docId, name, extension, path);
         this.content = content;
     }
@@ -24,6 +24,6 @@ public class PdfDocument extends ExtractDocument {
      * 추출
      */
     public void extract() {
-        Arrays.stream(this.content.split("\n")).forEach(super::addText);
+        Arrays.stream(this.content.split("\n")).forEach(super::addTextContent);
     }
 }

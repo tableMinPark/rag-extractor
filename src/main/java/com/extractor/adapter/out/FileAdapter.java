@@ -27,6 +27,7 @@ public class FileAdapter implements FilePort {
 
     /**
      * 파일 업로드
+     *
      * @param fileDocumentVo 원본 문서 Vo
      * @return 원본 문서 데이터
      */
@@ -103,6 +104,7 @@ public class FileAdapter implements FilePort {
 
     /**
      * 파일 정리
+     *
      * @param fileDocument 원본 문서 도메인 객체
      */
     @Override
