@@ -1,4 +1,4 @@
-package com.extractor.domain.model.pattern;
+package com.extractor.domain.model.extract;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -7,19 +7,19 @@ import lombok.ToString;
 
 @ToString
 @Getter
-public class DocumentLine {
+public class ExtractContent {
 
     private final String content;
+
+    private final LineType type;
 
     @Setter
     private String prefix;
 
-    private final LineType type;
-
     @Builder
-    public DocumentLine(LineType type, String content) {
-        this.type = type;
+    public ExtractContent(String content, LineType type) {
         this.content = content;
+        this.type = type;
         this.prefix = "";
     }
 

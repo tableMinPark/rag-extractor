@@ -4,14 +4,14 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class DocumentLineVo {
+public class ExtractContentVo {
 
     private final String type;
 
     private final String content;
 
     @Builder
-    public DocumentLineVo(String type, String content) {
+    public ExtractContentVo(String type, String content) {
         this.type = type;
         this.content = content;
     }

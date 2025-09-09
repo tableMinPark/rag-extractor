@@ -1,5 +1,7 @@
 package com.extractor.adapter.out;
 
+import com.extractor.adapter.out.repository.OriginalRepository;
+import com.extractor.adapter.out.repository.TrainingRepository;
 import com.extractor.application.port.DocumentPersistencePort;
 import com.extractor.domain.model.OriginalDocument;
 import com.extractor.domain.model.TrainingDocument;
@@ -12,8 +14,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DocumentPersistenceAdapter implements DocumentPersistencePort {
 
+    private final OriginalRepository originalRepository;
+
+    private final TrainingRepository trainingRepository;
+
     /**
      * 원본 문서 영속화
+     *
      * @param originalDocument 원본 문서
      */
     @Override
@@ -23,6 +30,7 @@ public class DocumentPersistenceAdapter implements DocumentPersistencePort {
 
     /**
      * 학습 데이터 영속화
+     *
      * @param trainingDocuments 학습 데이터 목록
      */
     @Override

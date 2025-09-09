@@ -1,4 +1,4 @@
-package com.extractor.domain.model.pattern;
+package com.extractor.domain.model.extract;
 
 import com.extractor.domain.vo.hwpx.HwpxImageVo;
 import com.extractor.domain.vo.hwpx.HwpxSectionVo;
@@ -16,14 +16,14 @@ import java.util.List;
 
 @ToString
 @Getter
-public class HwpxDocument extends ExtractDocument {
+public class ExtractHwpxDocument extends ExtractDocument {
 
     private final List<HwpxSectionVo> sections;
 
     private final List<HwpxImageVo> images;
 
     @Builder
-    public HwpxDocument(String docId, String name, FileExtension extension, List<HwpxSectionVo> sections, List<HwpxImageVo> images, Path path) {
+    public ExtractHwpxDocument(String docId, String name, FileExtension extension, List<HwpxSectionVo> sections, List<HwpxImageVo> images, Path path) {
         super(docId, name, extension, path);
         this.sections = sections;
         this.images = images;
@@ -47,15 +47,15 @@ public class HwpxDocument extends ExtractDocument {
                             case "hp:t" -> contentBuilder.append(node.getTextContent());
                             // 표
                             case "hp:tbl" -> {
-                                Arrays.stream(contentBuilder.toString().split("\n")).forEach(super::addText);
-                                super.addTable(this.convertTableXmlToHtml(node, 0));
+                                Arrays.stream(contentBuilder.toString().split("\n")).forEach(super::addTextContent);
+                                super.addTableContent(this.convertTableXmlToHtml(node, 0));
                                 contentBuilder = new StringBuilder();
                             }
                             // 이미지
                             case "hp:pic" -> {
-                                Arrays.stream(contentBuilder.toString().split("\n")).forEach(super::addText);
+                                Arrays.stream(contentBuilder.toString().split("\n")).forEach(super::addTextContent);
                                 // TODO: Image -> Text 추출 (OCR)
-                                super.addImage("<IMAGE/>");
+                                super.addImageContent("<IMAGE/>");
                                 contentBuilder = new StringBuilder();
                             }
                         }
@@ -63,7 +63,7 @@ public class HwpxDocument extends ExtractDocument {
                 }
 
                 if (!contentBuilder.isEmpty()) {
-                    Arrays.stream(contentBuilder.toString().split("\n")).forEach(super::addText);
+                    Arrays.stream(contentBuilder.toString().split("\n")).forEach(super::addTextContent);
                 }
             });
         });

@@ -9,6 +9,7 @@ public interface LawDocumentRepository extends JpaRepository<LawDocumentEntity, 
 
     /**
      * 법령 ID 기준 법령 조회
+     *
      * @param lawId 법령 ID
      */
     Optional<LawDocumentEntity> findByLawId(Long lawId);

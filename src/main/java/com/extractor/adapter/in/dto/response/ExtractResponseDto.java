@@ -1,17 +1,16 @@
 package com.extractor.adapter.in.dto.response;
 
-import com.extractor.application.vo.DocumentLineVo;
+import com.extractor.application.vo.ExtractContentVo;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
+@Builder
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class ExtractResponseDto {
 
     @Schema(description = "문서 식별자")
@@ -24,13 +23,5 @@ public class ExtractResponseDto {
     private String extension;
 
     @Schema(description = "문서 추출 라인")
-    private List<DocumentLineVo> lines;
-
-    @Builder
-    public ExtractResponseDto(String docId, String name, String extension, List<DocumentLineVo> lines) {
-        this.docId = docId;
-        this.name = name;
-        this.extension = extension;
-        this.lines = lines;
-    }
+    private List<ExtractContentVo> lines;
 }

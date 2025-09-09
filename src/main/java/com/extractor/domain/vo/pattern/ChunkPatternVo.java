@@ -9,10 +9,10 @@ public class ChunkPatternVo {
 
     private final List<PatternVo> patterns;
 
-    private final List<String> stopPatterns;
+    private final List<String> antiPatterns;
 
-    public ChunkPatternVo(List<PatternVo> patterns, List<String> stopPatterns) {
+    public ChunkPatternVo(List<PatternVo> patterns, List<String> antiPatterns) {
         this.patterns = patterns;
-        this.stopPatterns = stopPatterns;
+        this.antiPatterns = antiPatterns;
     }
 }

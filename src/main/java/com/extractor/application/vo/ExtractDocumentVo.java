@@ -15,13 +15,13 @@ public class ExtractDocumentVo {
 
     private final FileExtension extension;
 
-    private final List<DocumentLineVo> lines;
+    private final List<ExtractContentVo> extractContents;
 
     @Builder
-    public ExtractDocumentVo(String docId, String name, FileExtension extension, List<DocumentLineVo> lines) {
+    public ExtractDocumentVo(String docId, String name, FileExtension extension, List<ExtractContentVo> extractContents) {
         this.docId = docId;
         this.name = name;
         this.extension = extension;
-        this.lines = lines;
+        this.extractContents = extractContents;
     }
 }
