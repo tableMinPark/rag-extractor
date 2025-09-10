@@ -63,7 +63,6 @@ public class ExtractController {
             log.info("/extract | {} ", multipartFile.getOriginalFilename());
 
             return ResponseEntity.ok(ExtractResponseDto.builder()
-                    .docId(extractDocumentVo.getDocId())
                     .name(extractDocumentVo.getName())
                     .extension(extractDocumentVo.getExtension().getSimpleExtension())
                     .lines(extractDocumentVo.getExtractContents())

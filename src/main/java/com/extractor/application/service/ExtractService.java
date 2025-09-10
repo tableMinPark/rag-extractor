@@ -35,7 +35,6 @@ public class ExtractService implements ExtractUseCase {
             ExtractHwpxDocument extractHwpxDocument = extractPort.extractHwpxDocumentPort(fileDocument);
             extractHwpxDocument.extract();
             return ExtractDocumentVo.builder()
-                    .docId(extractHwpxDocument.getDocId())
                     .name(extractHwpxDocument.getName())
                     .extension(extractHwpxDocument.getExtension())
                     .extractContents(extractHwpxDocument.getExtractContents().stream()
@@ -66,7 +65,6 @@ public class ExtractService implements ExtractUseCase {
             ExtractPdfDocument extractPdfDocument = extractPort.extractPdfDocumentPort(fileDocument);
             extractPdfDocument.extract();
             return ExtractDocumentVo.builder()
-                    .docId(extractPdfDocument.getDocId())
                     .name(extractPdfDocument.getName())
                     .extension(extractPdfDocument.getExtension())
                     .extractContents(extractPdfDocument.getExtractContents().stream()

@@ -14,8 +14,6 @@ import java.util.List;
 @Getter
 public class ExtractDocument {
 
-    private final String docId;
-
     private final String name;
 
     private final FileExtension extension;
@@ -24,8 +22,7 @@ public class ExtractDocument {
 
     private final List<ExtractContent> extractContents;
 
-    public ExtractDocument(String docId, String name, FileExtension extension, Path path) {
-        this.docId = docId;
+    public ExtractDocument(String name, FileExtension extension, Path path) {
         this.name = name;
         this.extension = extension;
         this.path = path;

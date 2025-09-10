@@ -3,9 +3,9 @@ package com.extractor.adapter.out;
 import com.extractor.adapter.out.entity.LawContentEntity;
 import com.extractor.adapter.out.entity.LawDocumentEntity;
 import com.extractor.adapter.out.entity.LawLinkEntity;
-import com.extractor.adapter.out.repository.LawLinkRepository;
 import com.extractor.adapter.out.repository.LawContentRepository;
 import com.extractor.adapter.out.repository.LawDocumentRepository;
+import com.extractor.adapter.out.repository.LawLinkRepository;
 import com.extractor.application.exception.NotFoundDocumentException;
 import com.extractor.application.port.LawPersistencePort;
 import com.extractor.domain.model.law.LawContent;
@@ -66,7 +66,7 @@ public class LawPersistenceAdapter implements LawPersistencePort {
                         .arrange(lawContentEntity.getArrange())
                         .simpleTitle(lawContentEntity.getSimpleTitle())
                         .title(lawContentEntity.getTitle())
-                        .content(lawContentEntity.getContent())
+                        .content(StringUtil.removeHtml(lawContentEntity.getContent()))
                         .build())
                 .collect(Collectors.toList());
 
@@ -82,7 +82,7 @@ public class LawPersistenceAdapter implements LawPersistencePort {
                 Pattern pattern = Pattern.compile(LINK_TAG_PATTERN);
                 Matcher matcher = pattern.matcher(lawLinkEntity.getLinkTag());
 
-                // Link Tag 필드 정규식 일치 여부 확인
+                // LinkTag 필드 정규식 일치 여부 확인
                 if (matcher.find()) {
                     String linkType = matcher.group(1);
                     String linkLawId = matcher.group(2);
@@ -107,14 +107,14 @@ public class LawPersistenceAdapter implements LawPersistencePort {
                                                     .arrange(linkLawContentEntity.getArrange())
                                                     .simpleTitle(linkLawContentEntity.getSimpleTitle())
                                                     .title(linkLawContentEntity.getTitle())
-                                                    .content(linkLawContentEntity.getContent())
+                                                    .content(StringUtil.removeHtml(linkLawContentEntity.getContent()))
                                                     .build())
                                             .toList());
+                            // ???
                             case "2" -> {
                             }
+                            // 법령 전체 연결 매핑
                             case "3" -> {
-                            }
-                            default -> {
                             }
                         }
                     }

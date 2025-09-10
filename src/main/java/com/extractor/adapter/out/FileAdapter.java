@@ -34,12 +34,12 @@ public class FileAdapter implements FilePort {
     @Override
     public FileDocument uploadFilePort(FileDocumentVo fileDocumentVo) {
 
-        String docId = StringUtil.generateRandomId();
+        String fileId = StringUtil.generateRandomId();
         String originalFileName = fileDocumentVo.getOriginalFileName();
         Path path = Paths.get(UPLOAD_PATH);
 
         FileExtension extension = fileDocumentVo.getExtension();
-        String fileName = docId + "." + extension.getSimpleExtension();
+        String fileName = fileId + "." + extension.getSimpleExtension();
         Path fullPath = path.resolve(fileName);
 
         if (!path.toFile().exists()) {
@@ -64,7 +64,7 @@ public class FileAdapter implements FilePort {
 
                 // 파일 메타 데이터 변경
                 extension = FileExtension.HWPX;
-                fileName = docId + "." + extension.getSimpleExtension();
+                fileName = fileId + "." + extension.getSimpleExtension();
                 fullPath = path.resolve(fileName);
 
                 // HWPX 파일 쓰기
@@ -78,7 +78,7 @@ public class FileAdapter implements FilePort {
         // HWPX 파일 압축 해제
         if (FileExtension.HWPX.equals(extension)) {
             // 압축 해제 경로
-            Path unZipPath = path.resolve(docId);
+            Path unZipPath = path.resolve(fileId);
 
             // 압축 파일 존재 여부 확인
             if (!fullPath.toFile().exists()) {
@@ -94,7 +94,6 @@ public class FileAdapter implements FilePort {
         }
 
         return FileDocument.builder()
-                .docId(docId)
                 .originalFileName(originalFileName)
                 .path(path)
                 .fullPath(fullPath)

@@ -15,8 +15,8 @@ public class ExtractPdfDocument extends ExtractDocument {
     private final String content;
 
     @Builder
-    public ExtractPdfDocument(String docId, String name, FileExtension extension, Path path, String content) {
-        super(docId, name, extension, path);
+    public ExtractPdfDocument(String name, FileExtension extension, Path path, String content) {
+        super(name, extension, path);
         this.content = content;
     }
 

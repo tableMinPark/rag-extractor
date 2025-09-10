@@ -13,9 +13,6 @@ import java.util.List;
 @AllArgsConstructor
 public class ExtractResponseDto {
 
-    @Schema(description = "문서 식별자")
-    private String docId;
-
     @Schema(description = "파일명")
     private String name;
 
