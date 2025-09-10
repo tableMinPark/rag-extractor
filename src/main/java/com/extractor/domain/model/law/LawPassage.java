@@ -25,13 +25,12 @@ public class LawPassage extends Passage {
     /**
      * 초기 생성자
      *
-     * @param docId               문서 식별자
      * @param lawContents         법령 본문 목록
      * @param patterns            패시지 패턴
      * @param excludeContentTypes 제외 타입 목록
      */
-    public LawPassage(String docId, List<LawContent> lawContents, Map<Long, List<LawContent>> lawLinks, List<PatternVo> patterns, List<String> excludeContentTypes) {
-        super(docId, -1, patterns.size());
+    public LawPassage(List<LawContent> lawContents, Map<Long, List<LawContent>> lawLinks, List<PatternVo> patterns, List<String> excludeContentTypes) {
+        super(-1, patterns.size());
         this.patterns = patterns;
         this.excludeContentTypes = excludeContentTypes;
         this.lawLinks = lawLinks;
@@ -39,8 +38,8 @@ public class LawPassage extends Passage {
         // 타이틀 버퍼 초기화
         for (int depth = 0; depth < this.depthSize; depth++) {
             int titleBufferSize = patterns.get(depth).getPrefixes().size();
-            this.titleBuffers[depth] = new String[titleBufferSize];
-            Arrays.fill(this.titleBuffers[depth], "");
+            this.titleBuffers[depth] = new PassageTitle[titleBufferSize];
+            Arrays.fill(this.titleBuffers[depth], null);
         }
 
         // 추출 범위 분리 (제외 타입 필터링)
@@ -59,7 +58,7 @@ public class LawPassage extends Passage {
      * @param lawContents 법령 본문 목록
      */
     public LawPassage(LawPassage parent, List<LawContent> lawContents) {
-        super(parent.docId, parent.depth + 1, parent.depthSize, deepCopyTitleBuffers(parent.titleBuffers));
+        super(parent.depth + 1, parent.depthSize, deepCopyTitleBuffers(parent.titleBuffers));
         this.patterns = parent.patterns;
         this.excludeContentTypes = parent.excludeContentTypes;
         this.lawLinks = parent.lawLinks;
@@ -116,7 +115,11 @@ public class LawPassage extends Passage {
 
                     // 타이틀 지정
                     if (!prefix.getIsDeleting()) {
-                        passage.titleBuffers[nextDepth][prefixIndex] = lawContent.getTitle();
+                        passage.titleBuffers[nextDepth][prefixIndex] = new PassageTitle(
+                                lawContent.getTitle(),
+                                lawContent.getSimpleTitle().isBlank()
+                                        ? lawContent.getTitle()
+                                        : lawContent.getSimpleTitle());
                     }
                     break;
                 }

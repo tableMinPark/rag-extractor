@@ -9,8 +9,6 @@ import java.nio.file.Path;
 @Getter
 public class FileDocument {
 
-    private final String docId;
-
     private final String originalFileName;
 
     private final Path path;
@@ -20,8 +18,7 @@ public class FileDocument {
     private final FileExtension extension;
 
     @Builder
-    public FileDocument(String docId, String originalFileName, Path path, Path fullPath, FileExtension extension) {
-        this.docId = docId;
+    public FileDocument(String originalFileName, Path path, Path fullPath, FileExtension extension) {
         this.originalFileName = originalFileName;
         this.path = path;
         this.fullPath = fullPath;

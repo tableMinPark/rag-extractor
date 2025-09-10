@@ -9,8 +9,6 @@ import java.util.List;
 @Getter
 public class ExtractDocumentVo {
 
-    private final String docId;
-
     private final String name;
 
     private final FileExtension extension;
@@ -18,8 +16,7 @@ public class ExtractDocumentVo {
     private final List<ExtractContentVo> extractContents;
 
     @Builder
-    public ExtractDocumentVo(String docId, String name, FileExtension extension, List<ExtractContentVo> extractContents) {
-        this.docId = docId;
+    public ExtractDocumentVo(String name, FileExtension extension, List<ExtractContentVo> extractContents) {
         this.name = name;
         this.extension = extension;
         this.extractContents = extractContents;

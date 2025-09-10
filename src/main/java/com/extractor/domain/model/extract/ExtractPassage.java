@@ -27,21 +27,20 @@ public class ExtractPassage extends Passage {
     /**
      * 초기 생성자
      *
-     * @param docId           문서 식별자
      * @param extractContents 추출 본문 목록
      * @param patterns        패시지 패턴
      * @param stopPatterns    정지 패턴
      */
-    public ExtractPassage(String docId, List<ExtractContent> extractContents, List<PatternVo> patterns, List<String> stopPatterns) {
-        super(docId, -1, patterns.size());
+    public ExtractPassage(List<ExtractContent> extractContents, List<PatternVo> patterns, List<String> stopPatterns) {
+        super(-1, patterns.size());
         this.patterns = patterns;
         this.stopPatterns = stopPatterns;
 
         // 타이틀 버퍼 초기화
         for (int depth = 0; depth < this.depthSize; depth++) {
             int titleBufferSize = patterns.get(depth).getPrefixes().size();
-            this.titleBuffers[depth] = new String[titleBufferSize];
-            Arrays.fill(this.titleBuffers[depth], "");
+            this.titleBuffers[depth] = new PassageTitle[titleBufferSize];
+            Arrays.fill(this.titleBuffers[depth], null);
         }
 
         // 추출 범위 분리
@@ -72,7 +71,7 @@ public class ExtractPassage extends Passage {
      * @param extractContents 추출 본문 목록
      */
     public ExtractPassage(ExtractPassage parent, List<ExtractContent> extractContents) {
-        super(parent.docId, parent.depth + 1, parent.depthSize, deepCopyTitleBuffers(parent.titleBuffers));
+        super(parent.depth + 1, parent.depthSize, deepCopyTitleBuffers(parent.titleBuffers));
         this.patterns = parent.patterns;
         this.stopPatterns = parent.stopPatterns;
         this.extractContents = extractContents;
@@ -132,7 +131,9 @@ public class ExtractPassage extends Passage {
 
                     // 타이틀 지정
                     if (!prefix.getIsDeleting()) {
-                        passage.titleBuffers[nextDepth][prefixIndex] = matcher.group().trim();
+                        passage.titleBuffers[nextDepth][prefixIndex] = new PassageTitle(
+                                matcher.group().trim(),
+                                matcher.group().trim());
                     }
                     break;
                 }

@@ -31,9 +31,6 @@ public class TrainingDocumentEntity {
     @Column(name = "original_id")
     private Long originalId;
 
-    @Column(name = "doc_id")
-    private String docId;
-
     @Column(name = "doc_type")
     private String docType;
 
@@ -70,9 +67,8 @@ public class TrainingDocumentEntity {
     private LocalDateTime updatedAt;
 
     @Builder
-    public TrainingDocumentEntity(Long originalId, String docId, String docType, String categoryCode, Integer version, String title, String subTitle, String thirdTitle, String content, String subContent, Integer tokenSize, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public TrainingDocumentEntity(Long originalId, String docType, String categoryCode, Integer version, String title, String subTitle, String thirdTitle, String content, String subContent, Integer tokenSize, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.originalId = originalId;
-        this.docId = docId;
         this.docType = docType;
         this.categoryCode = categoryCode;
         this.version = version;

@@ -28,9 +28,6 @@ public class OriginalDocumentEntity {
     @Column(name = "original_id", nullable = false)
     private Long originalId;
 
-    @Column(name = "doc_id")
-    private String docId;
-
     @Column(name = "doc_type")
     private String docType;
 
@@ -55,8 +52,7 @@ public class OriginalDocumentEntity {
     private LocalDateTime updatedAt;
 
     @Builder
-    public OriginalDocumentEntity(String docId, String docType, String categoryCode, String name, String filePath, String content, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.docId = docId;
+    public OriginalDocumentEntity(String docType, String categoryCode, String name, String filePath, String content, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.docType = docType;
         this.categoryCode = categoryCode;
         this.name = name;

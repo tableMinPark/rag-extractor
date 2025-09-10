@@ -2,8 +2,8 @@ package com.extractor.adapter.out;
 
 import com.extractor.adapter.utils.FileUtil;
 import com.extractor.application.port.ExtractPort;
-import com.extractor.domain.model.extract.ExtractHwpxDocument;
 import com.extractor.domain.model.FileDocument;
+import com.extractor.domain.model.extract.ExtractHwpxDocument;
 import com.extractor.domain.model.extract.ExtractPdfDocument;
 import com.extractor.domain.vo.hwpx.HwpxImageVo;
 import com.extractor.domain.vo.hwpx.HwpxSectionVo;
@@ -85,7 +85,6 @@ public class ExtractAdapter implements ExtractPort {
         }
 
         return ExtractHwpxDocument.builder()
-                .docId(fileDocument.getDocId())
                 .name(fileDocument.getOriginalFileName())
                 .extension(fileDocument.getExtension())
                 .path(fileDocument.getPath())
@@ -102,7 +101,6 @@ public class ExtractAdapter implements ExtractPort {
     @Override
     public ExtractPdfDocument extractPdfDocumentPort(FileDocument fileDocument) {
         return ExtractPdfDocument.builder()
-                .docId(fileDocument.getDocId())
                 .name(fileDocument.getOriginalFileName())
                 .extension(fileDocument.getExtension())
                 .path(fileDocument.getPath())

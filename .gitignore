@@ -41,7 +41,7 @@ out/
 
 ### file ###
 filter/
-test/
+filterTest/
 
 ### lib ###
 libs/snf/

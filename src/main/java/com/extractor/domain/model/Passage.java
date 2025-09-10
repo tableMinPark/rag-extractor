@@ -1,17 +1,20 @@
 package com.extractor.domain.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @ToString
 public class Passage {
 
     @Getter
-    protected final String docId;
+    @AllArgsConstructor
+    public static class PassageTitle {
+        private String title;
+        private String simpleTitle;
+    }
 
     @Getter
     protected String content;
@@ -24,19 +27,17 @@ public class Passage {
 
     protected final int depthSize;
 
-    protected final String[][] titleBuffers;
+    protected final PassageTitle[][] titleBuffers;
 
-    public Passage(String docId, int depth, int depthSize) {
-        this.docId = docId;
+    public Passage(int depth, int depthSize) {
         this.content = "";
         this.subContent = "";
         this.depth = depth;
         this.depthSize = depthSize;
-        this.titleBuffers = new String[depthSize][];
+        this.titleBuffers = new PassageTitle[depthSize][];
     }
 
-    public Passage(String docId, int depth, int depthSize, String[][] titleBuffers) {
-        this.docId = docId;
+    public Passage(int depth, int depthSize, PassageTitle[][] titleBuffers) {
         this.content = "";
         this.subContent = "";
         this.depth = depth;
@@ -62,7 +63,7 @@ public class Passage {
             int nowPrefixIndex = nowDepth != depth ? 0 : prefixIndex;
 
             while (nowPrefixIndex < this.titleBuffers[nowDepth].length) {
-                this.titleBuffers[nowDepth][nowPrefixIndex] = "";
+                this.titleBuffers[nowDepth][nowPrefixIndex] = null;
                 nowPrefixIndex++;
             }
         }
@@ -83,21 +84,30 @@ public class Passage {
      * @return 전체 타이틀 문자열
      */
     public String getFullTitle() {
-        StringBuilder fullTitleBuilder = new StringBuilder();
-        for (String[] buffer : this.titleBuffers) {
-            StringBuilder titleBuilder = new StringBuilder();
-
-            for (String titleBuffer : buffer) {
-                if (!titleBuffer.isBlank()) {
-                    titleBuilder.append(" ").append(titleBuffer);
+        Queue<PassageTitle> passageTitleQueue = new ArrayDeque<>();
+        for (PassageTitle[] titleBuffer : this.titleBuffers) {
+            for (PassageTitle title : titleBuffer) {
+                if (title != null) {
+                    passageTitleQueue.offer(title);
                 }
             }
+        }
 
-            // 타이틀 추가
-            if (!titleBuilder.isEmpty()) {
-                fullTitleBuilder.append(titleBuilder);
+        StringBuilder fullTitleBuilder = new StringBuilder();
+        while (!passageTitleQueue.isEmpty()) {
+            PassageTitle passageTitle = passageTitleQueue.poll();
+
+            if (!fullTitleBuilder.isEmpty()) {
+                fullTitleBuilder.append(" | ");
+            }
+
+            if (passageTitleQueue.isEmpty()) {
+                fullTitleBuilder.append(passageTitle.title);
+            } else {
+                fullTitleBuilder.append(passageTitle.simpleTitle);
             }
         }
+
         return fullTitleBuilder.toString().trim();
     }
 
@@ -111,19 +121,31 @@ public class Passage {
         Arrays.fill(titles, "");
 
         for (int depth = 0; depth < titleBuffers.length; depth++) {
-            StringBuilder titleBuilder = new StringBuilder();
+            Queue<PassageTitle> passageTitleQueue = new ArrayDeque<>();
 
-            for (String titleBuffer : titleBuffers[depth]) {
-                if (!titleBuffer.isBlank()) {
-                    titleBuilder.append(" ").append(titleBuffer);
+            for (PassageTitle title : titleBuffers[depth]) {
+                if (title != null) {
+                    passageTitleQueue.offer(title);
+                }
+            }
+
+            StringBuilder titleBuilder = new StringBuilder();
+            while (!passageTitleQueue.isEmpty()) {
+                PassageTitle passageTitle = passageTitleQueue.poll();
+
+                if (!titleBuilder.isEmpty()) {
+                    titleBuilder.append(" | ");
+                }
+
+                if (passageTitleQueue.isEmpty()) {
+                    titleBuilder.append(passageTitle.title);
+                } else {
+                    titleBuilder.append(passageTitle.simpleTitle);
                 }
             }
 
             // 타이틀 추가
-            if (!titleBuilder.isEmpty()) {
-                titles[depth] += " " + titleBuilder;
-                titles[depth] = titles[depth].trim();
-            }
+            titles[depth] = titleBuilder.toString().trim();
         }
 
         return titles;
@@ -135,8 +157,8 @@ public class Passage {
      * @param titleBuffers 원천
      * @return 복사 배열
      */
-    protected static String[][] deepCopyTitleBuffers(String[][] titleBuffers) {
-        String[][] titleBuffersCopy = new String[titleBuffers.length][];
+    protected static PassageTitle[][] deepCopyTitleBuffers(PassageTitle[][] titleBuffers) {
+        PassageTitle[][] titleBuffersCopy = new PassageTitle[titleBuffers.length][];
         for (int titleBufferIndex = 0; titleBufferIndex < titleBuffers.length; titleBufferIndex++) {
             titleBuffersCopy[titleBufferIndex] = Arrays.copyOf(titleBuffers[titleBufferIndex], titleBuffers[titleBufferIndex].length);
         }

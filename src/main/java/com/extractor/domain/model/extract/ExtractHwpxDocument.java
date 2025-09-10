@@ -23,8 +23,8 @@ public class ExtractHwpxDocument extends ExtractDocument {
     private final List<HwpxImageVo> images;
 
     @Builder
-    public ExtractHwpxDocument(String docId, String name, FileExtension extension, List<HwpxSectionVo> sections, List<HwpxImageVo> images, Path path) {
-        super(docId, name, extension, path);
+    public ExtractHwpxDocument(String name, FileExtension extension, List<HwpxSectionVo> sections, List<HwpxImageVo> images, Path path) {
+        super(name, extension, path);
         this.sections = sections;
         this.images = images;
     }

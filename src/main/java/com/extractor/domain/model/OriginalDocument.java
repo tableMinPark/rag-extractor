@@ -8,8 +8,6 @@ public class OriginalDocument {
 
     private final Long originalId;
 
-    private final String docId;
-
     private final String docType;
 
     private final String categoryCode;
@@ -21,9 +19,8 @@ public class OriginalDocument {
     private final String content;
 
     @Builder
-    public OriginalDocument(Long originalId, String docId, String docType, String categoryCode, String name, String filePath, String content) {
+    public OriginalDocument(Long originalId, String docType, String categoryCode, String name, String filePath, String content) {
         this.originalId = originalId;
-        this.docId = docId;
         this.docType = docType;
         this.categoryCode = categoryCode;
         this.name = name;

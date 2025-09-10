@@ -52,7 +52,6 @@ public class ChunkService implements ChunkUseCase {
             extractHwpxDocument.extract();
 
             ExtractPassage extractPassage = new ExtractPassage(
-                    extractHwpxDocument.getDocId(),
                     extractHwpxDocument.getExtractContents(),
                     chunkPatternVo.getPatterns(),
                     chunkPatternVo.getAntiPatterns());
@@ -63,7 +62,6 @@ public class ChunkService implements ChunkUseCase {
 
             return passages.stream()
                     .map(passage -> PassageVo.builder()
-                            .docId(passage.getDocId())
                             .depth(passage.getDepth())
                             .tokenSize(passage.getTokenSize())
                             .fullTitle(passage.getFullTitle())
@@ -94,7 +92,6 @@ public class ChunkService implements ChunkUseCase {
             extractPdfDocument.extract();
 
             ExtractPassage extractPassage = new ExtractPassage(
-                    extractPdfDocument.getDocId(),
                     extractPdfDocument.getExtractContents(),
                     chunkPatternVo.getPatterns(),
                     chunkPatternVo.getAntiPatterns());
@@ -105,7 +102,6 @@ public class ChunkService implements ChunkUseCase {
 
             return passages.stream()
                     .map(passage -> PassageVo.builder()
-                            .docId(passage.getDocId())
                             .depth(passage.getDepth())
                             .tokenSize(passage.getTokenSize())
                             .fullTitle(passage.getFullTitle())
@@ -132,7 +128,6 @@ public class ChunkService implements ChunkUseCase {
         LawDocument lawDocument = lawPersistencePort.getLawDocumentsPort(lawId);
 
         LawPassage lawPassage = new LawPassage(
-                String.valueOf(lawDocument.getLawId()),
                 lawDocument.getLawContents(),
                 lawDocument.getLawLinks(),
                 chunkPatternVo.getPatterns(),
@@ -144,7 +139,6 @@ public class ChunkService implements ChunkUseCase {
 
         return passages.stream()
                 .map(passage -> PassageVo.builder()
-                        .docId(passage.getDocId())
                         .depth(passage.getDepth())
                         .tokenSize(passage.getTokenSize())
                         .fullTitle(passage.getFullTitle())
