@@ -13,6 +13,7 @@ import org.w3c.dom.Element;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @ToString
 @Getter
@@ -20,10 +21,10 @@ public class ExtractHwpxDocument extends ExtractDocument {
 
     private final List<HwpxSectionVo> sections;
 
-    private final List<HwpxImageVo> images;
+    private final Map<String, HwpxImageVo> images;
 
     @Builder
-    public ExtractHwpxDocument(String name, FileExtension extension, List<HwpxSectionVo> sections, List<HwpxImageVo> images, Path path) {
+    public ExtractHwpxDocument(String name, FileExtension extension, List<HwpxSectionVo> sections, Map<String, HwpxImageVo> images, Path path) {
         super(name, extension, path);
         this.sections = sections;
         this.images = images;
@@ -54,8 +55,14 @@ public class ExtractHwpxDocument extends ExtractDocument {
                             // 이미지
                             case "hp:pic" -> {
                                 Arrays.stream(contentBuilder.toString().split("\n")).forEach(super::addTextContent);
-                                // TODO: Image -> Text 추출 (OCR)
-                                super.addImageContent("<IMAGE/>");
+
+                                Element img = XmlUtil.findChildElementByTagName(node, "hc:img");
+
+                                if (img != null) {
+                                    String id = img.getAttribute("binaryItemIDRef");
+                                    super.addImageContent(this.images.containsKey(id) ? this.images.get(id).getContent() : "");
+                                }
+
                                 contentBuilder = new StringBuilder();
                             }
                         }

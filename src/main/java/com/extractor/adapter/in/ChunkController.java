@@ -78,8 +78,9 @@ public class ChunkController {
             log.info("/chunk | {} ", multipartFile.getOriginalFilename());
 
             return ResponseEntity.ok(ChunkDocumentResponseDto.builder()
-                    .chunkInfo(chunkPatternVo)
+                    .passageCount(passages.size())
                     .passages(passages)
+                    .chunkInfo(chunkPatternVo)
                     .build());
 
         } catch (RuntimeException e) {
@@ -118,12 +119,11 @@ public class ChunkController {
             log.info("/chunk/law | {} ", chunkLawRequestDto.getLawId());
 
             return ResponseEntity.ok(ChunkLawResponseDto.builder()
+                    .passageCount(passages.size())
                     .passages(passages)
                     .build());
 
         } catch (RuntimeException e) {
-
-            e.printStackTrace();
 
             log.error("/chunk/law | {} | {}", chunkLawRequestDto.getLawId(), e.getMessage());
 

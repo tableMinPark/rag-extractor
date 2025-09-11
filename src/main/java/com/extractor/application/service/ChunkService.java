@@ -7,7 +7,9 @@ import com.extractor.application.port.LawPersistencePort;
 import com.extractor.application.usecase.ChunkUseCase;
 import com.extractor.application.vo.PassageVo;
 import com.extractor.domain.model.FileDocument;
+import com.extractor.domain.model.OriginalDocument;
 import com.extractor.domain.model.Passage;
+import com.extractor.domain.model.TrainingDocument;
 import com.extractor.domain.model.extract.ExtractHwpxDocument;
 import com.extractor.domain.model.extract.ExtractPassage;
 import com.extractor.domain.model.extract.ExtractPdfDocument;
@@ -15,11 +17,13 @@ import com.extractor.domain.model.law.LawDocument;
 import com.extractor.domain.model.law.LawPassage;
 import com.extractor.domain.vo.document.FileDocumentVo;
 import com.extractor.domain.vo.pattern.ChunkPatternVo;
+import com.extractor.global.utils.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -122,8 +126,12 @@ public class ChunkService implements ChunkUseCase {
      * @param lawId          법령 목록
      * @param chunkPatternVo 청킹 패턴 정보
      */
+    @Override
     @Transactional
     public List<PassageVo> chunkLawDocumentUseCase(Long lawId, ChunkPatternVo chunkPatternVo) {
+
+        String docType = "DOC-TYPE-DB";
+        String categoryCode = "TRAIN-LAW";
 
         LawDocument lawDocument = lawPersistencePort.getLawDocumentsPort(lawId);
 
@@ -133,19 +141,54 @@ public class ChunkService implements ChunkUseCase {
                 chunkPatternVo.getPatterns(),
                 chunkPatternVo.getAntiPatterns());
 
-        List<Passage> passages = lawPassage.chunk();
+        // 원본 문서 영속화
+        OriginalDocument originalDocument = documentPersistencePort.saveOriginalDocumentPort(OriginalDocument.builder()
+                .version(StringUtil.generateRandomId())
+                .docType(docType)
+                .categoryCode(categoryCode)
+                .name(lawDocument.getLawName())
+                .content(lawDocument.getContent())
+                .build());
 
-        // TODO: 원본 데이터 및 학습 데이터 DB 적재 (lawDocument, passages)
+        return lawPassage.chunk().stream()
+                .map(passage -> {
+                    String title = lawDocument.getLawName();
+                    String subTitle = "";
+                    String thirdTitle = "";
+                    String content = passage.getContent();
+                    String subContent = passage.getSubContent();
+                    int tokenSize = passage.getTokenSize();
 
-        return passages.stream()
-                .map(passage -> PassageVo.builder()
-                        .depth(passage.getDepth())
-                        .tokenSize(passage.getTokenSize())
-                        .fullTitle(passage.getFullTitle())
-                        .titles(passage.getTitles())
-                        .content(passage.getContent())
-                        .subContent(passage.getSubContent())
-                        .build())
+                    String[] titles = passage.getTitles();
+                    if (titles.length > 0) {
+                        subTitle = titles[0];
+                    }
+                    if (titles.length > 1) {
+                        thirdTitle = String.join("", Arrays.stream(titles).toList().subList(1, titles.length));
+                    }
+
+                    documentPersistencePort.saveTrainingDocumentPort(TrainingDocument.builder()
+                            .originalId(originalDocument.getOriginalId())
+                            .docType(docType)
+                            .categoryCode(categoryCode)
+                            .version(originalDocument.getVersion())
+                            .title(title)
+                            .subTitle(subTitle)
+                            .thirdTitle(thirdTitle)
+                            .content(content)
+                            .subContent(subContent)
+                            .tokenSize(tokenSize)
+                            .build());
+
+                    return PassageVo.builder()
+                            .depth(passage.getDepth())
+                            .tokenSize(passage.getTokenSize())
+                            .fullTitle(passage.getFullTitle())
+                            .titles(passage.getTitles())
+                            .content(passage.getContent())
+                            .subContent(passage.getSubContent())
+                            .build();
+                })
                 .toList();
     }
 }

@@ -4,6 +4,7 @@ import com.extractor.domain.model.Passage;
 import com.extractor.domain.vo.pattern.PatternVo;
 import com.extractor.domain.vo.pattern.PrefixVo;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
 /**
  * 법령 기반 청킹
  */
+@Slf4j
 @ToString
 public class LawPassage extends Passage {
 
@@ -34,13 +36,6 @@ public class LawPassage extends Passage {
         this.patterns = patterns;
         this.excludeContentTypes = excludeContentTypes;
         this.lawLinks = lawLinks;
-
-        // 타이틀 버퍼 초기화
-        for (int depth = 0; depth < this.depthSize; depth++) {
-            int titleBufferSize = patterns.get(depth).getPrefixes().size();
-            this.titleBuffers[depth] = new PassageTitle[titleBufferSize];
-            Arrays.fill(this.titleBuffers[depth], null);
-        }
 
         // 추출 범위 분리 (제외 타입 필터링)
         this.lawContents = lawContents.stream()
@@ -73,6 +68,13 @@ public class LawPassage extends Passage {
      */
     @Override
     public List<Passage> chunk() {
+        // 타이틀 버퍼 초기화
+        for (int depth = 0; depth < this.depthSize; depth++) {
+            int titleBufferSize = patterns.get(depth).getPrefixes().size();
+            this.titleBuffers[depth] = new PassageTitle[titleBufferSize];
+            Arrays.fill(this.titleBuffers[depth], null);
+        }
+
         return chunk(this);
     }
 
@@ -87,7 +89,7 @@ public class LawPassage extends Passage {
         int tokenSize = passage.getTokenSize();
 
         // 뎁스 초과 or 토큰 수 적합
-        if (nextDepth >= passage.depthSize || tokenSize <= patterns.get(nextDepth).getTokenSize()) {
+        if (nextDepth >= passage.depthSize || tokenSize <= passage.patterns.get(nextDepth).getTokenSize()) {
             return tokenSize == 0
                     ? Collections.emptyList()
                     : List.of(passage);

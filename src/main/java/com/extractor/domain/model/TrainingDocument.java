@@ -10,11 +10,11 @@ public class TrainingDocument {
 
     private final Long originalId;
 
+    private final String version;
+
     private final String docType;
 
     private final String categoryCode;
-
-    private final Integer version;
 
     private final String title;
 
@@ -29,12 +29,12 @@ public class TrainingDocument {
     private final Integer tokenSize;
 
     @Builder
-    public TrainingDocument(Long trainingId, Long originalId, String docType, String categoryCode, Integer version, String title, String subTitle, String thirdTitle, String content, String subContent, Integer tokenSize) {
+    public TrainingDocument(Long trainingId, Long originalId, String version, String docType, String categoryCode, String title, String subTitle, String thirdTitle, String content, String subContent, Integer tokenSize) {
         this.trainingId = trainingId;
         this.originalId = originalId;
+        this.version = version;
         this.docType = docType;
         this.categoryCode = categoryCode;
-        this.version = version;
         this.title = title;
         this.subTitle = subTitle;
         this.thirdTitle = thirdTitle;

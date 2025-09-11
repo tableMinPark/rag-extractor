@@ -23,6 +23,11 @@ public class ExtractContent {
         this.prefix = "";
     }
 
+    /**
+     * 타이틀 제거한 본문 조회
+     *
+     * @return 타이틀 제거 본문
+     */
     public String getSimpleContent() {
         String content = this.content;
         if (this.prefix != null && !this.prefix.isBlank()) {

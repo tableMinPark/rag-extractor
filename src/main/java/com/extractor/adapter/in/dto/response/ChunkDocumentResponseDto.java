@@ -14,6 +14,9 @@ import java.util.List;
 @AllArgsConstructor
 public class ChunkDocumentResponseDto {
 
+    @Schema(description = "패시지 수")
+    private Integer passageCount;
+
     @Schema(description = "패시지 목록")
     private List<PassageVo> passages;
 

@@ -13,6 +13,9 @@ import java.util.List;
 @AllArgsConstructor
 public class ChunkLawResponseDto {
 
+    @Schema(description = "패시지 수")
+    private Integer passageCount;
+
     @Schema(description = "패시지 목록")
     private List<PassageVo> passages;
 }

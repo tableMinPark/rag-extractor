@@ -159,8 +159,15 @@ public class Passage {
      */
     protected static PassageTitle[][] deepCopyTitleBuffers(PassageTitle[][] titleBuffers) {
         PassageTitle[][] titleBuffersCopy = new PassageTitle[titleBuffers.length][];
-        for (int titleBufferIndex = 0; titleBufferIndex < titleBuffers.length; titleBufferIndex++) {
-            titleBuffersCopy[titleBufferIndex] = Arrays.copyOf(titleBuffers[titleBufferIndex], titleBuffers[titleBufferIndex].length);
+        for (int depth = 0; depth < titleBuffers.length; depth++) {
+            titleBuffersCopy[depth] = new PassageTitle[titleBuffers[depth].length];
+            for (int titleIndex = 0; titleIndex < titleBuffers[depth].length; titleIndex++) {
+                if (titleBuffers[depth][titleIndex] != null) {
+                    titleBuffersCopy[depth][titleIndex] = new PassageTitle(
+                            titleBuffers[depth][titleIndex].title,
+                            titleBuffers[depth][titleIndex].simpleTitle);
+                }
+            }
         }
         return titleBuffersCopy;
     }

@@ -36,13 +36,6 @@ public class ExtractPassage extends Passage {
         this.patterns = patterns;
         this.stopPatterns = stopPatterns;
 
-        // 타이틀 버퍼 초기화
-        for (int depth = 0; depth < this.depthSize; depth++) {
-            int titleBufferSize = patterns.get(depth).getPrefixes().size();
-            this.titleBuffers[depth] = new PassageTitle[titleBufferSize];
-            Arrays.fill(this.titleBuffers[depth], null);
-        }
-
         // 추출 범위 분리
         int head = 0, tail = 0;
         List<String> prefixes = new ArrayList<>();
@@ -85,6 +78,13 @@ public class ExtractPassage extends Passage {
      */
     @Override
     public List<Passage> chunk() {
+        // 타이틀 버퍼 초기화
+        for (int depth = 0; depth < this.depthSize; depth++) {
+            int titleBufferSize = patterns.get(depth).getPrefixes().size();
+            this.titleBuffers[depth] = new PassageTitle[titleBufferSize];
+            Arrays.fill(this.titleBuffers[depth], null);
+        }
+
         return chunk(this);
     }
 
