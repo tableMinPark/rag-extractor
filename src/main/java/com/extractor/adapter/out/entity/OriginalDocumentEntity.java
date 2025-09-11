@@ -28,6 +28,9 @@ public class OriginalDocumentEntity {
     @Column(name = "original_id", nullable = false)
     private Long originalId;
 
+    @Column(name = "version")
+    private String version;
+
     @Column(name = "doc_type")
     private String docType;
 
@@ -52,13 +55,12 @@ public class OriginalDocumentEntity {
     private LocalDateTime updatedAt;
 
     @Builder
-    public OriginalDocumentEntity(String docType, String categoryCode, String name, String filePath, String content, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public OriginalDocumentEntity(String version, String docType, String categoryCode, String name, String filePath, String content) {
+        this.version = version;
         this.docType = docType;
         this.categoryCode = categoryCode;
         this.name = name;
         this.filePath = filePath;
         this.content = content;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
     }
 }

@@ -31,14 +31,14 @@ public class TrainingDocumentEntity {
     @Column(name = "original_id")
     private Long originalId;
 
+    @Column(name = "version")
+    private String version;
+
     @Column(name = "doc_type")
     private String docType;
 
     @Column(name = "category_code")
     private String categoryCode;
-
-    @Column(name = "version")
-    private Integer version;
 
     @Column(name = "title")
     private String title;
@@ -67,18 +67,16 @@ public class TrainingDocumentEntity {
     private LocalDateTime updatedAt;
 
     @Builder
-    public TrainingDocumentEntity(Long originalId, String docType, String categoryCode, Integer version, String title, String subTitle, String thirdTitle, String content, String subContent, Integer tokenSize, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public TrainingDocumentEntity(Long originalId, String version, String docType, String categoryCode, String title, String subTitle, String thirdTitle, String content, String subContent, Integer tokenSize) {
         this.originalId = originalId;
+        this.version = version;
         this.docType = docType;
         this.categoryCode = categoryCode;
-        this.version = version;
         this.title = title;
         this.subTitle = subTitle;
         this.thirdTitle = thirdTitle;
         this.content = content;
         this.subContent = subContent;
         this.tokenSize = tokenSize;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
     }
 }

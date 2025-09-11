@@ -10,6 +10,7 @@ import com.extractor.domain.vo.hwpx.HwpxSectionVo;
 import com.extractor.global.enums.FileExtension;
 import com.extractor.global.utils.XmlUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -23,8 +24,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ExtractAdapter implements ExtractPort {
@@ -42,7 +46,7 @@ public class ExtractAdapter implements ExtractPort {
 
         // 데이터 저장
         List<HwpxSectionVo> sections = new ArrayList<>();
-        List<HwpxImageVo> images = new ArrayList<>();
+        Map<String, HwpxImageVo> images = new HashMap<>();
 
         // metadata 추출
         String metaData = FileUtil.readFile(fileDocument.getPath().resolve("Contents/content.hpf"));
@@ -64,7 +68,8 @@ public class ExtractAdapter implements ExtractPort {
 
                 if (xmlFile.exists()) {
                     String content = FileUtil.readFile(xmlFile.toPath())
-                            .replace("<hp:lineBreak/>", "\n");
+                            .replaceAll("<hp:lineBreak/>", "\n")                        // 개행 태그 개행 문자로 치환
+                            .replaceAll("\\s[a-zA-Z_-]+=\"[^\"]*[<>][^\"]*\"", "");     // XML 속성 내에 "<", ">" 가 있는 경우 속성 제거
 
                     sections.add(HwpxSectionVo.builder()
                             .id(id)
@@ -73,10 +78,12 @@ public class ExtractAdapter implements ExtractPort {
                 }
             } else if (mediaType.startsWith("image/")) {
                 File imageFile = fileDocument.getPath().resolve(filePath).toFile();
+                String content = "<img id=\"" + id + "\"/>";    // TODO: Image -> Text 추출 (OCR)
 
                 if (imageFile.exists()) {
-                    images.add(HwpxImageVo.builder()
+                    images.put(id, HwpxImageVo.builder()
                             .id(id)
+                            .content(content)
                             .path(imageFile.toPath())
                             .extension(mediaType)
                             .build());

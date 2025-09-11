@@ -26,4 +26,22 @@ public class LawDocument {
         this.lawContents = lawContents;
         this.lawLinks = lawLinks;
     }
+
+    /**
+     * 본문 전체 조회
+     * @return 본문 전체 문자열
+     */
+    public String getContent() {
+        StringBuilder contentBuilder = new StringBuilder();
+
+        this.lawContents.forEach(lawContent -> {
+            contentBuilder
+                    .append("\n")
+                    .append(lawContent.getTitle())
+                    .append("\n")
+                    .append(lawContent.getContent());
+        });
+
+        return contentBuilder.toString().trim();
+    }
 }

@@ -50,34 +50,18 @@ public class LawPersistenceAdapter implements LawPersistencePort {
                 .orElseThrow(NotFoundDocumentException::new);
 
         // 법령 본문 엔티티 목록 조회
-        List<LawContentEntity> lawContentEntities = lawContentRepository.findByLawId(lawId);
+        List<LawContentEntity> lawContentEntities = lawContentRepository.findByLawIdAndVersionOrderByArrange(
+                lawDocumentEntity.getLawId(), lawDocumentEntity.getLatestVersion());
 
-        // 연결 법령 본문 맵
+        // 연결 법령 본문 맵 (법령 본문 ID <-> 연결 법령 본문 목록)
         Map<Long, List<LawContent>> linkLawContentMap = new HashMap<>();
-
-        // 법령 본문 목록
-        List<LawContent> lawContents = lawContentEntities.stream()
-                .map(lawContentEntity -> LawContent.builder()
-                        .lawContentId(lawContentEntity.getLawContentId())
-                        .lawId(lawContentEntity.getLawId())
-                        .version(lawContentEntity.getVersion())
-                        .contentType(lawContentEntity.getContentType())
-                        .categoryCode(lawContentEntity.getCategoryCode())
-                        .arrange(lawContentEntity.getArrange())
-                        .simpleTitle(lawContentEntity.getSimpleTitle())
-                        .title(lawContentEntity.getTitle())
-                        .content(StringUtil.removeHtml(lawContentEntity.getContent()))
-                        .build())
-                .collect(Collectors.toList());
-
         for (LawContentEntity lawContentEntity : lawContentEntities) {
             // 법령 연결 정보 엔티티 목록 조회
-            List<LawLinkEntity> lawLinkEntities = lawLinkRepository.findByLawContentIdAndVersion(
+            List<LawLinkEntity> lawLinkEntities = lawLinkRepository.findDistinctByLawContentIdAndVersion(
                     lawContentEntity.getLawContentId(), lawContentEntity.getVersion());
 
             // 연결 법령 본문 목록
             List<LawContent> linkLawContents = new ArrayList<>();
-
             for (LawLinkEntity lawLinkEntity : lawLinkEntities) {
                 Pattern pattern = Pattern.compile(LINK_TAG_PATTERN);
                 Matcher matcher = pattern.matcher(lawLinkEntity.getLinkTag());
@@ -123,6 +107,21 @@ public class LawPersistenceAdapter implements LawPersistencePort {
 
             linkLawContentMap.put(lawContentEntity.getLawContentId(), linkLawContents);
         }
+
+        // 법령 본문 목록
+        List<LawContent> lawContents = lawContentEntities.stream()
+                .map(lawContentEntity -> LawContent.builder()
+                        .lawContentId(lawContentEntity.getLawContentId())
+                        .lawId(lawContentEntity.getLawId())
+                        .version(lawContentEntity.getVersion())
+                        .contentType(lawContentEntity.getContentType())
+                        .categoryCode(lawContentEntity.getCategoryCode())
+                        .arrange(lawContentEntity.getArrange())
+                        .simpleTitle(lawContentEntity.getSimpleTitle())
+                        .title(lawContentEntity.getTitle())
+                        .content(StringUtil.removeHtml(lawContentEntity.getContent()))
+                        .build())
+                .collect(Collectors.toList());
 
         return LawDocument.builder()
                 .lawId(lawDocumentEntity.getLawId())
