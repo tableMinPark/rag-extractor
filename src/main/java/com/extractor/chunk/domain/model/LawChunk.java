@@ -116,11 +116,12 @@ public class LawChunk extends Chunk {
 
                     // 타이틀 지정
                     if (!prefix.getIsDeleting()) {
-                        chunk.titleBuffers[nextDepth][prefixIndex] = new ChunkTitle(
-                                lawContent.getTitle(),
-                                lawContent.getSimpleTitle().isBlank()
-                                        ? lawContent.getTitle()
-                                        : lawContent.getSimpleTitle());
+                        String title = lawContent.getTitle();
+                        String simpleTitle = !lawContent.getSimpleTitle().trim().isBlank()
+                                        ? lawContent.getSimpleTitle()
+                                        : lawContent.getTitle();
+
+                        chunk.titleBuffers[nextDepth][prefixIndex] = new ChunkTitle(title, simpleTitle);
                     }
                     break;
                 }
