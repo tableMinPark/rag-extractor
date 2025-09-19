@@ -1,11 +1,10 @@
 package com.extractor.adapter.out;
 
-import com.extractor.global.adapter.out.ExtractAdapter;
 import com.extractor.global.utils.FileUtil;
-import com.extractor.extract.application.port.ExtractPort;
-import com.extractor.extract.domain.model.ExtractHwpxDocument;
-import com.extractor.extract.domain.model.FileDocument;
-import com.extractor.extract.domain.model.ExtractPdfDocument;
+import com.extractor.application.port.ExtractPort;
+import com.extractor.domain.model.ExtractHwpxDocument;
+import com.extractor.domain.model.FileDocument;
+import com.extractor.domain.model.ExtractPdfDocument;
 import com.extractor.global.enums.FileExtension;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
