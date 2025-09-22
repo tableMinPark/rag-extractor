@@ -10,11 +10,11 @@ import com.extractor.application.vo.TrainingDocumentVo;
 import com.extractor.domain.model.*;
 import com.extractor.domain.vo.ChunkPatternVo;
 import com.extractor.domain.vo.FileDocumentVo;
+import com.extractor.global.enums.FileExtension;
 import com.extractor.global.utils.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,29 +33,38 @@ public class ChunkService implements ChunkUseCase {
     /**
      * 한글 문서 청킹
      *
+     * @param categoryCode   카테고리 코드
      * @param fileDocumentVo 원본 문서 정보
      * @param chunkPatternVo 청킹 패턴 정보
      */
     @Override
-    public ChunkDocumentVo chunkHwpxDocumentUseCase(FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo) {
+    public ChunkDocumentVo chunkHwpxDocumentUseCase(String categoryCode, FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo) {
 
         String docType = "DOC-TYPE-FILE";
-        String categoryCode = "TRAIN-TEST";     // TODO: 카테고리 코드 파라미터로 받아오도록 변경 필요
 
         // 파일 업로드
         FileDocument fileDocument = filePort.uploadFilePort(fileDocumentVo);
 
-        try {
+        ExtractDocument extractDocument;
+        if (FileExtension.PDF.equals(fileDocument.getExtension())) {
+            ExtractPdfDocument extractPdfDocument = extractPort.extractPdfDocumentPort(fileDocument);
+            extractPdfDocument.extract();
+            extractDocument = extractPdfDocument;
+        } else {
             ExtractHwpxDocument extractHwpxDocument = extractPort.extractHwpxDocumentPort(fileDocument);
             extractHwpxDocument.extract();
+            extractDocument = extractHwpxDocument;
+        }
 
+        try {
             ExtractChunk extractChunk = new ExtractChunk(
-                    extractHwpxDocument.getExtractContents(),
+                    extractDocument.getExtractContents(),
                     chunkPatternVo.getPatterns(),
-                    chunkPatternVo.getAntiPatterns());
+                    chunkPatternVo.getAntiPatterns(),
+                    chunkPatternVo.getMaxTokenSize());
 
             StringBuilder contentBuilder = new StringBuilder();
-            extractHwpxDocument.getExtractContents().forEach(extractContent -> {
+            extractDocument.getExtractContents().forEach(extractContent -> {
                 contentBuilder.append(extractContent.getContent()).append("\n");
             });
 
@@ -64,7 +73,7 @@ public class ChunkService implements ChunkUseCase {
                     .version(StringUtil.generateRandomId())
                     .docType(docType)
                     .categoryCode(categoryCode)
-                    .name(extractHwpxDocument.getName())
+                    .name(extractDocument.getName())
                     .content(contentBuilder.toString().trim())
                     .build();
 
@@ -86,32 +95,33 @@ public class ChunkService implements ChunkUseCase {
     /**
      * PDF 문서 청킹
      *
+     * @param categoryCode   카테고리 코드
      * @param fileDocumentVo 원본 문서 정보
      */
     @Override
-    public ChunkDocumentVo chunkPdfDocumentUseCase(FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo) {
+    public ChunkDocumentVo chunkPdfDocumentUseCase(String categoryCode, FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo) {
 
         String docType = "DOC-TYPE-FILE";
-        String categoryCode = "TRAIN-TEST";     // TODO: 카테고리 코드 파라미터로 받아오도록 변경 필요
 
         // 파일 업로드
         FileDocument fileDocument = filePort.uploadFilePort(fileDocumentVo);
 
         try {
-            ExtractPdfDocument extractPdfDocument = extractPort.extractPdfDocumentPort(fileDocument);
-            extractPdfDocument.extract();
+            ExtractPdfDocument extractDocument = extractPort.extractPdfDocumentPort(fileDocument);
+            extractDocument.extract();
 
             ExtractChunk extractChunk = new ExtractChunk(
-                    extractPdfDocument.getExtractContents(),
+                    extractDocument.getExtractContents(),
                     chunkPatternVo.getPatterns(),
-                    chunkPatternVo.getAntiPatterns());
+                    chunkPatternVo.getAntiPatterns(),
+                    chunkPatternVo.getMaxTokenSize());
 
             OriginalDocumentVo originalDocumentVo = OriginalDocumentVo.builder()
                     .version(StringUtil.generateRandomId())
                     .docType(docType)
                     .categoryCode(categoryCode)
-                    .name(extractPdfDocument.getName())
-                    .content(extractPdfDocument.getContent())
+                    .name(extractDocument.getName())
+                    .content(extractDocument.getContent())
                     .build();
 
             List<TrainingDocumentVo> trainingDocumentVos = chunkToTrainingDocument(
@@ -132,15 +142,14 @@ public class ChunkService implements ChunkUseCase {
     /**
      * 법령 문서 청킹
      *
+     * @param categoryCode   카테고리 코드
      * @param lawId          법령 목록
      * @param chunkPatternVo 청킹 패턴 정보
      */
     @Override
-    @Transactional
-    public ChunkDocumentVo chunkLawDocumentUseCase(Long lawId, ChunkPatternVo chunkPatternVo) {
+    public ChunkDocumentVo chunkLawDocumentUseCase(String categoryCode, Long lawId, ChunkPatternVo chunkPatternVo) {
 
         String docType = "DOC-TYPE-DB";
-        String categoryCode = "TRAIN-LAW";
 
         LawDocument lawDocument = lawPersistencePort.getLawDocumentsPort(lawId);
 
@@ -148,7 +157,8 @@ public class ChunkService implements ChunkUseCase {
                 lawDocument.getLawContents(),
                 lawDocument.getLawLinks(),
                 chunkPatternVo.getPatterns(),
-                chunkPatternVo.getAntiPatterns());
+                chunkPatternVo.getAntiPatterns(),
+                chunkPatternVo.getMaxTokenSize());
 
         OriginalDocumentVo originalDocumentVo = OriginalDocumentVo.builder()
                 .version(StringUtil.generateRandomId())

@@ -23,6 +23,8 @@ public class LawChunk extends Chunk {
 
     private final List<String> excludeContentTypes;
 
+    private final int maxTokenSize;
+
     /**
      * 루트 청크 생성자
      *
@@ -30,11 +32,12 @@ public class LawChunk extends Chunk {
      * @param patterns            청크 패턴
      * @param excludeContentTypes 제외 타입 목록
      */
-    public LawChunk(List<LawContent> lawContents, Map<Long, List<LawContent>> lawLinks, List<PatternVo> patterns, List<String> excludeContentTypes) {
+    public LawChunk(List<LawContent> lawContents, Map<Long, List<LawContent>> lawLinks, List<PatternVo> patterns, List<String> excludeContentTypes, int maxTokenSize) {
         super(-1, patterns.size());
         this.patterns = patterns;
         this.excludeContentTypes = excludeContentTypes;
         this.lawLinks = lawLinks;
+        this.maxTokenSize = maxTokenSize;
 
         // 추출 범위 분리 (제외 타입 필터링)
         this.lawContents = lawContents.stream()
@@ -56,6 +59,7 @@ public class LawChunk extends Chunk {
         this.patterns = parent.patterns;
         this.excludeContentTypes = parent.excludeContentTypes;
         this.lawLinks = parent.lawLinks;
+        this.maxTokenSize = parent.maxTokenSize;
         this.lawContents = lawContents;
 
         // 청크 본문 저장
@@ -87,8 +91,17 @@ public class LawChunk extends Chunk {
         int nextDepth = chunk.depth + 1;
         int tokenSize = chunk.getTokenSize();
 
-        // 뎁스 초과 or 토큰 수 적합
-        if (nextDepth >= chunk.depthSize || tokenSize <= chunk.patterns.get(nextDepth).getTokenSize()) {
+        if (nextDepth >= chunk.depthSize) {
+            // 뎁스 초과
+            List<Chunk> chunksByToken = new ArrayList<>();
+
+            // TODO: maxTokenSize 기준으로 마지막 청킹
+
+            return tokenSize == 0
+                    ? Collections.emptyList()
+                    : chunksByToken;
+        } else if (tokenSize <= chunk.patterns.get(nextDepth).getTokenSize()) {
+            // 토큰 수 적합
             return tokenSize == 0
                     ? Collections.emptyList()
                     : List.of(chunk);
