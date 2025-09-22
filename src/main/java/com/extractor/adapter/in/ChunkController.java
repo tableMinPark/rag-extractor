@@ -4,7 +4,7 @@ import com.extractor.adapter.in.dto.etc.PatternDto;
 import com.extractor.adapter.in.dto.request.ChunkDocumentRequestDto;
 import com.extractor.adapter.in.dto.request.ChunkLawRequestDto;
 import com.extractor.adapter.in.dto.response.ChunkDocumentResponseDto;
-import com.extractor.adapter.response.ErrorResponseDto;
+import com.extractor.adapter.in.dto.response.ErrorResponseDto;
 import com.extractor.application.usecase.ChunkUseCase;
 import com.extractor.application.vo.ChunkDocumentVo;
 import com.extractor.domain.vo.ChunkPatternVo;
@@ -38,6 +38,8 @@ public class ChunkController {
 
     private final ChunkUseCase chunkUseCase;
 
+    // TODO: 토큰 단위 문서 전처리 기능 구현
+
     /**
      * 문서 전처리
      *
@@ -63,14 +65,14 @@ public class ChunkController {
             FileExtension extension = FileExtension.find(multipartFile.getContentType());
 
             ChunkPatternVo chunkPatternVo = new ChunkPatternVo(
-                    convertPatternVo(chunkDocumentRequestDto.getPatterns()), chunkDocumentRequestDto.getStopPatterns());
+                    convertPatternVo(chunkDocumentRequestDto.getPatterns()), chunkDocumentRequestDto.getStopPatterns(), 1000);
 
             ChunkDocumentVo chunkDocumentVo;
             switch (extension) {
                 case HWP, HWPX -> chunkDocumentVo =
-                        chunkUseCase.chunkHwpxDocumentUseCase(new FileDocumentVo(multipartFile), chunkPatternVo);
+                        chunkUseCase.chunkHwpxDocumentUseCase(chunkDocumentRequestDto.getCategoryCode(), new FileDocumentVo(multipartFile), chunkPatternVo);
                 case PDF -> chunkDocumentVo =
-                        chunkUseCase.chunkPdfDocumentUseCase(new FileDocumentVo(multipartFile), chunkPatternVo);
+                        chunkUseCase.chunkPdfDocumentUseCase(chunkDocumentRequestDto.getCategoryCode(), new FileDocumentVo(multipartFile), chunkPatternVo);
                 default -> throw new RuntimeException("미지원 파일 형식 (HWP, HWPX, PDF 만 지원)");
             }
 
@@ -111,9 +113,10 @@ public class ChunkController {
     ) {
         try {
             ChunkPatternVo chunkPatternVo = new ChunkPatternVo(
-                    convertPatternVo(chunkLawRequestDto.getPatterns()), chunkLawRequestDto.getExcludeContentTypes());
+                    convertPatternVo(chunkLawRequestDto.getPatterns()), chunkLawRequestDto.getExcludeContentTypes(), 1000);
 
-            ChunkDocumentVo chunkDocumentVo = chunkUseCase.chunkLawDocumentUseCase(chunkLawRequestDto.getLawId(), chunkPatternVo);
+            ChunkDocumentVo chunkDocumentVo = chunkUseCase.chunkLawDocumentUseCase(
+                    chunkLawRequestDto.getCategoryCode(), chunkLawRequestDto.getLawId(), chunkPatternVo);
 
             log.info("/chunk/law | {} ", chunkLawRequestDto.getLawId());
 

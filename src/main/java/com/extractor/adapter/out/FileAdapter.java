@@ -71,7 +71,12 @@ public class FileAdapter implements FilePort {
                 HWPXWriter.toFilepath(toFile, fullPath.toString());
 
             } catch (Exception e) {
-                throw new RuntimeException("convert hwp to hwpx error");
+                extension = FileExtension.PDF;
+                fileName = fileId + "." + extension.getSimpleExtension();
+
+                // 파일명 PDF 로 변경
+                FileUtil.moveFile(fullPath, path.resolve(fileName));
+                fullPath = path.resolve(fileName);
             }
         }
 

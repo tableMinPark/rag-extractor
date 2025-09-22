@@ -11,8 +11,11 @@ public class ChunkPatternVo {
 
     private final List<String> antiPatterns;
 
-    public ChunkPatternVo(List<PatternVo> patterns, List<String> antiPatterns) {
+    private final int maxTokenSize;
+
+    public ChunkPatternVo(List<PatternVo> patterns, List<String> antiPatterns, int maxTokenSize) {
         this.patterns = patterns;
         this.antiPatterns = antiPatterns;
+        this.maxTokenSize = maxTokenSize;
     }
 }

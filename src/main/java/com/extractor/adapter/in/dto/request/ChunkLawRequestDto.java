@@ -17,6 +17,9 @@ public class ChunkLawRequestDto {
     @Schema(description = "법령 ID", example = "319")
     private Long lawId;
 
+    @Schema(description = "문서 카테고리 코드", example = "TRAIN-DOC")
+    private String categoryCode;
+
     @Schema(description = "전처리 패턴", example = "[{\"tokenSize\":0,\"prefixes\":[{\"prefix\":\"addenda\", \"isDeleting\":false },{\"prefix\":\"part\", \"isDeleting\":false },{\"prefix\":\"chapter\", \"isDeleting\":false }]},{\"tokenSize\":0,\"prefixes\":[{\"prefix\":\"section\", \"isDeleting\":false },{\"prefix\":\"subsection\",\t \"isDeleting\":false }]},{\"tokenSize\":0,\"prefixes\":[{\"prefix\":\"article\", \"isDeleting\":false }]}]")
     private List<PatternDto> patterns;
 

@@ -5,10 +5,12 @@ import com.extractor.application.port.FilePort;
 import com.extractor.application.usecase.ExtractUseCase;
 import com.extractor.application.vo.ExtractContentVo;
 import com.extractor.application.vo.ExtractDocumentVo;
+import com.extractor.domain.model.ExtractDocument;
 import com.extractor.domain.model.FileDocument;
 import com.extractor.domain.model.ExtractHwpxDocument;
 import com.extractor.domain.model.ExtractPdfDocument;
 import com.extractor.domain.vo.FileDocumentVo;
+import com.extractor.global.enums.FileExtension;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,13 +33,22 @@ public class ExtractService implements ExtractUseCase {
         // 파일 업로드
         FileDocument fileDocument = filePort.uploadFilePort(fileDocumentVo);
 
-        try {
+        ExtractDocument extractDocument;
+        if (FileExtension.PDF.equals(fileDocument.getExtension())) {
+            ExtractPdfDocument extractPdfDocument = extractPort.extractPdfDocumentPort(fileDocument);
+            extractPdfDocument.extract();
+            extractDocument = extractPdfDocument;
+        } else {
             ExtractHwpxDocument extractHwpxDocument = extractPort.extractHwpxDocumentPort(fileDocument);
             extractHwpxDocument.extract();
+            extractDocument = extractHwpxDocument;
+        }
+
+        try {
             return ExtractDocumentVo.builder()
-                    .name(extractHwpxDocument.getName())
-                    .extension(extractHwpxDocument.getExtension())
-                    .extractContents(extractHwpxDocument.getExtractContents().stream()
+                    .name(extractDocument.getName())
+                    .extension(extractDocument.getExtension())
+                    .extractContents(extractDocument.getExtractContents().stream()
                             .map(line -> ExtractContentVo.builder()
                                     .type(line.getType().name())
                                     .content(line.getContent())

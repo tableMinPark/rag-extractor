@@ -1,6 +1,6 @@
 package com.extractor.adapter.in;
 
-import com.extractor.adapter.response.ErrorResponseDto;
+import com.extractor.adapter.in.dto.response.ErrorResponseDto;
 import com.extractor.adapter.in.dto.response.ExtractResponseDto;
 import com.extractor.application.usecase.ExtractUseCase;
 import com.extractor.application.vo.ExtractDocumentVo;

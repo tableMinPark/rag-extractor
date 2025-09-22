@@ -14,6 +14,9 @@ import java.util.List;
 @Schema(description = "전처리 패턴 정보")
 public class ChunkDocumentRequestDto {
 
+    @Schema(description = "문서 카테고리 코드", example = "TRAIN-DOC")
+    private String categoryCode;
+
     @Schema(description = "전처리 패턴", example = "[{\"tokenSize\":0,\"prefixes\":[{\"prefix\":\"^[\\\\[\\\\(][^\\\\]\\\\)]*별표[^\\\\]\\\\)]*[\\\\]\\\\)]\",\"isDeleting\":false },{\"prefix\":\"^부(\\\\s+)?칙\",\"isDeleting\":false },{\"prefix\":\"^제[0-9]{1,3}장[가-힣]+\",\"isDeleting\":false }]},{\"tokenSize\":0,\"prefixes\":[{\"prefix\":\"^제[0-9]{1,3}절[가-힣]+\",\"isDeleting\":false }]},{\"tokenSize\":0,\"prefixes\":[{\"prefix\":\"^제[0-9]{1,3}조(\\\\([가-힣 ]+\\\\))?\",\"isDeleting\":false }]}]")
     private List<PatternDto> patterns;
 

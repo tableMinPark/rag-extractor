@@ -1,55 +1,44 @@
-package com.extractor.global.utils;
+package com.extractor.application.service;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.nodes.Node;
-import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
+import org.junit.jupiter.api.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-public class StringUtil {
+import static org.junit.jupiter.api.Assertions.*;
 
-    private static final Set<String> BLOCK_TAGS = new HashSet<>(Arrays.asList(
-            "div", "p", "section", "article", "header", "footer", "aside", "nav", "main",
-            "li", "tr", "h1", "h2", "h3", "h4", "h5", "h6",
-            "blockquote", "br", "hr"
-    ));
+class ChunkServiceTest {
 
-    /**
-     * 랜덤 ID 값 생성
-     *
-     * @return 랜덤 ID
-     */
-    public static String generateRandomId() {
-        return UUID.randomUUID().toString().replace("-", "");
-    }
+    @Test
+    void convertHtmlToMarkdownTest() {
 
-    /**
-     * 문자열 숫자 여부 확인
-     *
-     * @param str 문자열
-     * @return 숫자 여부
-     */
-    public static boolean isNumber(String str) {
-        if (str != null && !str.isBlank()) {
-            return str.chars().allMatch(Character::isDigit);
-        }
-        return false;
-    }
-
-    /**
-     * 표 데이터 HTML 마크 다운 변환 (1 DEPTH 만 가능)
-     *
-     * @param html HTML 문자열
-     * @return 마크 다운 문자열
-     */
-    public static String convertHtmlToMarkdown(String html) {
+        String html = """
+            <table border="1">
+              <tr>
+                <th rowspan="2">A</th>
+                <th>B</th>
+                <th>C</th>
+              </tr>
+              <tr>
+                <th colspan="2">D</th>
+              </tr>
+              <tr>
+                <td>1</td>
+                <td rowspan="2" colspan="2">2</td>
+              </tr>
+              <tr>
+                <td>3</td>
+              </tr>
+            </table>
+            """;
 
         Document doc = Jsoup.parse(html);
         Element table = doc.selectFirst("table");
-        if (table == null) return "";
+        if (table == null) return;
 
         List<List<String>> grid = new ArrayList<>();
         Elements rows = table.select("tr");
@@ -130,40 +119,8 @@ public class StringUtil {
                 sb.append(" |\n");
             }
         }
-        return sb.toString().trim();
+
+        System.out.println(sb.toString());;
     }
 
-    /**
-     * HTML 태그 삭제
-     *
-     * @param str 문자열
-     * @return HTML 태그 삭제 문자열
-     */
-    public static String removeHtml(String str) {
-        Document doc = Jsoup.parse(str);
-        StringBuilder sb = new StringBuilder();
-        appendNodes(doc.body(), sb);
-        return normalize(sb.toString());
-    }
-
-    private static void appendNodes(Node node, StringBuilder sb) {
-        for (Node child : node.childNodes()) {
-            if (child instanceof TextNode) {
-                sb.append(((TextNode) child).text());
-            } else if (child instanceof Element el) {
-                appendNodes(el, sb);
-                String tag = el.tagName().toLowerCase();
-                if (BLOCK_TAGS.contains(tag)) {
-                    sb.append("\n");
-                }
-            }
-        }
-    }
-
-    // 공백/개행 정리
-    private static String normalize(String s) {
-        s = s.replaceAll("[ \\t\\f\\r]+", " ");   // 연속 공백 → 하나
-        s = s.replaceAll(" *\\n+ *", "\n");       // 개행 여러 개 → 하나
-        return s.trim();
-    }
 }

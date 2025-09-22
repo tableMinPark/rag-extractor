@@ -1,4 +1,4 @@
-package com.extractor.adapter.response;
+package com.extractor.adapter.in.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;

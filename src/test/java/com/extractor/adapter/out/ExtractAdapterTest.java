@@ -1,11 +1,11 @@
 package com.extractor.adapter.out;
 
-import com.extractor.global.utils.FileUtil;
 import com.extractor.application.port.ExtractPort;
 import com.extractor.domain.model.ExtractHwpxDocument;
-import com.extractor.domain.model.FileDocument;
 import com.extractor.domain.model.ExtractPdfDocument;
+import com.extractor.domain.model.FileDocument;
 import com.extractor.global.enums.FileExtension;
+import com.extractor.global.utils.FileUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +31,7 @@ class ExtractAdapterTest {
         this.extractPort = extractPort;
     }
 
-    private static final String UPLOAD_PATH = "./test";
+    private static final String UPLOAD_PATH = "./filterTest";
 
     @Test
     @DisplayName("HWPX 한글 문서의 데이터를 추출하여 반환 한다.")
@@ -47,9 +47,6 @@ class ExtractAdapterTest {
 
         // 압축 해제 경로
         Path unZipPath = path.resolve(fileId);
-        FileUtil.mkdirs(unZipPath);
-
-        fullPath = FileUtil.copyFile(fullPath, unZipPath.resolve(fileName));
         path = FileUtil.decompression(fullPath.toFile(), unZipPath.toFile());
 
         FileDocument fileDocument = FileDocument.builder()

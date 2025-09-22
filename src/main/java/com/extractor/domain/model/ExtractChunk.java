@@ -23,6 +23,8 @@ public class ExtractChunk extends Chunk {
 
     private final List<String> stopPatterns;
 
+    private final int maxTokenSize;
+
     /**
      * 루트 청크 생성자
      *
@@ -30,10 +32,11 @@ public class ExtractChunk extends Chunk {
      * @param patterns        청크 패턴
      * @param stopPatterns    정지 패턴
      */
-    public ExtractChunk(List<ExtractContent> extractContents, List<PatternVo> patterns, List<String> stopPatterns) {
+    public ExtractChunk(List<ExtractContent> extractContents, List<PatternVo> patterns, List<String> stopPatterns, int maxTokenSize) {
         super(-1, patterns.size());
         this.patterns = patterns;
         this.stopPatterns = stopPatterns;
+        this.maxTokenSize = maxTokenSize;
 
         // 추출 범위 분리
         int head = 0, tail = 0;
@@ -66,6 +69,7 @@ public class ExtractChunk extends Chunk {
         super(parent.depth + 1, parent.depthSize, deepCopyTitleBuffers(parent.titleBuffers));
         this.patterns = parent.patterns;
         this.stopPatterns = parent.stopPatterns;
+        this.maxTokenSize = parent.maxTokenSize;
         this.extractContents = extractContents;
 
         // 청크 본문 저장
@@ -97,8 +101,17 @@ public class ExtractChunk extends Chunk {
         int nextDepth = chunk.depth + 1;
         int tokenSize = chunk.getTokenSize();
 
-        // 뎁스 초과 or 토큰 수 적합
-        if (nextDepth >= chunk.depthSize || tokenSize <= patterns.get(nextDepth).getTokenSize()) {
+        if (nextDepth >= chunk.depthSize) {
+            // 뎁스 초과
+            List<Chunk> chunksByToken = new ArrayList<>();
+
+            // TODO: maxTokenSize 기준으로 마지막 청킹
+
+            return tokenSize == 0
+                    ? Collections.emptyList()
+                    : chunksByToken;
+        } else if (tokenSize <= patterns.get(nextDepth).getTokenSize()) {
+            // 토큰 수 적합
             return tokenSize == 0
                     ? Collections.emptyList()
                     : List.of(chunk);
