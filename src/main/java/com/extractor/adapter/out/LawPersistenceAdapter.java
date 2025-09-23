@@ -1,19 +1,20 @@
 package com.extractor.adapter.out;
 
-import com.extractor.application.exception.NotFoundDocumentException;
-import com.extractor.application.port.LawPersistencePort;
-import com.extractor.domain.model.LawContent;
-import com.extractor.domain.model.LawDocument;
 import com.extractor.adapter.out.entity.LawContentEntity;
 import com.extractor.adapter.out.entity.LawDocumentEntity;
 import com.extractor.adapter.out.entity.LawLinkEntity;
 import com.extractor.adapter.out.repository.LawContentRepository;
 import com.extractor.adapter.out.repository.LawDocumentRepository;
 import com.extractor.adapter.out.repository.LawLinkRepository;
+import com.extractor.application.exception.NotFoundDocumentException;
+import com.extractor.application.port.LawPersistencePort;
+import com.extractor.domain.model.LawContent;
+import com.extractor.domain.model.LawDocument;
 import com.extractor.global.utils.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,6 +43,7 @@ public class LawPersistenceAdapter implements LawPersistencePort {
      * @param lawId 법령 ID
      */
     @Override
+    @Transactional
     public LawDocument getLawDocumentsPort(Long lawId) {
 
         // 법령 문서 엔티티 조회
@@ -85,7 +87,7 @@ public class LawPersistenceAdapter implements LawPersistencePort {
                                     .lawId(linkLawContentEntity.getLawId())
                                     .version(linkLawContentEntity.getVersion())
                                     .contentType(linkLawContentEntity.getContentType())
-                                    .categoryCode(linkLawContentEntity.getCategoryCode())
+                                    .categoryCode(convertCategoryCode(linkLawContentEntity.getCategoryCode()))
                                     .arrange(linkLawContentEntity.getArrange())
                                     .simpleTitle(linkLawContentEntity.getSimpleTitle())
                                     .title(linkLawContentEntity.getTitle())
@@ -103,7 +105,7 @@ public class LawPersistenceAdapter implements LawPersistencePort {
                         .lawId(lawContentEntity.getLawId())
                         .version(lawContentEntity.getVersion())
                         .contentType(lawContentEntity.getContentType())
-                        .categoryCode(lawContentEntity.getCategoryCode())
+                        .categoryCode(convertCategoryCode(lawContentEntity.getCategoryCode()))
                         .arrange(lawContentEntity.getArrange())
                         .simpleTitle(lawContentEntity.getSimpleTitle())
                         .title(lawContentEntity.getTitle())
@@ -117,5 +119,19 @@ public class LawPersistenceAdapter implements LawPersistencePort {
                 .lawContents(lawContents)
                 .lawLinks(linkLawContentsMap)
                 .build();
+    }
+
+    private static String convertCategoryCode(String categoryCode) {
+        return switch (categoryCode) {
+            case "lawname" -> "NAME";
+            case "addenda" -> "BUCHICK";
+            case "history" -> "HISTORY";
+            case "part" -> "PYUN";
+            case "chapter" -> "JANG";
+            case "section" -> "JUL";
+            case "subsection" -> "GWAN";
+            case "article" -> "JO";
+            default -> "";
+        };
     }
 }
