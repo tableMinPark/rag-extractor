@@ -15,6 +15,7 @@ import com.extractor.global.utils.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
@@ -147,6 +148,7 @@ public class ChunkService implements ChunkUseCase {
      * @param chunkPatternVo 청킹 패턴 정보
      */
     @Override
+    @Transactional
     public ChunkDocumentVo chunkLawDocumentUseCase(String categoryCode, Long lawId, ChunkPatternVo chunkPatternVo) {
 
         String docType = "DOC-TYPE-DB";
