@@ -19,6 +19,7 @@ public interface LawLinkRepository extends JpaRepository<LawLinkEntity, Long> {
         "  from nhis.tbl_law_autolink " +
         " where seq_contents in (:lawContentIds) " +
         "   and seq_history = :version " +
+        "   and type_al = 'law' " +
         " order by seq_history ", nativeQuery = true)
     List<LawLinkEntity> findDistinctByLawContentIdAndVersion(List<Long> lawContentIds, Integer version);
 }

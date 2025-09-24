@@ -10,16 +10,14 @@ import com.extractor.application.exception.NotFoundDocumentException;
 import com.extractor.application.port.LawPersistencePort;
 import com.extractor.domain.model.LawContent;
 import com.extractor.domain.model.LawDocument;
+import com.extractor.domain.model.LawLink;
 import com.extractor.global.utils.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -63,8 +61,8 @@ public class LawPersistenceAdapter implements LawPersistencePort {
         List<LawLinkEntity> lawLinkEntities = lawLinkRepository.findDistinctByLawContentIdAndVersion(
                 lawContentIds, lawDocumentEntity.getLatestVersion());
 
-        // 법령 연결 정보 목록 (법령 본문 ID, 버전, 법령 ID, 링크 코드)
-        List<LawLinkInfoVo> lawLinkInfos = new ArrayList<>();
+        // 법령 연결 정보 캐싱
+        Map<Long, List<LawContentEntity>> lawContentEntityMap = new HashMap<>();
         for (LawLinkEntity lawLinkEntity : lawLinkEntities) {
             Matcher matcher = Pattern.compile(LINK_TAG_PATTERN).matcher(lawLinkEntity.getLinkTag());
 
@@ -73,29 +71,49 @@ public class LawPersistenceAdapter implements LawPersistencePort {
             if (matcher.group(3) == null || matcher.group(3).isBlank()) continue;
             if (!StringUtil.isNumber(matcher.group(2))) continue;
 
-            lawLinkInfos.add(new LawLinkInfoVo(
-                    lawLinkEntity.getLawContentId(), lawLinkEntity.getVersion(), Long.parseLong(matcher.group(2)), matcher.group(3)));
+            long targetLawId = Long.parseLong(matcher.group(2));
+
+            // 법령 연결 정보 중복 제거
+            if (!lawContentEntityMap.containsKey(targetLawId)) {
+                lawContentEntityMap.put(targetLawId, lawContentRepository.findByLawIdOrderByVersionDesc(targetLawId));
+            }
         }
 
-        Map<Long, List<LawContent>> linkLawContentsMap = new HashMap<>();
-        for (LawLinkInfoVo lawLinkInfo : lawLinkInfos) {
-            List<LawContent> linkLawContents = linkLawContentsMap.getOrDefault(lawLinkInfo.getLawContentId(), new ArrayList<>());
-            linkLawContents.addAll(lawContentRepository.findTopByLawIdAndLinkCodeOrderByVersionDesc(lawLinkInfo.getLawId(), lawLinkInfo.getLinkCode()).stream()
-                            .filter(linklawContentEntity -> !linklawContentEntity.getLawContentId().equals(lawLinkInfo.getLawContentId()))
-                            .map(linkLawContentEntity -> LawContent.builder()
-                                    .lawContentId(linkLawContentEntity.getLawContentId())
-                                    .lawId(linkLawContentEntity.getLawId())
-                                    .version(linkLawContentEntity.getVersion())
-                                    .contentType(linkLawContentEntity.getContentType())
-                                    .categoryCode(convertCategoryCode(linkLawContentEntity.getCategoryCode()))
-                                    .arrange(linkLawContentEntity.getArrange())
-                                    .simpleTitle(linkLawContentEntity.getSimpleTitle())
-                                    .title(linkLawContentEntity.getTitle())
-                                    .content(StringUtil.removeHtml(linkLawContentEntity.getContent()))
-                                    .build())
-                            .toList());
+        // 법령 연결 정보 생성 (타이틀, 본문 포함 객체 생성)
+        Map<Long, List<LawLink>> lawLinkMap = new HashMap<>();
+        for (LawLinkEntity lawLinkEntity : lawLinkEntities) {
+            Matcher matcher = Pattern.compile(LINK_TAG_PATTERN).matcher(lawLinkEntity.getLinkTag());
 
-            linkLawContentsMap.put(lawLinkInfo.getLawContentId(), linkLawContents);
+            if (!matcher.find()) continue;
+            if (matcher.group(1) == null || !"1".equals(matcher.group(1))) continue;
+            if (matcher.group(3) == null || matcher.group(3).isBlank()) continue;
+            if (!StringUtil.isNumber(matcher.group(2))) continue;
+
+            long targetLawId = Long.parseLong(matcher.group(2));
+            String linkCode = matcher.group(3);
+
+            Optional<LawContentEntity> lawContentEntityOptional = findByTargetLawIdAndLinkCode(lawContentEntityMap.get(targetLawId), linkCode);
+
+            if (lawContentEntityOptional.isPresent()) {
+                LawContentEntity lawContentEntity = lawContentEntityOptional.get();
+
+                if (!lawContentEntity.getLawContentId().equals(lawLinkEntity.getLawContentId())) {
+                    List<LawLink> linkLawContents = lawLinkMap.getOrDefault(lawLinkEntity.getLawContentId(), new ArrayList<>());
+                    linkLawContents.add(LawLink.builder()
+                            .lawLinkId(lawLinkEntity.getLawLinkId())
+                            .lawContentId(lawLinkEntity.getLawContentId())
+                            .lawId(lawLinkEntity.getLawId())
+                            .version(lawLinkEntity.getVersion())
+                            .text(lawLinkEntity.getText())
+                            .type(lawLinkEntity.getType())
+                            .targetLawId(targetLawId)
+                            .linkCode(linkCode)
+                            .title(lawContentEntity.getTitle())
+                            .content(replaceContent(StringUtil.removeHtml(lawContentEntity.getContent())))
+                            .build());
+                    lawLinkMap.put(lawLinkEntity.getLawContentId(), linkLawContents);
+                }
+            }
         }
 
         // 법령 본문 목록
@@ -109,7 +127,7 @@ public class LawPersistenceAdapter implements LawPersistencePort {
                         .arrange(lawContentEntity.getArrange())
                         .simpleTitle(lawContentEntity.getSimpleTitle())
                         .title(lawContentEntity.getTitle())
-                        .content(StringUtil.removeHtml(lawContentEntity.getContent()))
+                        .content(replaceContent(StringUtil.removeHtml(lawContentEntity.getContent())))
                         .build())
                 .collect(Collectors.toList());
 
@@ -117,8 +135,32 @@ public class LawPersistenceAdapter implements LawPersistencePort {
                 .lawId(lawDocumentEntity.getLawId())
                 .lawName(lawDocumentEntity.getLawName())
                 .lawContents(lawContents)
-                .lawLinks(linkLawContentsMap)
+                .lawLinks(lawLinkMap)
                 .build();
+    }
+
+    private Optional<LawContentEntity> findByTargetLawIdAndLinkCode(List<LawContentEntity> lawContentEntities, String linkCode) {
+
+        if (lawContentEntities == null || lawContentEntities.isEmpty()) {
+            return Optional.empty();
+        }
+
+        for (LawContentEntity lawContentEntity : lawContentEntities) {
+            if (lawContentEntity.getLinkCode().equals(linkCode)) {
+                return Optional.of(lawContentEntity);
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    private static String replaceContent(String content) {
+        return content
+                .replaceAll("삭\\s?제\\s?<\\d{4}.\\d{1,2}.\\d{1,2}>", "")
+                .replaceAll("<개\\s?정\\s?(,?\\s?\\d{4}.\\d{1,2}.\\d{1,2})+>", "")
+                .replaceAll("<신\\s?설\\s?(,?\\s?\\d{4}.\\d{1,2}.\\d{1,2})+>", "")
+                .replaceAll("<신\\s?설\\s?(,?\\s?\\d{4}.\\d{1,2}.\\d{1,2})+>", "")
+                ;
     }
 
     private static String convertCategoryCode(String categoryCode) {
