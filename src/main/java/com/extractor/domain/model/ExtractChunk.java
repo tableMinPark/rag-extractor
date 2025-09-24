@@ -97,7 +97,7 @@ public class ExtractChunk extends Chunk {
      * @param chunk 부모 청크
      * @return 문서 청크 목록
      */
-    private List<Chunk> chunking(ExtractChunk chunk) {
+    private static List<Chunk> chunking(ExtractChunk chunk) {
         int nextDepth = chunk.depth + 1;
         int tokenSize = chunk.getTokenSize();
 
@@ -106,11 +106,12 @@ public class ExtractChunk extends Chunk {
             List<Chunk> chunksByToken = new ArrayList<>();
 
             // TODO: maxTokenSize 기준으로 마지막 청킹
+            chunksByToken.add(chunk);
 
             return tokenSize == 0
                     ? Collections.emptyList()
                     : chunksByToken;
-        } else if (tokenSize <= patterns.get(nextDepth).getTokenSize()) {
+        } else if (tokenSize <= chunk.patterns.get(nextDepth).getTokenSize()) {
             // 토큰 수 적합
             return tokenSize == 0
                     ? Collections.emptyList()

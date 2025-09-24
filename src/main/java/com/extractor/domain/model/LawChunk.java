@@ -17,7 +17,7 @@ public class LawChunk extends Chunk {
 
     private final List<LawContent> lawContents;
 
-    private final Map<Long, List<LawContent>> lawLinks;
+    private final Map<Long, List<LawLink>> lawLinks;
 
     private final List<PatternVo> patterns;
 
@@ -32,7 +32,7 @@ public class LawChunk extends Chunk {
      * @param patterns            청크 패턴
      * @param excludeContentTypes 제외 타입 목록
      */
-    public LawChunk(List<LawContent> lawContents, Map<Long, List<LawContent>> lawLinks, List<PatternVo> patterns, List<String> excludeContentTypes, int maxTokenSize) {
+    public LawChunk(List<LawContent> lawContents, Map<Long, List<LawLink>> lawLinks, List<PatternVo> patterns, List<String> excludeContentTypes, int maxTokenSize) {
         super(-1, patterns.size());
         this.patterns = patterns;
         this.excludeContentTypes = excludeContentTypes;
@@ -87,7 +87,7 @@ public class LawChunk extends Chunk {
      * @param chunk 법령 청크
      * @return 법령 청크 목록
      */
-    public List<Chunk> chunk(LawChunk chunk) {
+    private static List<Chunk> chunk(LawChunk chunk) {
         int nextDepth = chunk.depth + 1;
         int tokenSize = chunk.getTokenSize();
 
@@ -96,6 +96,7 @@ public class LawChunk extends Chunk {
             List<Chunk> chunksByToken = new ArrayList<>();
 
             // TODO: maxTokenSize 기준으로 마지막 청킹
+            chunksByToken.add(chunk);
 
             return tokenSize == 0
                     ? Collections.emptyList()
@@ -152,7 +153,7 @@ public class LawChunk extends Chunk {
      *
      * @param lawContents 법령 본문 목록
      */
-    private void setContent(List<LawContent> lawContents, Map<Long, List<LawContent>> lawLinks) {
+    private void setContent(List<LawContent> lawContents, Map<Long, List<LawLink>> lawLinks) {
         // 본문 저장
         if (!lawContents.isEmpty()) {
             StringBuilder contentBuilder = new StringBuilder(lawContents.getFirst().getContent());
@@ -170,12 +171,12 @@ public class LawChunk extends Chunk {
         StringBuilder subContentBuilder = new StringBuilder();
         lawContents.stream().mapToLong(LawContent::getLawContentId).forEach(lawContentId -> {
             if (lawLinks.containsKey(lawContentId)) {
-                lawLinks.get(lawContentId).forEach(lawContent -> {
-                    subContentBuilder.append("\n")
-                            .append(lawContent.getTitle().trim())
+                lawLinks.get(lawContentId).stream()
+                        .filter(lawLink -> this.content.contains(lawLink.getText()))
+                        .forEach(lawLink -> subContentBuilder.append("\n")
+                            .append(lawLink.getTitle().trim())
                             .append(" ")
-                            .append(lawContent.getContent().trim());
-                });
+                            .append(lawLink.getContent().trim()));
             }
         });
         this.subContent = subContentBuilder.toString().trim();

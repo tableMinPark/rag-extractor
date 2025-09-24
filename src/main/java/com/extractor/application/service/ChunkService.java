@@ -11,7 +11,6 @@ import com.extractor.domain.model.*;
 import com.extractor.domain.vo.ChunkPatternVo;
 import com.extractor.domain.vo.FileDocumentVo;
 import com.extractor.global.enums.FileExtension;
-import com.extractor.global.utils.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,12 +33,13 @@ public class ChunkService implements ChunkUseCase {
     /**
      * 한글 문서 청킹
      *
+     * @param version        버전 구분 코드
      * @param categoryCode   카테고리 코드
      * @param fileDocumentVo 원본 문서 정보
      * @param chunkPatternVo 청킹 패턴 정보
      */
     @Override
-    public ChunkDocumentVo chunkHwpxDocumentUseCase(String categoryCode, FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo) {
+    public ChunkDocumentVo chunkHwpxDocumentUseCase(String version, String categoryCode, FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo) {
 
         String docType = "DOC-TYPE-FILE";
 
@@ -71,7 +71,7 @@ public class ChunkService implements ChunkUseCase {
 
 
             OriginalDocumentVo originalDocumentVo = OriginalDocumentVo.builder()
-                    .version(StringUtil.generateRandomId())
+                    .version(version)
                     .docType(docType)
                     .categoryCode(categoryCode)
                     .name(extractDocument.getName())
@@ -96,11 +96,12 @@ public class ChunkService implements ChunkUseCase {
     /**
      * PDF 문서 청킹
      *
+     * @param version        버전 구분 코드
      * @param categoryCode   카테고리 코드
      * @param fileDocumentVo 원본 문서 정보
      */
     @Override
-    public ChunkDocumentVo chunkPdfDocumentUseCase(String categoryCode, FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo) {
+    public ChunkDocumentVo chunkPdfDocumentUseCase(String version, String categoryCode, FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo) {
 
         String docType = "DOC-TYPE-FILE";
 
@@ -118,7 +119,7 @@ public class ChunkService implements ChunkUseCase {
                     chunkPatternVo.getMaxTokenSize());
 
             OriginalDocumentVo originalDocumentVo = OriginalDocumentVo.builder()
-                    .version(StringUtil.generateRandomId())
+                    .version(version)
                     .docType(docType)
                     .categoryCode(categoryCode)
                     .name(extractDocument.getName())
@@ -143,13 +144,14 @@ public class ChunkService implements ChunkUseCase {
     /**
      * 법령 문서 청킹
      *
+     * @param version        버전 구분 코드
      * @param categoryCode   카테고리 코드
      * @param lawId          법령 목록
      * @param chunkPatternVo 청킹 패턴 정보
      */
     @Override
     @Transactional
-    public ChunkDocumentVo chunkLawDocumentUseCase(String categoryCode, Long lawId, ChunkPatternVo chunkPatternVo) {
+    public ChunkDocumentVo chunkLawDocumentUseCase(String version, String categoryCode, Long lawId, ChunkPatternVo chunkPatternVo) {
 
         String docType = "DOC-TYPE-DB";
 
@@ -163,7 +165,7 @@ public class ChunkService implements ChunkUseCase {
                 chunkPatternVo.getMaxTokenSize());
 
         OriginalDocumentVo originalDocumentVo = OriginalDocumentVo.builder()
-                .version(StringUtil.generateRandomId())
+                .version(version)
                 .docType(docType)
                 .categoryCode(categoryCode)
                 .name(lawDocument.getLawName())

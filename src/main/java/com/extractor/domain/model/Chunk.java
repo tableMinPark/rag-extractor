@@ -9,7 +9,7 @@ import java.util.*;
 @ToString
 public class Chunk {
 
-    public static final String TITLE_PREFIX = " ";
+    public static final String TITLE_PREFIX = " >> ";
 
     @Getter
     @AllArgsConstructor

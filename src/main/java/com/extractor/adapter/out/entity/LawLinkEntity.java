@@ -27,8 +27,11 @@ public class LawLinkEntity {
     @Column(name = "seq_history")
     private Integer version;
 
+    @Column(name = "type_al")
+    private String type;
+
     @Column(name = "text_al")
-    private String content;
+    private String text;
 
     @Column(name = "link_al")
     private String linkTag;

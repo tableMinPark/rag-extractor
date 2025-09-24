@@ -12,6 +12,7 @@ import com.extractor.domain.vo.FileDocumentVo;
 import com.extractor.domain.vo.PatternVo;
 import com.extractor.domain.vo.PrefixVo;
 import com.extractor.global.enums.FileExtension;
+import com.extractor.global.utils.StringUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -67,12 +68,14 @@ public class ChunkController {
             ChunkPatternVo chunkPatternVo = new ChunkPatternVo(
                     convertPatternVo(chunkDocumentRequestDto.getPatterns()), chunkDocumentRequestDto.getStopPatterns(), 1000);
 
+            String version = StringUtil.generateRandomId();
+
             ChunkDocumentVo chunkDocumentVo;
             switch (extension) {
                 case HWP, HWPX -> chunkDocumentVo =
-                        chunkUseCase.chunkHwpxDocumentUseCase(chunkDocumentRequestDto.getCategoryCode(), new FileDocumentVo(multipartFile), chunkPatternVo);
+                        chunkUseCase.chunkHwpxDocumentUseCase(version, chunkDocumentRequestDto.getCategoryCode(), new FileDocumentVo(multipartFile), chunkPatternVo);
                 case PDF -> chunkDocumentVo =
-                        chunkUseCase.chunkPdfDocumentUseCase(chunkDocumentRequestDto.getCategoryCode(), new FileDocumentVo(multipartFile), chunkPatternVo);
+                        chunkUseCase.chunkPdfDocumentUseCase(version, chunkDocumentRequestDto.getCategoryCode(), new FileDocumentVo(multipartFile), chunkPatternVo);
                 default -> throw new RuntimeException("미지원 파일 형식 (HWP, HWPX, PDF 만 지원)");
             }
 
@@ -115,8 +118,10 @@ public class ChunkController {
             ChunkPatternVo chunkPatternVo = new ChunkPatternVo(
                     convertPatternVo(chunkLawRequestDto.getPatterns()), chunkLawRequestDto.getExcludeContentTypes(), 1000);
 
+            String version = StringUtil.generateRandomId();
+
             ChunkDocumentVo chunkDocumentVo = chunkUseCase.chunkLawDocumentUseCase(
-                    chunkLawRequestDto.getCategoryCode(), chunkLawRequestDto.getLawId(), chunkPatternVo);
+                    version, chunkLawRequestDto.getCategoryCode(), chunkLawRequestDto.getLawId(), chunkPatternVo);
 
             log.info("/chunk/law | {} ", chunkLawRequestDto.getLawId());
 

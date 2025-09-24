@@ -15,9 +15,9 @@ import lombok.NoArgsConstructor;
 public class LawHistoryEntity {
 
     @Id
-    @Column(name = "seq", nullable = false)
-    private Long lawId;;
-
     @Column(name = "seq_history")
     private Integer version;
+
+    @Column(name = "seq", nullable = false)
+    private Long lawId;
 }
