@@ -128,6 +128,7 @@ public class LawPersistenceAdapter implements LawPersistencePort {
                         .simpleTitle(lawContentEntity.getSimpleTitle())
                         .title(lawContentEntity.getTitle())
                         .content(replaceContent(StringUtil.removeHtml(lawContentEntity.getContent())))
+                        .lawLinks(lawLinkMap.getOrDefault(lawContentEntity.getLawContentId(), Collections.emptyList()))
                         .build())
                 .collect(Collectors.toList());
 
@@ -135,7 +136,6 @@ public class LawPersistenceAdapter implements LawPersistencePort {
                 .lawId(lawDocumentEntity.getLawId())
                 .lawName(lawDocumentEntity.getLawName())
                 .lawContents(lawContents)
-                .lawLinks(lawLinkMap)
                 .build();
     }
 

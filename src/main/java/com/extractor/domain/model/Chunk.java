@@ -1,21 +1,33 @@
 package com.extractor.domain.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Queue;
 
 @ToString
 public class Chunk {
 
     public static final String TITLE_PREFIX = " >> ";
+    protected static final String[] TOKEN_CHUNKING_PREFIXES = { "(?<=\n\n)", "(?<=\n)" };
 
     @Getter
     @AllArgsConstructor
     public static class ChunkTitle {
         private String title;
         private String simpleTitle;
+    }
+
+    @Builder
+    @Getter
+    @AllArgsConstructor
+    protected static class ChunkTokenContent {
+        private int depth;
+        private String content;
     }
 
     @Getter
@@ -25,33 +37,50 @@ public class Chunk {
     protected String subContent;
 
     @Getter
+    protected int tokenSize;
+
+    protected int overlapSize;
+
+    @Getter
     protected final int depth;
 
     protected final int depthSize;
 
+    protected final int maxTokenSize;
+
     protected final ChunkTitle[][] titleBuffers;
 
-    public Chunk(int depth, int depthSize) {
+    protected Chunk(int depth, int depthSize, int maxTokenSize, int overlapSize) {
         this.content = "";
         this.subContent = "";
+        this.tokenSize = 0;
+        this.overlapSize = overlapSize;
         this.depth = depth;
         this.depthSize = depthSize;
+        this.maxTokenSize = maxTokenSize;
         this.titleBuffers = new ChunkTitle[depthSize][];
     }
 
-    public Chunk(int depth, int depthSize, ChunkTitle[][] titleBuffers) {
+    protected Chunk(int depth, int depthSize, int maxTokenSize, int overlapSize, ChunkTitle[][] titleBuffers) {
         this.content = "";
         this.subContent = "";
+        this.tokenSize = 0;
+        this.overlapSize = overlapSize;
         this.depth = depth;
         this.depthSize = depthSize;
+        this.maxTokenSize = maxTokenSize;
         this.titleBuffers = titleBuffers;
     }
 
-    /**
-     * 청킹 (호출)
-     */
-    public List<Chunk> chunking() {
-        return Collections.emptyList();
+    protected Chunk(int depth, int depthSize, int maxTokenSize, int overlapSize, ChunkTitle[][] titleBuffers, String content, String subContent) {
+        this.content = content;
+        this.subContent = subContent;
+        this.tokenSize = content.length() + subContent.length();
+        this.overlapSize = overlapSize;
+        this.depth = depth;
+        this.depthSize = depthSize;
+        this.maxTokenSize = maxTokenSize;
+        this.titleBuffers = titleBuffers;
     }
 
     /**
@@ -69,48 +98,6 @@ public class Chunk {
                 nowPrefixIndex++;
             }
         }
-    }
-
-    /**
-     * 토큰 사이즈 조회
-     *
-     * @return 토큰 사이즈
-     */
-    public int getTokenSize() {
-        return this.content.length() + this.subContent.length();
-    }
-
-    /**
-     * 전체 타이틀 조회
-     *
-     * @return 전체 타이틀 문자열
-     */
-    public String getFullTitle() {
-        Queue<ChunkTitle> chunkTitleQueue = new ArrayDeque<>();
-        for (ChunkTitle[] titleBuffer : this.titleBuffers) {
-            for (ChunkTitle title : titleBuffer) {
-                if (title != null) {
-                    chunkTitleQueue.offer(title);
-                }
-            }
-        }
-
-        StringBuilder fullTitleBuilder = new StringBuilder();
-        while (!chunkTitleQueue.isEmpty()) {
-            ChunkTitle chunkTitle = chunkTitleQueue.poll();
-
-            if (!fullTitleBuilder.isEmpty()) {
-                fullTitleBuilder.append(TITLE_PREFIX);
-            }
-
-            if (chunkTitleQueue.isEmpty()) {
-                fullTitleBuilder.append(chunkTitle.title);
-            } else {
-                fullTitleBuilder.append(chunkTitle.simpleTitle);
-            }
-        }
-
-        return fullTitleBuilder.toString().trim();
     }
 
     /**

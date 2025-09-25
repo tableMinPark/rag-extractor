@@ -1,5 +1,6 @@
 package com.extractor.domain.model;
 
+import com.extractor.domain.processor.ChunkProcessor;
 import com.extractor.domain.vo.PatternVo;
 import com.extractor.domain.vo.PrefixVo;
 import lombok.ToString;
@@ -15,15 +16,13 @@ import java.util.regex.Pattern;
  * 한줄 단위 패턴 & 토큰 수 기반 청킹
  */
 @ToString
-public class ExtractChunk extends Chunk {
+public class ExtractChunk extends Chunk implements ChunkProcessor {
 
     private final List<ExtractContent> extractContents;
 
     private final List<PatternVo> patterns;
 
     private final List<String> stopPatterns;
-
-    private final int maxTokenSize;
 
     /**
      * 루트 청크 생성자
@@ -32,11 +31,10 @@ public class ExtractChunk extends Chunk {
      * @param patterns        청크 패턴
      * @param stopPatterns    정지 패턴
      */
-    public ExtractChunk(List<ExtractContent> extractContents, List<PatternVo> patterns, List<String> stopPatterns, int maxTokenSize) {
-        super(-1, patterns.size());
+    public ExtractChunk(List<ExtractContent> extractContents, List<PatternVo> patterns, List<String> stopPatterns, int maxTokenSize, int maxOverlapSize) {
+        super(-1, patterns.size(), maxTokenSize, maxOverlapSize);
         this.patterns = patterns;
         this.stopPatterns = stopPatterns;
-        this.maxTokenSize = maxTokenSize;
 
         // 추출 범위 분리
         int head = 0, tail = 0;
@@ -55,8 +53,7 @@ public class ExtractChunk extends Chunk {
         }
         this.extractContents = extractContents.subList(head, tail);
 
-        // 청크 본문 저장
-        this.setContent(this.extractContents);
+        this.flushContent();
     }
 
     /**
@@ -66,42 +63,26 @@ public class ExtractChunk extends Chunk {
      * @param extractContents 추출 본문 목록
      */
     public ExtractChunk(ExtractChunk parent, List<ExtractContent> extractContents) {
-        super(parent.depth + 1, parent.depthSize, deepCopyTitleBuffers(parent.titleBuffers));
+        super(parent.depth + 1, parent.depthSize, parent.maxTokenSize, parent.overlapSize, deepCopyTitleBuffers(parent.titleBuffers));
         this.patterns = parent.patterns;
         this.stopPatterns = parent.stopPatterns;
-        this.maxTokenSize = parent.maxTokenSize;
         this.extractContents = extractContents;
-
-        // 청크 본문 저장
-        this.setContent(this.extractContents);
     }
 
     /**
-     * 청킹 (호출)
-     */
-    @Override
-    public List<Chunk> chunking() {
-        // 타이틀 버퍼 초기화
-        for (int depth = 0; depth < this.depthSize; depth++) {
-            int titleBufferSize = patterns.get(depth).getPrefixes().size();
-            this.titleBuffers[depth] = new ChunkTitle[titleBufferSize];
-            Arrays.fill(this.titleBuffers[depth], null);
-        }
-
-        return chunking(this);
-    }
-
-    /**
-     * 청킹 (재귀)
+     * 청킹 프로 세스
      *
      * @param chunk 부모 청크
      * @return 문서 청크 목록
      */
     private static List<Chunk> chunking(ExtractChunk chunk) {
         int nextDepth = chunk.depth + 1;
-        int tokenSize = chunk.getTokenSize();
+        int tokenSize = chunk.generateContent().length() + chunk.generateSubContent().length();
 
         if (nextDepth >= chunk.depthSize) {
+            // 청크 본문 저장
+            chunk.flushContent();
+
             // 뎁스 초과
             List<Chunk> chunksByToken = new ArrayList<>();
 
@@ -112,6 +93,8 @@ public class ExtractChunk extends Chunk {
                     ? Collections.emptyList()
                     : chunksByToken;
         } else if (tokenSize <= chunk.patterns.get(nextDepth).getTokenSize()) {
+            // 청크 본문 저장
+            chunk.flushContent();
             // 토큰 수 적합
             return tokenSize == 0
                     ? Collections.emptyList()
@@ -160,20 +143,57 @@ public class ExtractChunk extends Chunk {
     }
 
     /**
-     * 청크 본문 저장
-     *
-     * @param extractContents 추출 문서 본문 목록
+     * 청킹
      */
-    private void setContent(List<ExtractContent> extractContents) {
-        if (!extractContents.isEmpty()) {
-            StringBuilder contentBuilder = new StringBuilder(extractContents.getFirst().getSimpleContent());
-            for (int contentIndex = 1; contentIndex < extractContents.size(); contentIndex++) {
-                ExtractContent extractContent = extractContents.get(contentIndex);
+    @Override
+    public List<Chunk> chunking() {
+        // 타이틀 버퍼 초기화
+        for (int depth = 0; depth < this.depthSize; depth++) {
+            int titleBufferSize = patterns.get(depth).getPrefixes().size();
+            this.titleBuffers[depth] = new ChunkTitle[titleBufferSize];
+            Arrays.fill(this.titleBuffers[depth], null);
+        }
+
+        return chunking(this);
+    }
+
+    /**
+     * 청크 본문 저장
+     */
+    @Override
+    public void flushContent() {
+        this.content = this.generateContent();
+        this.subContent = this.generateSubContent();
+        this.tokenSize = this.content.length() + this.subContent.length();
+    }
+
+    /**
+     * 본문 생성
+     *
+     * @return 본문 문자열
+     */
+    @Override
+    public String generateContent() {
+        StringBuilder contentBuilder = new StringBuilder();
+        if (!this.extractContents.isEmpty()) {
+            contentBuilder.append(this.extractContents.getFirst().getSimpleContent());
+            for (int contentIndex = 1; contentIndex < this.extractContents.size(); contentIndex++) {
+                ExtractContent extractContent = this.extractContents.get(contentIndex);
                 String content = extractContent.getContent().trim();
                 contentBuilder.append("\n").append(content.trim());
             }
-            this.content = contentBuilder.toString().trim();
         }
+        return contentBuilder.toString().trim();
+    }
+
+    /**
+     * 부가 본문 생성
+     *
+     * @return 부가 본문 문자열
+     */
+    @Override
+    public String generateSubContent() {
+        return "";
     }
 
     /**
