@@ -17,14 +17,11 @@ public class LawDocument {
 
     private final List<LawContent> lawContents;
 
-    private final Map<Long, List<LawLink>> lawLinks;
-
     @Builder
-    public LawDocument(Long lawId, String lawName, List<LawContent> lawContents, Map<Long, List<LawLink>> lawLinks) {
+    public LawDocument(Long lawId, String lawName, List<LawContent> lawContents) {
         this.lawId = lawId;
         this.lawName = lawName;
         this.lawContents = lawContents;
-        this.lawLinks = lawLinks;
     }
 
     /**

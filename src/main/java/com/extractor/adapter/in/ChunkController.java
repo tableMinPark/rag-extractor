@@ -6,6 +6,7 @@ import com.extractor.adapter.in.dto.request.ChunkLawRequestDto;
 import com.extractor.adapter.in.dto.response.ChunkDocumentResponseDto;
 import com.extractor.adapter.in.dto.response.ErrorResponseDto;
 import com.extractor.application.usecase.ChunkUseCase;
+import com.extractor.application.usecase.DocumentUseCase;
 import com.extractor.application.vo.ChunkDocumentVo;
 import com.extractor.domain.vo.ChunkPatternVo;
 import com.extractor.domain.vo.FileDocumentVo;
@@ -39,7 +40,7 @@ public class ChunkController {
 
     private final ChunkUseCase chunkUseCase;
 
-    // TODO: 토큰 단위 문서 전처리 기능 구현
+    private final DocumentUseCase documentUseCase;
 
     /**
      * 문서 전처리
@@ -66,7 +67,7 @@ public class ChunkController {
             FileExtension extension = FileExtension.find(multipartFile.getContentType());
 
             ChunkPatternVo chunkPatternVo = new ChunkPatternVo(
-                    convertPatternVo(chunkDocumentRequestDto.getPatterns()), chunkDocumentRequestDto.getStopPatterns(), 1000);
+                    convertPatternVo(chunkDocumentRequestDto.getPatterns()), chunkDocumentRequestDto.getStopPatterns(), chunkDocumentRequestDto.getMaxTokenSize(), chunkDocumentRequestDto.getOverlapSize());
 
             String version = StringUtil.generateRandomId();
 
@@ -116,14 +117,19 @@ public class ChunkController {
     ) {
         try {
             ChunkPatternVo chunkPatternVo = new ChunkPatternVo(
-                    convertPatternVo(chunkLawRequestDto.getPatterns()), chunkLawRequestDto.getExcludeContentTypes(), 1000);
+                    convertPatternVo(chunkLawRequestDto.getPatterns()), chunkLawRequestDto.getExcludeContentTypes(), chunkLawRequestDto.getMaxTokenSize(), chunkLawRequestDto.getOverlapSize());
 
             String version = StringUtil.generateRandomId();
 
             ChunkDocumentVo chunkDocumentVo = chunkUseCase.chunkLawDocumentUseCase(
                     version, chunkLawRequestDto.getCategoryCode(), chunkLawRequestDto.getLawId(), chunkPatternVo);
 
-            log.info("/chunk/law | {} ", chunkLawRequestDto.getLawId());
+            // DB 저장
+            if (chunkLawRequestDto.getIsPersist() && !chunkDocumentVo.getTrainingDocumentVos().isEmpty()) {
+                documentUseCase.registerDocument(chunkDocumentVo.getOriginalDocumentVo(), chunkDocumentVo.getTrainingDocumentVos());
+            }
+
+            log.info("/chunk/law | {} | {} ", chunkLawRequestDto.getLawId(), chunkDocumentVo.getOriginalDocumentVo().getContent().substring(0, Math.min(1000, chunkDocumentVo.getOriginalDocumentVo().getContent().length())));
 
             return ResponseEntity.ok(ChunkDocumentResponseDto.builder()
                     .chunkCount(chunkDocumentVo.getTrainingDocumentVos().size())
@@ -148,7 +154,7 @@ public class ChunkController {
      * @param patternDtos 패턴 Dto
      * @return 검증 이후 패턴 Vo 목록
      */
-    List<PatternVo> convertPatternVo(List<PatternDto> patternDtos) {
+    private List<PatternVo> convertPatternVo(List<PatternDto> patternDtos) {
         List<PatternVo> patterns = new ArrayList<>();
         int maxTokenSize = 0;
 

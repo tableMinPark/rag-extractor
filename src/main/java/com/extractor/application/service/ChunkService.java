@@ -62,7 +62,8 @@ public class ChunkService implements ChunkUseCase {
                     extractDocument.getExtractContents(),
                     chunkPatternVo.getPatterns(),
                     chunkPatternVo.getAntiPatterns(),
-                    chunkPatternVo.getMaxTokenSize());
+                    chunkPatternVo.getMaxTokenSize(),
+                    chunkPatternVo.getOverlapSize());
 
             StringBuilder contentBuilder = new StringBuilder();
             extractDocument.getExtractContents().forEach(extractContent -> {
@@ -116,7 +117,8 @@ public class ChunkService implements ChunkUseCase {
                     extractDocument.getExtractContents(),
                     chunkPatternVo.getPatterns(),
                     chunkPatternVo.getAntiPatterns(),
-                    chunkPatternVo.getMaxTokenSize());
+                    chunkPatternVo.getMaxTokenSize(),
+                    chunkPatternVo.getOverlapSize());
 
             OriginalDocumentVo originalDocumentVo = OriginalDocumentVo.builder()
                     .version(version)
@@ -159,10 +161,10 @@ public class ChunkService implements ChunkUseCase {
 
         LawChunk lawChunk = new LawChunk(
                 lawDocument.getLawContents(),
-                lawDocument.getLawLinks(),
                 chunkPatternVo.getPatterns(),
                 chunkPatternVo.getAntiPatterns(),
-                chunkPatternVo.getMaxTokenSize());
+                chunkPatternVo.getMaxTokenSize(),
+                chunkPatternVo.getOverlapSize());
 
         OriginalDocumentVo originalDocumentVo = OriginalDocumentVo.builder()
                 .version(version)

@@ -14,6 +14,12 @@ import java.util.List;
 @Schema(description = "전처리 패턴 정보")
 public class ChunkDocumentRequestDto {
 
+    @Schema(description = "최대 토큰 수", example = "1000")
+    private Integer maxTokenSize;
+
+    @Schema(description = "토큰 초과 시, 오버랩 사이즈", example = "200")
+    private Integer overlapSize;
+
     @Schema(description = "문서 카테고리 코드", example = "TRAIN-DOC")
     private String categoryCode;
 

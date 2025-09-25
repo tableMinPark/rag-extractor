@@ -1,13 +1,16 @@
 package com.extractor.application.vo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 public class TrainingDocumentVo {
 
+    @JsonIgnore
     private final Long trainingId;
 
+    @JsonIgnore
     private final Long originalId;
 
     private final String version;
