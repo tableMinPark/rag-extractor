@@ -20,4 +20,17 @@ public class LawHistoryEntity {
 
     @Column(name = "seq", nullable = false)
     private Long lawId;
+
+    @Column(name = "arrange")
+    private Integer arrange;
+
+    @Column(name = "iscurrent")
+    private Integer isCurrent;
+
+    @Column(name = "isdel")
+    private String isDeleted;
+
+    public Boolean getIsCurrent() {
+        return isCurrent == 1;
+    }
 }

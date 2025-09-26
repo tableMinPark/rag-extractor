@@ -29,7 +29,8 @@ public interface LawContentRepository extends JpaRepository<LawContentEntity, Lo
             "       select lh.version " +
             "         from LawHistoryEntity lh " +
             "        where lh.lawId = :lawId " +
-            "        order by lh.version desc " +
+                    "  and lh.isDeleted = 'N' " +
+            "        order by lh.arrange desc " +
             "        limit 1)")
     List<LawContentEntity> findByLawIdOrderByVersionDesc(Long lawId);
 }
