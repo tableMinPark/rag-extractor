@@ -12,7 +12,10 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Schema(description = "법령 전처리 분리 정보")
-public class ChunkLawRequestDto {
+public class ChunkLawsRequestDto {
+
+    @Schema(description = "법령 ID 목록", example = "[27,28,29]")
+    private List<Long> lawIds;
 
     @Schema(description = "최대 토큰 수", example = "1000")
     private Integer maxTokenSize;

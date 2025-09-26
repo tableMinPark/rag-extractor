@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -32,8 +33,14 @@ public class LawDocumentEntity {
      *
      * @return 가장 최근 버전
      */
-    public Integer getLatestVersion() {
-        versions.sort((v1, v2) -> v2.getVersion() - v1.getVersion());
-        return versions.getFirst() != null ? versions.getFirst().getVersion() : -1;
+    public Optional<Integer> getLatestVersion() {
+        List<LawHistoryEntity> versions = this.versions.stream()
+                        .filter(LawHistoryEntity::getIsCurrent)
+                        .sorted((v1, v2) -> v2.getVersion() - v1.getVersion())
+                        .toList();
+
+        if (versions.isEmpty()) return Optional.empty();
+
+        return Optional.ofNullable(versions.getFirst().getVersion());
     }
 }

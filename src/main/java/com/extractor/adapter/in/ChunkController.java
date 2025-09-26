@@ -3,8 +3,10 @@ package com.extractor.adapter.in;
 import com.extractor.adapter.in.dto.etc.PatternDto;
 import com.extractor.adapter.in.dto.request.ChunkDocumentRequestDto;
 import com.extractor.adapter.in.dto.request.ChunkLawRequestDto;
+import com.extractor.adapter.in.dto.request.ChunkLawsRequestDto;
 import com.extractor.adapter.in.dto.response.ChunkDocumentResponseDto;
 import com.extractor.adapter.in.dto.response.ErrorResponseDto;
+import com.extractor.application.exception.NotFoundDocumentException;
 import com.extractor.application.usecase.ChunkUseCase;
 import com.extractor.application.usecase.DocumentUseCase;
 import com.extractor.application.vo.ChunkDocumentVo;
@@ -104,7 +106,7 @@ public class ChunkController {
      *
      * @param chunkLawRequestDto 전처리 요청 정보
      */
-    @PostMapping(path = "/law")
+    @PostMapping(path = "/law/{lawId}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Success", content = {@Content(schema = @Schema(implementation = ChunkDocumentResponseDto.class, description = "전처리 응답"))}),
             @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ErrorResponseDto.class, description = "에러 응답"))}),
@@ -113,7 +115,11 @@ public class ChunkController {
     public ResponseEntity<?> chunkLaw(
             @Parameter(name = "chunkLawRequestDto", description = "전처리 요청 정보", required = true)
             @RequestBody
-            ChunkLawRequestDto chunkLawRequestDto
+            ChunkLawRequestDto chunkLawRequestDto,
+
+            @Parameter(name = "lawId", description = "법령 ID", example = "28", required = true)
+            @PathVariable("lawId")
+            Long lawId
     ) {
         try {
             ChunkPatternVo chunkPatternVo = new ChunkPatternVo(
@@ -121,31 +127,97 @@ public class ChunkController {
 
             String version = StringUtil.generateRandomId();
 
-            ChunkDocumentVo chunkDocumentVo = chunkUseCase.chunkLawDocumentUseCase(
-                    version, chunkLawRequestDto.getCategoryCode(), chunkLawRequestDto.getLawId(), chunkPatternVo);
+            ChunkDocumentVo chunkDocumentVo = chunkUseCase.chunkLawDocumentUseCase(version, chunkLawRequestDto.getCategoryCode(), lawId, chunkPatternVo);
 
-            // DB 저장
-            if (chunkLawRequestDto.getIsPersist() && !chunkDocumentVo.getTrainingDocumentVos().isEmpty()) {
-                documentUseCase.registerDocument(chunkDocumentVo.getOriginalDocumentVo(), chunkDocumentVo.getTrainingDocumentVos());
-            }
-
-            log.info("/chunk/law | {} | {} ", chunkLawRequestDto.getLawId(), chunkDocumentVo.getOriginalDocumentVo().getContent().substring(0, Math.min(1000, chunkDocumentVo.getOriginalDocumentVo().getContent().length())));
+            log.info("/chunk/law/{} | {}", lawId, lawId);
 
             return ResponseEntity.ok(ChunkDocumentResponseDto.builder()
+                    .originalId(chunkDocumentVo.getOriginalDocumentVo().getOriginalId())
+                    .version(chunkDocumentVo.getOriginalDocumentVo().getVersion())
+                    .name(chunkDocumentVo.getOriginalDocumentVo().getName())
+                    .docType(chunkDocumentVo.getOriginalDocumentVo().getDocType())
+                    .categoryCode(chunkDocumentVo.getOriginalDocumentVo().getCategoryCode())
                     .chunkCount(chunkDocumentVo.getTrainingDocumentVos().size())
                     .chunks(chunkDocumentVo.getTrainingDocumentVos())
                     .chunkInfo(chunkPatternVo)
+                    .content(chunkDocumentVo.getOriginalDocumentVo().getContent())
                     .build());
 
         } catch (RuntimeException e) {
 
-            log.error("/chunk/law | {} | {}", chunkLawRequestDto.getLawId(), e.getMessage());
+            log.error("/chunk/law/{} | {} | {}", lawId, lawId, e.getMessage());
 
             return ResponseEntity.internalServerError().body(ErrorResponseDto.builder()
                     .message(e.getMessage())
                     .stackTrace(e.getStackTrace())
                     .build());
         }
+    }
+
+    /**
+     * 법령 일괄 전처리
+     *
+     * @param chunkLawsRequestDto 전처리 요청 정보
+     */
+    @PostMapping(path = "/law")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Success", content = {@Content(schema = @Schema(implementation = ChunkDocumentResponseDto.class, description = "전처리 응답"))}),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ErrorResponseDto.class, description = "에러 응답"))}),
+    })
+    @Operation(summary = "법령 일괄 전처리")
+    public ResponseEntity<?> chunkLaws(
+            @Parameter(name = "chunkLawsRequestDto", description = "전처리 요청 정보", required = true)
+            @RequestBody
+            ChunkLawsRequestDto chunkLawsRequestDto
+    ) {
+        ChunkPatternVo chunkPatternVo = new ChunkPatternVo(
+                convertPatternVo(chunkLawsRequestDto.getPatterns()), chunkLawsRequestDto.getExcludeContentTypes(), chunkLawsRequestDto.getMaxTokenSize(), chunkLawsRequestDto.getOverlapSize());
+
+        String version = StringUtil.generateRandomId();
+
+        List<ChunkDocumentResponseDto> chunkDocumentResponseDtos = new ArrayList<>();
+
+        for (Long lawId : chunkLawsRequestDto.getLawIds()) {
+            try {
+                ChunkDocumentVo chunkDocumentVo = chunkUseCase.chunkLawDocumentUseCase(version, chunkLawsRequestDto.getCategoryCode(), lawId, chunkPatternVo);
+
+                // DB 저장
+                if (!chunkDocumentVo.getTrainingDocumentVos().isEmpty()) {
+                    documentUseCase.registerDocument(chunkDocumentVo.getOriginalDocumentVo(), chunkDocumentVo.getTrainingDocumentVos());
+
+                    log.info("/chunk/law | {} | {}", lawId, chunkDocumentVo.getTrainingDocumentVos().size());
+                } else {
+                    log.warn("/chunk/law | {} | not found passage", lawId);
+                }
+
+                chunkDocumentResponseDtos.add(ChunkDocumentResponseDto.builder()
+                        .originalId(chunkDocumentVo.getOriginalDocumentVo().getOriginalId())
+                        .version(chunkDocumentVo.getOriginalDocumentVo().getVersion())
+                        .name(chunkDocumentVo.getOriginalDocumentVo().getName())
+                        .docType(chunkDocumentVo.getOriginalDocumentVo().getDocType())
+                        .categoryCode(chunkDocumentVo.getOriginalDocumentVo().getCategoryCode())
+                        .chunkCount(chunkDocumentVo.getTrainingDocumentVos().size())
+                        // .chunks(chunkDocumentVo.getTrainingDocumentVos())
+                        // .chunkInfo(chunkPatternVo)
+                        // .content(chunkDocumentVo.getOriginalDocumentVo().getContent())
+                        .build());
+
+            } catch (NotFoundDocumentException e) {
+
+                log.info("/chunk/law | {} | not found law in database", lawId);
+
+            } catch (RuntimeException e) {
+
+                log.error("/chunk/law | {} | {}", lawId, e.getMessage());
+
+                return ResponseEntity.internalServerError().body(ErrorResponseDto.builder()
+                        .message(e.getMessage())
+                        .stackTrace(e.getStackTrace())
+                        .build());
+            }
+        }
+
+        return ResponseEntity.ok(chunkDocumentResponseDtos);
     }
 
     /**
