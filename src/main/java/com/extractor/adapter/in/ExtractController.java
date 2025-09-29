@@ -1,10 +1,12 @@
 package com.extractor.adapter.in;
 
+import com.extractor.adapter.in.dto.request.ExtractDocumentRequestDto;
 import com.extractor.adapter.in.dto.response.ErrorResponseDto;
 import com.extractor.adapter.in.dto.response.ExtractResponseDto;
 import com.extractor.application.usecase.ExtractUseCase;
 import com.extractor.application.vo.ExtractDocumentVo;
 import com.extractor.domain.vo.FileDocumentVo;
+import com.extractor.global.enums.ExtractType;
 import com.extractor.global.enums.FileExtension;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,10 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
@@ -37,6 +36,7 @@ public class ExtractController {
      *
      * @param multipartFile 업로드 파일
      */
+    @CrossOrigin(origins = "http://localhost:8001")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Success", content = {@Content(schema = @Schema(implementation = ExtractResponseDto.class, description = "추출 정보"))}),
@@ -44,17 +44,22 @@ public class ExtractController {
     })
     @Operation(summary = "문서 추출")
     public ResponseEntity<?> extractDocument(
+            @Parameter(name = "extractDocumentRequestDto", description = "추출 요청 정보", required = true)
+            @RequestPart("requestDto")
+            ExtractDocumentRequestDto extractDocumentRequestDto,
+
             @Parameter(name = "uploadFile", description = "업로드 파일", required = true)
             @RequestPart("uploadFile")
             MultipartFile multipartFile
     ) {
         try {
             FileExtension extension = FileExtension.find(multipartFile.getContentType());
+            ExtractType extractType = ExtractType.find(extractDocumentRequestDto.getExtractType());
 
             ExtractDocumentVo extractDocumentVo;
             switch (extension) {
                 case HWP, HWPX -> extractDocumentVo =
-                        extractUseCase.extractHwpxDocumentUseCase(new FileDocumentVo(multipartFile));
+                        extractUseCase.extractHwpxDocumentUseCase(extractType, new FileDocumentVo(multipartFile));
                 case PDF -> extractDocumentVo =
                         extractUseCase.extractPdfDocumentUseCase(new FileDocumentVo(multipartFile));
                 default -> throw new RuntimeException("미지원 파일 형식 (HWP, HWPX, PDF 만 지원)");

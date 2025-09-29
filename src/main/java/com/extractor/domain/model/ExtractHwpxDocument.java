@@ -2,7 +2,9 @@ package com.extractor.domain.model;
 
 import com.extractor.domain.vo.HwpxImageVo;
 import com.extractor.domain.vo.HwpxSectionVo;
+import com.extractor.global.enums.ExtractType;
 import com.extractor.global.enums.FileExtension;
+import com.extractor.global.utils.StringUtil;
 import com.extractor.global.utils.XmlUtil;
 import lombok.Builder;
 import lombok.Getter;
@@ -33,7 +35,7 @@ public class ExtractHwpxDocument extends ExtractDocument {
     /**
      * 추출
      */
-    public void extract() {
+    public void extract(ExtractType extractType) {
         this.sections.forEach(section -> {
             Document document = XmlUtil.parseXml(section.getContent());
             Element root = document.getDocumentElement();
@@ -49,7 +51,11 @@ public class ExtractHwpxDocument extends ExtractDocument {
                             // 표
                             case "hp:tbl" -> {
                                 Arrays.stream(contentBuilder.toString().split("\n")).forEach(super::addTextContent);
-                                super.addTableContent(this.convertTableXmlToHtml(node, 0));
+                                String tableContent = this.convertTableXmlToHtml(node, 0);
+                                if (ExtractType.MARK_DOWN.equals(extractType)) {
+                                    tableContent = StringUtil.convertHtmlToMarkdown(tableContent);
+                                }
+                                super.addTableContent(tableContent);
                                 contentBuilder = new StringBuilder();
                             }
                             // 이미지

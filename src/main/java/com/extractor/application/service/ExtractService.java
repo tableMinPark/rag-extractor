@@ -6,10 +6,11 @@ import com.extractor.application.usecase.ExtractUseCase;
 import com.extractor.application.vo.ExtractContentVo;
 import com.extractor.application.vo.ExtractDocumentVo;
 import com.extractor.domain.model.ExtractDocument;
-import com.extractor.domain.model.FileDocument;
 import com.extractor.domain.model.ExtractHwpxDocument;
 import com.extractor.domain.model.ExtractPdfDocument;
+import com.extractor.domain.model.FileDocument;
 import com.extractor.domain.vo.FileDocumentVo;
+import com.extractor.global.enums.ExtractType;
 import com.extractor.global.enums.FileExtension;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,7 +29,7 @@ public class ExtractService implements ExtractUseCase {
      * @param fileDocumentVo 원본 문서 정보
      */
     @Override
-    public ExtractDocumentVo extractHwpxDocumentUseCase(FileDocumentVo fileDocumentVo) {
+    public ExtractDocumentVo extractHwpxDocumentUseCase(ExtractType extractType, FileDocumentVo fileDocumentVo) {
 
         // 파일 업로드
         FileDocument fileDocument = filePort.uploadFilePort(fileDocumentVo);
@@ -40,7 +41,7 @@ public class ExtractService implements ExtractUseCase {
             extractDocument = extractPdfDocument;
         } else {
             ExtractHwpxDocument extractHwpxDocument = extractPort.extractHwpxDocumentPort(fileDocument);
-            extractHwpxDocument.extract();
+            extractHwpxDocument.extract(extractType);
             extractDocument = extractHwpxDocument;
         }
 

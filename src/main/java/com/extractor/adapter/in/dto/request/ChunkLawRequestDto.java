@@ -14,6 +14,9 @@ import java.util.List;
 @Schema(description = "법령 전처리 분리 정보")
 public class ChunkLawRequestDto {
 
+    @Schema(description = "표 추출 타입", example = "markdown")
+    private String extractType;
+
     @Schema(description = "최대 토큰 수", example = "1000")
     private Integer maxTokenSize;
 
