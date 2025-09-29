@@ -10,6 +10,7 @@ import com.extractor.application.vo.TrainingDocumentVo;
 import com.extractor.domain.model.*;
 import com.extractor.domain.vo.ChunkPatternVo;
 import com.extractor.domain.vo.FileDocumentVo;
+import com.extractor.global.enums.ExtractType;
 import com.extractor.global.enums.FileExtension;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,11 +36,12 @@ public class ChunkService implements ChunkUseCase {
      *
      * @param version        버전 구분 코드
      * @param categoryCode   카테고리 코드
+     * @param extractType    표 데이터 변환 타입
      * @param fileDocumentVo 원본 문서 정보
      * @param chunkPatternVo 청킹 패턴 정보
      */
     @Override
-    public ChunkDocumentVo chunkHwpxDocumentUseCase(String version, String categoryCode, FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo) {
+    public ChunkDocumentVo chunkHwpxDocumentUseCase(String version, String categoryCode, ExtractType extractType, FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo) {
 
         String docType = "DOC-TYPE-FILE";
 
@@ -53,7 +55,7 @@ public class ChunkService implements ChunkUseCase {
             extractDocument = extractPdfDocument;
         } else {
             ExtractHwpxDocument extractHwpxDocument = extractPort.extractHwpxDocumentPort(fileDocument);
-            extractHwpxDocument.extract();
+            extractHwpxDocument.extract(extractType);
             extractDocument = extractHwpxDocument;
         }
 

@@ -2,6 +2,7 @@ package com.extractor.application.usecase;
 
 import com.extractor.application.vo.ExtractDocumentVo;
 import com.extractor.domain.vo.FileDocumentVo;
+import com.extractor.global.enums.ExtractType;
 
 public interface ExtractUseCase {
 
@@ -10,7 +11,7 @@ public interface ExtractUseCase {
      *
      * @param fileDocumentVo 원본 문서 정보
      */
-    ExtractDocumentVo extractHwpxDocumentUseCase(FileDocumentVo fileDocumentVo);
+    ExtractDocumentVo extractHwpxDocumentUseCase(ExtractType extractType, FileDocumentVo fileDocumentVo);
 
     /**
      * PDf 문서 추출

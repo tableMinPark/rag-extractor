@@ -14,6 +14,7 @@ import com.extractor.domain.vo.ChunkPatternVo;
 import com.extractor.domain.vo.FileDocumentVo;
 import com.extractor.domain.vo.PatternVo;
 import com.extractor.domain.vo.PrefixVo;
+import com.extractor.global.enums.ExtractType;
 import com.extractor.global.enums.FileExtension;
 import com.extractor.global.utils.StringUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -67,6 +68,7 @@ public class ChunkController {
     ) {
         try {
             FileExtension extension = FileExtension.find(multipartFile.getContentType());
+            ExtractType extractType = ExtractType.find(chunkDocumentRequestDto.getExtractType());
 
             ChunkPatternVo chunkPatternVo = new ChunkPatternVo(
                     convertPatternVo(chunkDocumentRequestDto.getPatterns()), chunkDocumentRequestDto.getStopPatterns(), chunkDocumentRequestDto.getMaxTokenSize(), chunkDocumentRequestDto.getOverlapSize());
@@ -76,7 +78,7 @@ public class ChunkController {
             ChunkDocumentVo chunkDocumentVo;
             switch (extension) {
                 case HWP, HWPX -> chunkDocumentVo =
-                        chunkUseCase.chunkHwpxDocumentUseCase(version, chunkDocumentRequestDto.getCategoryCode(), new FileDocumentVo(multipartFile), chunkPatternVo);
+                        chunkUseCase.chunkHwpxDocumentUseCase(version, chunkDocumentRequestDto.getCategoryCode(), extractType, new FileDocumentVo(multipartFile), chunkPatternVo);
                 case PDF -> chunkDocumentVo =
                         chunkUseCase.chunkPdfDocumentUseCase(version, chunkDocumentRequestDto.getCategoryCode(), new FileDocumentVo(multipartFile), chunkPatternVo);
                 default -> throw new RuntimeException("미지원 파일 형식 (HWP, HWPX, PDF 만 지원)");
