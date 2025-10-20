@@ -1,6 +1,7 @@
 package com.extractor.domain.model;
 
 import com.extractor.global.enums.FileExtension;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -24,10 +25,15 @@ public class Document {
     private final List<DocumentContent> documentContents;
 
     public Document(String name, FileExtension extension, Path path) {
+        this(name, extension, path, new ArrayList<>());
+    }
+
+
+    public Document(String name, FileExtension extension, Path path, List<DocumentContent> documentContents) {
         this.name = name;
         this.extension = extension;
         this.path = path;
-        this.documentContents = new ArrayList<>();
+        this.documentContents = documentContents;
     }
 
     /**
