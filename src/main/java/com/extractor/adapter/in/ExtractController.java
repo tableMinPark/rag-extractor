@@ -36,7 +36,6 @@ public class ExtractController {
      *
      * @param multipartFile 업로드 파일
      */
-    @CrossOrigin(origins = "http://localhost:8001")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Success", content = {@Content(schema = @Schema(implementation = ExtractResponseDto.class, description = "추출 정보"))}),

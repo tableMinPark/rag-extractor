@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -60,6 +61,21 @@ public class ChunkService implements ChunkUseCase {
         }
 
         try {
+            List<DocumentContent> documentContents = extractDocument.getExtractContents().stream()
+                    .map(extractContent -> DocumentContent.builder()
+                            .contentId(-1L)
+                            .compareText(extractContent.getContent())
+                            .context(extractContent.getContent())
+                            .build())
+                    .collect(Collectors.toList());
+
+            List<Chunk> chunks = Chunk.chunking(documentContents, ChunkOption.builder()
+                            .maxTokenSize(chunkPatternVo.getMaxTokenSize())
+                            .overlapSize(chunkPatternVo.getOverlapSize())
+                            .patterns(chunkPatternVo.getPatterns())
+                            .type(ChunkOption.ChunkType.REGEX)
+                    .build());
+
             ExtractChunk extractChunk = new ExtractChunk(
                     extractDocument.getExtractContents(),
                     chunkPatternVo.getPatterns(),
@@ -71,7 +87,6 @@ public class ChunkService implements ChunkUseCase {
             extractDocument.getExtractContents().forEach(extractContent -> {
                 contentBuilder.append(extractContent.getContent()).append("\n");
             });
-
 
             OriginalDocumentVo originalDocumentVo = OriginalDocumentVo.builder()
                     .version(version)
@@ -189,7 +204,7 @@ public class ChunkService implements ChunkUseCase {
     /**
      * Chunk Vo -> 전처리 문서로 변환
      */
-    private static List<TrainingDocumentVo> chunkToTrainingDocument(String title, String docType, String categoryCode, String version, List<Chunk> chunks) {
+    private static List<TrainingDocumentVo> chunkToTrainingDocument(String title, String docType, String categoryCode, String version, List<ChunkOld> chunks) {
         return chunks.stream()
                 .map(chunk -> {
                     String subTitle = "";
@@ -203,7 +218,7 @@ public class ChunkService implements ChunkUseCase {
                         subTitle = titles[0];
                     }
                     if (titles.length > 1) {
-                        thirdTitle = String.join(Chunk.TITLE_PREFIX, Arrays.stream(titles)
+                        thirdTitle = String.join(ChunkOld.TITLE_PREFIX, Arrays.stream(titles)
                                         .toList()
                                         .subList(1, titles.length)
                                         .stream()
