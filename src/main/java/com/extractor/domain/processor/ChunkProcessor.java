@@ -1,6 +1,6 @@
 package com.extractor.domain.processor;
 
-import com.extractor.domain.model.Chunk;
+import com.extractor.domain.model.ChunkOld;
 
 import java.util.List;
 
@@ -9,7 +9,7 @@ public interface ChunkProcessor {
     /**
      * 청킹
      */
-    List<Chunk> chunking();
+    List<ChunkOld> chunking();
 
     /**
      * 청크 본문 저장

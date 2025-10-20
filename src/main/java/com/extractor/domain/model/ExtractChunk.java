@@ -5,10 +5,7 @@ import com.extractor.domain.vo.PatternVo;
 import com.extractor.domain.vo.PrefixVo;
 import lombok.ToString;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,7 +13,7 @@ import java.util.regex.Pattern;
  * 한줄 단위 패턴 & 토큰 수 기반 청킹
  */
 @ToString
-public class ExtractChunk extends Chunk implements ChunkProcessor {
+public class ExtractChunk extends ChunkOld implements ChunkProcessor {
 
     private final List<ExtractContent> extractContents;
 
@@ -75,7 +72,7 @@ public class ExtractChunk extends Chunk implements ChunkProcessor {
      * @param chunk 부모 청크
      * @return 문서 청크 목록
      */
-    private static List<Chunk> chunking(ExtractChunk chunk) {
+    private static List<ChunkOld> chunking(ExtractChunk chunk) {
         int nextDepth = chunk.depth + 1;
         int tokenSize = chunk.generateContent().length() + chunk.generateSubContent().length();
 
@@ -84,15 +81,95 @@ public class ExtractChunk extends Chunk implements ChunkProcessor {
             chunk.flushContent();
 
             // 뎁스 초과
-            List<Chunk> chunksByToken = new ArrayList<>();
+            List<ChunkOld> chunksByToken = new ArrayList<>();
 
-            // TODO: maxTokenSize 기준으로 마지막 청킹
-            chunksByToken.add(chunk);
+            if (tokenSize > chunk.maxTokenSize) {
+                // content 가 하나 이상인 경우
+                if (chunk.extractContents.size() > 1) {
+                    // 글자 수 기준 청킹
+                    int mid = chunk.extractContents.size() / 2;
+                    chunksByToken.addAll(chunking(new ExtractChunk(chunk, chunk.extractContents.subList(0, mid))));
+                    chunksByToken.addAll(chunking(new ExtractChunk(chunk, chunk.extractContents.subList(mid, chunk.extractContents.size()))));
+                }
+                // content 하나인 경우
+                else if (chunk.extractContents.size() == 1) {
+                    Queue<ChunkOld> chunkQueue = new ArrayDeque<>();
+                    Queue<ChunkTokenContent> contentQueue = new ArrayDeque<>();
 
-            return tokenSize == 0
-                    ? Collections.emptyList()
-                    : chunksByToken;
-        } else if (tokenSize <= chunk.patterns.get(nextDepth).getTokenSize()) {
+                    // 문자 기준 분리
+                    for (int depth = 0; depth < TOKEN_CHUNKING_PREFIXES.length; depth++) {
+                        String prefix = TOKEN_CHUNKING_PREFIXES[depth];
+                        for (String splitContent : chunk.generateContent().trim().split(prefix)) {
+                            if (!splitContent.trim().isBlank()) {
+                                contentQueue.offer(ChunkTokenContent.builder()
+                                        .depth(depth + 1)
+                                        .content(splitContent)
+                                        .build());
+                            }
+                        }
+                        if (!contentQueue.isEmpty()) break;
+                    }
+
+                    // 임시 저장
+                    StringBuilder contentBuilder = new StringBuilder();
+                    StringBuilder subContentBuilder = new StringBuilder();
+
+                    // 분리 문자열 Queue
+                    while (!contentQueue.isEmpty()) {
+                        ChunkTokenContent chunkTokenContent = contentQueue.poll();
+
+                        int depth = chunkTokenContent.getDepth();
+                        String content = chunkTokenContent.getContent();
+                        String subContent = chunk.generateSubContent();
+                        int splitContentTokenSize = content.length() + subContent.length();
+
+                        if (splitContentTokenSize > chunk.maxTokenSize && depth < TOKEN_CHUNKING_PREFIXES.length) {
+                            String prefix = TOKEN_CHUNKING_PREFIXES[depth];
+                            // 재분리
+                            for (String splitContent : chunk.generateContent().trim().split(prefix)) {
+                                contentQueue.offer(ChunkTokenContent.builder()
+                                        .depth(depth + 1)
+                                        .content(splitContent)
+                                        .build());
+                            }
+                        } else if (splitContentTokenSize > 0) {
+                            // 더이상 분리 불가능 or 분리 문자열 토큰 제약 충족
+                            int splitTokenSize = contentBuilder.length() + subContentBuilder.length() + splitContentTokenSize;
+
+                            // 임시 저장 문자열 플러시
+                            if (splitTokenSize > chunk.maxTokenSize) {
+                                chunksByToken.add(new ChunkOld(
+                                        chunk.depth,
+                                        chunk.depthSize,
+                                        chunk.maxTokenSize,
+                                        chunk.overlapSize,
+                                        ChunkOld.deepCopyTitleBuffers(chunk.titleBuffers),
+                                        contentBuilder.toString(),
+                                        subContentBuilder.toString()));
+
+                                contentBuilder = new StringBuilder();
+                                subContentBuilder = new StringBuilder();
+                            }
+
+                            // 문자열 임시 저장
+                            contentBuilder.append(content);
+                            subContentBuilder.append(subContent);
+                        }
+                    }
+                }
+                // 오버랩 적용
+                // setOverlap(chunk.overlapSize, chunksByToken);
+            } else if (tokenSize > 0) {
+                //  0 < 토큰 수 < maxTokenSize 인 경우
+                chunk.flushContent();
+                chunksByToken.add(chunk);
+            }
+
+            return chunksByToken;
+
+        }
+        // 아래 depth 가 있지만, 토큰 수 제한을 충족한 경우
+        else if (tokenSize <= chunk.patterns.get(nextDepth).getTokenSize()) {
             // 청크 본문 저장
             chunk.flushContent();
             // 토큰 수 적합
@@ -101,9 +178,11 @@ public class ExtractChunk extends Chunk implements ChunkProcessor {
                     : List.of(chunk);
         }
 
-        List<Chunk> chunks = new ArrayList<>();
+        List<ChunkOld> chunks = new ArrayList<>();
+
         int head = -1;
         PatternVo patternVo = chunk.patterns.get(nextDepth);
+
         for (int contentIndex = 0; contentIndex < chunk.extractContents.size(); contentIndex++) {
             ExtractContent extractContent = chunk.extractContents.get(contentIndex);
             for (int prefixIndex = 0; prefixIndex < patternVo.getPrefixes().size(); prefixIndex++) {
@@ -136,8 +215,7 @@ public class ExtractChunk extends Chunk implements ChunkProcessor {
             }
         }
 
-        chunks.addAll(chunking(new ExtractChunk(
-                chunk, chunk.extractContents.subList(Math.max(head, 0), chunk.extractContents.size()))));
+        chunks.addAll(chunking(new ExtractChunk(chunk, chunk.extractContents.subList(Math.max(head, 0), chunk.extractContents.size()))));
 
         return chunks;
     }
@@ -146,7 +224,7 @@ public class ExtractChunk extends Chunk implements ChunkProcessor {
      * 청킹
      */
     @Override
-    public List<Chunk> chunking() {
+    public List<ChunkOld> chunking() {
         // 타이틀 버퍼 초기화
         for (int depth = 0; depth < this.depthSize; depth++) {
             int titleBufferSize = patterns.get(depth).getPrefixes().size();
