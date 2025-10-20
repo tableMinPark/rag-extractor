@@ -29,10 +29,14 @@ public class TrainingDocumentVo {
 
     private final String subContent;
 
-    private final Integer tokenSize;
+    private final Integer totalTokenSize;
+
+    private final Integer contentTokenSize;
+
+    private final Integer subContentTokenSize;
 
     @Builder
-    public TrainingDocumentVo(Long trainingId, Long originalId, String version, String docType, String categoryCode, String title, String subTitle, String thirdTitle, String content, String subContent, Integer tokenSize) {
+    public TrainingDocumentVo(Long trainingId, Long originalId, String version, String docType, String categoryCode, String title, String subTitle, String thirdTitle, String content, String subContent, Integer totalTokenSize, Integer contentTokenSize, Integer subContentTokenSize) {
         this.trainingId = trainingId;
         this.originalId = originalId;
         this.version = version;
@@ -43,6 +47,8 @@ public class TrainingDocumentVo {
         this.thirdTitle = thirdTitle;
         this.content = content;
         this.subContent = subContent;
-        this.tokenSize = tokenSize;
+        this.totalTokenSize = totalTokenSize;
+        this.contentTokenSize = contentTokenSize;
+        this.subContentTokenSize = subContentTokenSize;
     }
 }

@@ -1,44 +1,57 @@
 package com.extractor.domain.model;
 
+import com.extractor.domain.vo.LawContentVo;
+import com.extractor.global.enums.FileExtension;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 @ToString
 @Getter
-public class LawDocument {
+public class LawDocument extends Document {
 
     private final Long lawId;
 
-    private final String lawName;
-
-    private final List<LawContent> lawContents;
+    private final List<LawContentVo> lawContentVos;
 
     @Builder
-    public LawDocument(Long lawId, String lawName, List<LawContent> lawContents) {
+    public LawDocument(Long lawId, String lawName, List<LawContentVo> lawContentVos) {
+        super(lawName, FileExtension.DATABASE, null);
         this.lawId = lawId;
-        this.lawName = lawName;
-        this.lawContents = lawContents;
+        this.lawContentVos = lawContentVos;
+        this.extract();
     }
 
     /**
-     * 본문 전체 조회
-     * @return 본문 전체 문자열
+     * 추출
      */
-    public String getContent() {
-        StringBuilder contentBuilder = new StringBuilder();
+    public void extract() {
+        this.clearDocumentContents();
+        this.lawContentVos.forEach(lawContentVo -> {
 
-        this.lawContents.forEach(lawContent -> {
-            contentBuilder
-                    .append("\n")
-                    .append(lawContent.getTitle())
-                    .append("\n")
-                    .append(lawContent.getContent());
+            List<DocumentContent> subDocumentContents = new ArrayList<>();
+            lawContentVo.getLawLinkVos().forEach(lawLinkVo -> {
+                subDocumentContents.add(DocumentContent.builder()
+                        .contentId(subDocumentContents.size())
+                        .compareText(lawLinkVo.getText())
+                        .title(lawLinkVo.getTitle())
+                        .simpleTitle(lawLinkVo.getTitle())
+                        .context(lawLinkVo.getContent())
+                        .subDocumentContents(Collections.emptyList())
+                        .type(DocumentContent.LineType.TEXT)
+                        .build());
+            });
+
+            super.addTextContent(
+                    lawContentVo.getTitle(),
+                    lawContentVo.getSimpleTitle(),
+                    lawContentVo.getCategoryCode(),
+                    lawContentVo.getContent(),
+                    subDocumentContents);
         });
-
-        return contentBuilder.toString().trim();
     }
 }

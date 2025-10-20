@@ -27,19 +27,19 @@ public class DocumentContent {
 
     private String simpleTitle;
 
-    private final String context;
+    private String context;
 
     private final List<DocumentContent> subDocumentContents;
 
     private final LineType type;
 
     @Builder
-    public DocumentContent(long contentId, String compareText, String context, List<DocumentContent> subDocumentContents, LineType type) {
+    public DocumentContent(long contentId, String compareText, String title, String simpleTitle, String context, List<DocumentContent> subDocumentContents, LineType type) {
         this.contentId = contentId;
         this.compareText = compareText;
         this.prefix = "";
-        this.title = "";
-        this.simpleTitle = "";
+        this.title = title == null ? "" : title;
+        this.simpleTitle = simpleTitle == null ? "" : simpleTitle;
         this.context = context;
         this.subDocumentContents = subDocumentContents == null ? Collections.emptyList() : subDocumentContents;
         this.type = type;
@@ -58,6 +58,7 @@ public class DocumentContent {
                 this.prefix = prefix;
                 this.title = matcher.group().trim();
                 this.simpleTitle = matcher.group().trim();
+                this.context = this.context.replaceFirst(prefix, "").strip();
             }
         }
     }

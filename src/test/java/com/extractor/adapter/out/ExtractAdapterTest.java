@@ -1,8 +1,8 @@
 package com.extractor.adapter.out;
 
 import com.extractor.application.port.ExtractPort;
-import com.extractor.domain.model.ExtractHwpxDocument;
-import com.extractor.domain.model.ExtractPdfDocument;
+import com.extractor.domain.model.HwpxDocument;
+import com.extractor.domain.model.PdfDocument;
 import com.extractor.domain.model.FileDocument;
 import com.extractor.global.enums.FileExtension;
 import com.extractor.global.utils.FileUtil;
@@ -57,7 +57,7 @@ class ExtractAdapterTest {
                 .build();
 
         // act
-        ExtractHwpxDocument extractHwpxDocument = extractPort.extractHwpxDocumentPort(fileDocument);
+        HwpxDocument extractHwpxDocument = extractPort.extractHwpxDocumentPort(fileDocument);
 
         // 압축 해제 디렉토리 삭제
         FileUtil.deleteDirectory(fileDocument.getPath());
@@ -87,7 +87,7 @@ class ExtractAdapterTest {
                 .build();
 
         // act
-        ExtractPdfDocument extractPdfDocument = extractPort.extractPdfDocumentPort(fileDocument);
+        PdfDocument extractPdfDocument = extractPort.extractPdfDocumentPort(fileDocument);
 
         assertNotNull(extractPdfDocument);
         assertFalse(extractPdfDocument.getContent().isBlank());

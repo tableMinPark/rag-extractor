@@ -1,10 +1,10 @@
-package com.extractor.domain.model;
+package com.extractor.domain.vo;
 
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class LawLink {
+public class LawLinkVo {
 
     private final Long lawLinkId;
 
@@ -27,7 +27,7 @@ public class LawLink {
     private final String content;
 
     @Builder
-    public LawLink(Long lawLinkId, Long lawContentId, Long lawId, Integer version, String text, String type, Long targetLawId, String linkCode, String title, String content) {
+    public LawLinkVo(Long lawLinkId, Long lawContentId, Long lawId, Integer version, String text, String type, Long targetLawId, String linkCode, String title, String content) {
         this.lawLinkId = lawLinkId;
         this.lawContentId = lawContentId;
         this.lawId = lawId;
