@@ -7,11 +7,10 @@ import com.extractor.adapter.out.repository.LawContentRepository;
 import com.extractor.adapter.out.repository.LawDocumentRepository;
 import com.extractor.adapter.out.repository.LawLinkRepository;
 import com.extractor.application.exception.NotFoundDocumentException;
-import com.extractor.application.exception.NotFoundLawException;
 import com.extractor.application.port.LawPersistencePort;
 import com.extractor.domain.model.LawDocument;
-import com.extractor.domain.vo.LawLinkVo;
 import com.extractor.domain.vo.LawContentVo;
+import com.extractor.domain.vo.LawLinkVo;
 import com.extractor.global.utils.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +47,7 @@ public class LawPersistenceAdapter implements LawPersistencePort {
         LawDocumentEntity lawDocumentEntity = lawDocumentRepository.findByLawId(lawId)
                 .orElseThrow(NotFoundDocumentException::new);
 
-        int version = lawDocumentEntity.getLatestVersion().orElseThrow(NotFoundLawException::new);
+        int version = lawDocumentEntity.getLatestVersion().orElseThrow(NotFoundDocumentException::new);
 
         // 법령 본문 엔티티 목록 조회
         List<LawContentEntity> lawContentEntities = lawContentRepository.findByLawIdAndVersionOrderByArrange(
