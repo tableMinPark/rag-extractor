@@ -5,9 +5,9 @@ import com.extractor.application.port.FilePort;
 import com.extractor.application.usecase.ExtractUseCase;
 import com.extractor.application.vo.ExtractContentVo;
 import com.extractor.application.vo.ExtractDocumentVo;
-import com.extractor.domain.model.ExtractDocument;
-import com.extractor.domain.model.ExtractHwpxDocument;
-import com.extractor.domain.model.ExtractPdfDocument;
+import com.extractor.domain.model.Document;
+import com.extractor.domain.model.HwpxDocument;
+import com.extractor.domain.model.PdfDocument;
 import com.extractor.domain.model.FileDocument;
 import com.extractor.domain.vo.FileDocumentVo;
 import com.extractor.global.enums.ExtractType;
@@ -34,25 +34,25 @@ public class ExtractService implements ExtractUseCase {
         // 파일 업로드
         FileDocument fileDocument = filePort.uploadFilePort(fileDocumentVo);
 
-        ExtractDocument extractDocument;
+        Document document;
         if (FileExtension.PDF.equals(fileDocument.getExtension())) {
-            ExtractPdfDocument extractPdfDocument = extractPort.extractPdfDocumentPort(fileDocument);
+            PdfDocument extractPdfDocument = extractPort.extractPdfDocumentPort(fileDocument);
             extractPdfDocument.extract();
-            extractDocument = extractPdfDocument;
+            document = extractPdfDocument;
         } else {
-            ExtractHwpxDocument extractHwpxDocument = extractPort.extractHwpxDocumentPort(fileDocument);
+            HwpxDocument extractHwpxDocument = extractPort.extractHwpxDocumentPort(fileDocument);
             extractHwpxDocument.extract(extractType);
-            extractDocument = extractHwpxDocument;
+            document = extractHwpxDocument;
         }
 
         try {
             return ExtractDocumentVo.builder()
-                    .name(extractDocument.getName())
-                    .extension(extractDocument.getExtension())
-                    .extractContents(extractDocument.getExtractContents().stream()
+                    .name(document.getName())
+                    .extension(document.getExtension())
+                    .extractContents(document.getDocumentContents().stream()
                             .map(line -> ExtractContentVo.builder()
                                     .type(line.getType().name())
-                                    .content(line.getContent())
+                                    .content(line.getContext())
                                     .build())
                             .toList())
                     .build();
@@ -74,15 +74,15 @@ public class ExtractService implements ExtractUseCase {
         FileDocument fileDocument = filePort.uploadFilePort(fileDocumentVo);
 
         try {
-            ExtractPdfDocument extractPdfDocument = extractPort.extractPdfDocumentPort(fileDocument);
+            PdfDocument extractPdfDocument = extractPort.extractPdfDocumentPort(fileDocument);
             extractPdfDocument.extract();
             return ExtractDocumentVo.builder()
                     .name(extractPdfDocument.getName())
                     .extension(extractPdfDocument.getExtension())
-                    .extractContents(extractPdfDocument.getExtractContents().stream()
+                    .extractContents(extractPdfDocument.getDocumentContents().stream()
                             .map(line -> ExtractContentVo.builder()
                                     .type(line.getType().name())
-                                    .content(line.getContent())
+                                    .content(line.getContext())
                                     .build())
                             .toList())
                     .build();

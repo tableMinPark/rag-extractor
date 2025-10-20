@@ -9,9 +9,9 @@ import com.extractor.adapter.out.repository.LawLinkRepository;
 import com.extractor.application.exception.NotFoundDocumentException;
 import com.extractor.application.exception.NotFoundLawException;
 import com.extractor.application.port.LawPersistencePort;
-import com.extractor.domain.model.LawContent;
 import com.extractor.domain.model.LawDocument;
-import com.extractor.domain.model.LawLink;
+import com.extractor.domain.vo.LawLinkVo;
+import com.extractor.domain.vo.LawContentVo;
 import com.extractor.global.utils.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -82,7 +82,7 @@ public class LawPersistenceAdapter implements LawPersistencePort {
         }
 
         // 법령 연결 정보 생성 (타이틀, 본문 포함 객체 생성)
-        Map<Long, List<LawLink>> lawLinkMap = new HashMap<>();
+        Map<Long, List<LawLinkVo>> lawLinkMap = new HashMap<>();
         for (LawLinkEntity lawLinkEntity : lawLinkEntities) {
             Matcher matcher = Pattern.compile(LINK_TAG_PATTERN).matcher(lawLinkEntity.getLinkTag());
 
@@ -99,8 +99,8 @@ public class LawPersistenceAdapter implements LawPersistencePort {
             if (lawContentEntityOptional.isPresent()) {
                 LawContentEntity lawContentEntity = lawContentEntityOptional.get();
                 if (!lawContentEntity.getLawContentId().equals(lawLinkEntity.getLawContentId())) {
-                    List<LawLink> linkLawContents = lawLinkMap.getOrDefault(lawLinkEntity.getLawContentId(), new ArrayList<>());
-                    linkLawContents.add(LawLink.builder()
+                    List<LawLinkVo> linkLawContents = lawLinkMap.getOrDefault(lawLinkEntity.getLawContentId(), new ArrayList<>());
+                    linkLawContents.add(LawLinkVo.builder()
                             .lawLinkId(lawLinkEntity.getLawLinkId())
                             .lawContentId(lawLinkEntity.getLawContentId())
                             .lawId(lawLinkEntity.getLawId())
@@ -118,11 +118,11 @@ public class LawPersistenceAdapter implements LawPersistencePort {
         }
 
         // 법령 본문 목록
-        List<LawContent> lawContents = new ArrayList<>();
+        List<LawContentVo> lawContentVos = new ArrayList<>();
         for (LawContentEntity lawContentEntity : lawContentEntities) {
             if ("addenda".equals(lawContentEntity.getCategoryCode())) {
                 // TODO: 부칙인 경우 본문 정규식 기반 청킹 처리 필요
-                lawContents.add(LawContent.builder()
+                lawContentVos.add(LawContentVo.builder()
                         .lawContentId(lawContentEntity.getLawContentId())
                         .lawId(lawContentEntity.getLawId())
                         .version(lawContentEntity.getVersion())
@@ -132,10 +132,10 @@ public class LawPersistenceAdapter implements LawPersistencePort {
                         .simpleTitle(lawContentEntity.getSimpleTitle())
                         .title(lawContentEntity.getTitle())
                         .content(replaceContent(StringUtil.removeHtml(lawContentEntity.getContent())))
-                        .lawLinks(lawLinkMap.getOrDefault(lawContentEntity.getLawContentId(), Collections.emptyList()))
+                        .lawLinkVos(lawLinkMap.getOrDefault(lawContentEntity.getLawContentId(), Collections.emptyList()))
                         .build());
             } else {
-                lawContents.add(LawContent.builder()
+                lawContentVos.add(LawContentVo.builder()
                         .lawContentId(lawContentEntity.getLawContentId())
                         .lawId(lawContentEntity.getLawId())
                         .version(lawContentEntity.getVersion())
@@ -145,7 +145,7 @@ public class LawPersistenceAdapter implements LawPersistencePort {
                         .simpleTitle(lawContentEntity.getSimpleTitle())
                         .title(lawContentEntity.getTitle())
                         .content(replaceContent(StringUtil.removeHtml(lawContentEntity.getContent())))
-                        .lawLinks(lawLinkMap.getOrDefault(lawContentEntity.getLawContentId(), Collections.emptyList()))
+                        .lawLinkVos(lawLinkMap.getOrDefault(lawContentEntity.getLawContentId(), Collections.emptyList()))
                         .build());
             }
         }
@@ -153,7 +153,7 @@ public class LawPersistenceAdapter implements LawPersistencePort {
         return LawDocument.builder()
                 .lawId(lawDocumentEntity.getLawId())
                 .lawName(lawDocumentEntity.getLawName())
-                .lawContents(lawContents)
+                .lawContentVos(lawContentVos)
                 .build();
     }
 

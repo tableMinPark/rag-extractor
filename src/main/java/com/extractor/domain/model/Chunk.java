@@ -4,13 +4,11 @@ import com.extractor.domain.vo.PatternVo;
 import com.extractor.domain.vo.PrefixVo;
 import lombok.Getter;
 import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Slf4j
 @ToString
 @Getter
 public class Chunk {
@@ -62,8 +60,6 @@ public class Chunk {
      */
     public static List<Chunk> chunking(List<DocumentContent> documentContents, ChunkOption chunkOption) {
 
-        log.info("{}", chunkOption);
-
         DocumentContent[][] titleBuffer = new DocumentContent[chunkOption.getDepthSize()][];
 
         // 타이틀 버퍼 초기화
@@ -93,11 +89,11 @@ public class Chunk {
         StringBuilder contentBuilder = new StringBuilder();
 
         for (DocumentContent documentContent : this.documentContents) {
-            contentBuilder.append("\n").append(documentContent.getContext().trim());
+            contentBuilder.append("\n")
+                    .append(documentContent.getContext().trim());
         }
 
         return contentBuilder.toString().trim();
-
     }
 
     /**
@@ -113,14 +109,13 @@ public class Chunk {
             for (DocumentContent subDocumentContent : documentContent.getSubDocumentContents()) {
                 subContentBuilder.append("\n")
                         .append(subDocumentContent.getTitle())
-                        .append(subDocumentContent.getTitle().isBlank() ? " " : "")
+                        .append(!subDocumentContent.getTitle().isBlank() ? " " : "")
                         .append(subDocumentContent.getContext().trim());
             }
         }
 
         return subContentBuilder.toString().trim();
     }
-
 
     /**
      * 타이틀 배열 조회
@@ -134,7 +129,7 @@ public class Chunk {
         for (int depth = 0; depth < this.titleBuffer.length; depth++) {
             Queue<DocumentContent> documentContentQueue = new ArrayDeque<>();
 
-            for (DocumentContent documentContent : titleBuffer[depth]) {
+            for (DocumentContent documentContent : this.titleBuffer[depth]) {
                 if (documentContent != null) {
                     documentContentQueue.offer(documentContent);
                 }
@@ -175,30 +170,14 @@ public class Chunk {
 
         List<Chunk> chunks = new ArrayList<>();
 
-        // 전체 토큰 수 충족 (재귀 종료)
-        if (tokenSize <= chunkOption.getMaxTokenSize()) {
-            StringBuilder builder = new StringBuilder();
-            List<DocumentContent> docs = chunk.getDocumentContents();
-            for (int index = 0; index < docs.size(); index++) {
-                builder.append("[").append(index).append("] >> ").append(docs.get(index).getCompareText().replace("\n", "\\n")).append("\n");
-            }
-            log.info("전체 토큰 수 충족 >> [{}][{}] : {} >> \n{}", chunk.getContentTokenSize(), nextDepth, Arrays.toString(chunk.getTitles()), builder);
-            chunks.add(chunk);
-        }
-        // 깊이 별 최대 토큰 수 충족 (재귀 종료)
-        else if (nextDepth < chunkOption.getDepthSize() && tokenSize <= chunkOption.getPatterns().get(nextDepth).getTokenSize()) {
-            StringBuilder builder = new StringBuilder();
-            List<DocumentContent> docs = chunk.getDocumentContents();
-            for (int index = 0; index < docs.size(); index++) {
-                builder.append("[").append(index).append("] >> ").append(docs.get(index).getCompareText().replace("\n", "\\n")).append("\n");
-            }
-            log.info("깊이 별 토큰 수 충족 >> [{}][{}] : {} >> \n{}", chunk.getContentTokenSize(), nextDepth, Arrays.toString(chunk.getTitles()), builder);
-            chunks.add(chunk);
-        }
         // 깊이 초과
-        else if (nextDepth >= chunkOption.getDepthSize()) {
+        if (nextDepth >= chunkOption.getDepthSize()) {
+            // 전체 토큰 수 충족 (재귀 종료)
+            if (tokenSize <= chunkOption.getMaxTokenSize()) {
+                chunks.add(chunk);
+            }
             // documentContent 가 1개 초과인 경우 (재귀 실행/토큰 기준 분리)
-            if (chunk.getDocumentContents().size() > 1) {
+            else if (chunk.getDocumentContents().size() > 1) {
                 int mid = chunk.getDocumentContents().size() / 2;
 
                 chunks.addAll(chunking(
@@ -212,19 +191,12 @@ public class Chunk {
             }
             // documentContent 가 1개인 경우 (재귀 종료)
             else if (chunk.getDocumentContents().size() == 1) {
-                StringBuilder builder = new StringBuilder();
-                List<DocumentContent> docs = chunk.getDocumentContents();
-                for (int index = 0; index < docs.size(); index++) {
-                    builder.append("[").append(index).append("] >> ").append(docs.get(index).getCompareText().replace("\n", "\\n")).append("\n");
-                }
-                log.info("깊이초과 + 컨텐츠1개 >> [{}][{}] : {} >> \n{}", chunk.getContentTokenSize(), nextDepth, Arrays.toString(chunk.getTitles()), builder);
                 DocumentContent documentContent = chunk.getDocumentContents().getFirst();
-
                 Queue<String> contextQueue = new ArrayDeque<>();
 
                 // 개행 두번 기준 문자열 분리
                 for (String splitContext : documentContent.getContext().split("\n\n")) {
-                    contextQueue.offer(splitContext);
+                    contextQueue.offer(splitContext + "\n\n");
                 }
 
                 // 개행 한번 기준 문자열 분리
@@ -237,7 +209,7 @@ public class Chunk {
                         contextQueue.offer(context);
                     } else {
                         for (String splitContext : context.split("\n")) {
-                            contextQueue.offer(splitContext);
+                            contextQueue.offer(splitContext + "\n");
                         }
                     }
 
@@ -247,14 +219,14 @@ public class Chunk {
                 // chunkOption.maxTokenSize 크기 기준 문자열 분리
                 contextQueueSize = contextQueue.size();
                 while (!contextQueue.isEmpty() && contextQueueSize > 0) {
-                    String context = contextQueue.poll().trim();
+                    String context = contextQueue.poll();
 
                     if (context.isBlank()) continue;
                     else if (context.length() <= chunkOption.getMaxTokenSize()) {
                         contextQueue.offer(context);
                     } else {
                         for (int contextIndex = 0; contextIndex < context.length(); contextIndex += chunkOption.getMaxTokenSize()) {
-                            contextQueue.offer(context.substring(contextIndex, contextIndex + chunkOption.getMaxTokenSize()));
+                            contextQueue.offer(context.substring(contextIndex, Math.min(contextIndex + chunkOption.getMaxTokenSize(), context.length())));
                         }
                     }
 
@@ -262,8 +234,18 @@ public class Chunk {
                 }
 
                 // 분리 문자열 저장
+                String headOverlap = "";
+                String tailOverlap = "";
                 while (!contextQueue.isEmpty()) {
                     String context = contextQueue.poll();
+
+                    // 다음 context overlap 설정
+                    if (!contextQueue.isEmpty()) {
+                        String tailContext = contextQueue.peek();
+                        tailOverlap = tailContext.substring(0, Math.min(chunkOption.getOverlapSize(), tailContext.length()));
+                    } else {
+                        tailOverlap = "";
+                    }
 
                     StringBuilder subContentBuilder = new StringBuilder();
                     for (DocumentContent subDocumentContent : documentContent.getSubDocumentContents()) {
@@ -275,9 +257,16 @@ public class Chunk {
                         }
                     }
 
-                    chunks.add(new Chunk(nextDepth, titleBuffer, context, subContentBuilder.toString().trim()));
+                    chunks.add(new Chunk(nextDepth, titleBuffer, headOverlap + context + tailOverlap, subContentBuilder.toString().trim()));
+
+                    // 현재 context overlap 설정
+                    headOverlap = context.substring(Math.max(0, context.length() - chunkOption.getOverlapSize()));
                 }
             }
+        }
+        // 깊이 별 최대 토큰 수 충족 (재귀 종료)
+        else if (tokenSize <= chunkOption.getPatterns().get(nextDepth).getTokenSize()) {
+            chunks.add(chunk);
         }
         // 토큰 수 초과 (재귀 실행 / DocumentContent 기준 분리)
         else {
@@ -306,12 +295,6 @@ public class Chunk {
 
                     // 일치 or 정규식 부합한 경우
                     if (isMatch) {
-                        StringBuilder builder = new StringBuilder();
-                        List<DocumentContent> docs = chunk.getDocumentContents().subList(Math.max(head, 0), contentIndex);
-                        for (int index = 0; index < docs.size(); index++) {
-                            builder.append("[").append(index).append("] >> ").append(docs.get(index).getCompareText().replace("\n", "\\n")).append("\n");
-                        }
-                        log.info("일치 조건 부합({}) >> [{}][{}] : {} >> \n{}", prefix.getPrefix(), chunk.getContentTokenSize(), nextDepth, Arrays.toString(chunk.getTitles()), builder);
                         // 재귀
                         chunks.addAll(chunking(
                                 copyTitleBuffer(titleBuffer),
@@ -339,15 +322,11 @@ public class Chunk {
                     chunkOption));
         }
 
-        return chunks;
+        // 본문 공백 필터링 후 반환
+        return chunks.stream()
+                .filter(c -> !c.getContent().isBlank())
+                .toList();
     }
-
-//    private static List<Chunk> chunkingByEquals(Chunk chunk, List<PrefixVo> prefixVos) {
-//
-//        List<Chunk> chunks = new ArrayList<>();
-//
-//
-//    }
 
     /**
      * 타이틀 버퍼 정리

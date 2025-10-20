@@ -41,8 +41,4 @@ public class ChunkDocumentResponseDto {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @Schema(description = "전처리 패턴 정보")
     private ChunkPatternVo chunkInfo;
-
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @Schema(description = "문서 원본 본문")
-    private String content;
 }

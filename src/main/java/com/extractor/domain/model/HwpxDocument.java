@@ -9,7 +9,6 @@ import com.extractor.global.utils.XmlUtil;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import java.nio.file.Path;
@@ -19,25 +18,27 @@ import java.util.Map;
 
 @ToString
 @Getter
-public class ExtractHwpxDocument extends ExtractDocument {
+public class HwpxDocument extends Document {
 
     private final List<HwpxSectionVo> sections;
 
     private final Map<String, HwpxImageVo> images;
 
     @Builder
-    public ExtractHwpxDocument(String name, FileExtension extension, List<HwpxSectionVo> sections, Map<String, HwpxImageVo> images, Path path) {
+    public HwpxDocument(String name, FileExtension extension, List<HwpxSectionVo> sections, Map<String, HwpxImageVo> images, Path path) {
         super(name, extension, path);
         this.sections = sections;
         this.images = images;
+        this.extract(ExtractType.MARK_DOWN);
     }
 
     /**
      * 추출
      */
     public void extract(ExtractType extractType) {
+        this.clearDocumentContents();
         this.sections.forEach(section -> {
-            Document document = XmlUtil.parseXml(section.getContent());
+            org.w3c.dom.Document document = XmlUtil.parseXml(section.getContent());
             Element root = document.getDocumentElement();
 
             XmlUtil.findChildElementsByTagName(root, "hp:p").forEach(p -> {

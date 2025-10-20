@@ -1,8 +1,8 @@
 package com.extractor.adapter.out;
 
 import com.extractor.application.port.ExtractPort;
-import com.extractor.domain.model.ExtractHwpxDocument;
-import com.extractor.domain.model.ExtractPdfDocument;
+import com.extractor.domain.model.HwpxDocument;
+import com.extractor.domain.model.PdfDocument;
 import com.extractor.domain.model.FileDocument;
 import com.extractor.domain.vo.HwpxImageVo;
 import com.extractor.domain.vo.HwpxSectionVo;
@@ -42,7 +42,7 @@ public class ExtractAdapter implements ExtractPort {
      * @param fileDocument 원본 문서 정보
      */
     @Override
-    public ExtractHwpxDocument extractHwpxDocumentPort(FileDocument fileDocument) {
+    public HwpxDocument extractHwpxDocumentPort(FileDocument fileDocument) {
 
         // 데이터 저장
         List<HwpxSectionVo> sections = new ArrayList<>();
@@ -91,7 +91,7 @@ public class ExtractAdapter implements ExtractPort {
             }
         }
 
-        return ExtractHwpxDocument.builder()
+        return HwpxDocument.builder()
                 .name(fileDocument.getOriginalFileName())
                 .extension(fileDocument.getExtension())
                 .path(fileDocument.getPath())
@@ -106,8 +106,8 @@ public class ExtractAdapter implements ExtractPort {
      * @param fileDocument 원본 문서 정보
      */
     @Override
-    public ExtractPdfDocument extractPdfDocumentPort(FileDocument fileDocument) {
-        return ExtractPdfDocument.builder()
+    public PdfDocument extractPdfDocumentPort(FileDocument fileDocument) {
+        return PdfDocument.builder()
                 .name(fileDocument.getOriginalFileName())
                 .extension(fileDocument.getExtension())
                 .path(fileDocument.getPath())

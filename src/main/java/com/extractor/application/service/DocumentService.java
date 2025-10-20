@@ -49,7 +49,7 @@ public class DocumentService implements DocumentUseCase {
                     .thirdTitle(trainingDocumentVo.getThirdTitle())
                     .content(trainingDocumentVo.getContent())
                     .subContent(trainingDocumentVo.getSubContent())
-                    .tokenSize(trainingDocumentVo.getTokenSize())
+                    .tokenSize(trainingDocumentVo.getContentTokenSize())
                     .build());
         });
     }

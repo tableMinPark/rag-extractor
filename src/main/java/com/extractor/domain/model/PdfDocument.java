@@ -10,20 +10,22 @@ import java.util.Arrays;
 
 @ToString
 @Getter
-public class ExtractPdfDocument extends ExtractDocument {
+public class PdfDocument extends Document {
 
     private final String content;
 
     @Builder
-    public ExtractPdfDocument(String name, FileExtension extension, Path path, String content) {
+    public PdfDocument(String name, FileExtension extension, Path path, String content) {
         super(name, extension, path);
         this.content = content;
+        this.extract();
     }
 
     /**
      * 추출
      */
     public void extract() {
+        this.clearDocumentContents();
         Arrays.stream(this.content.split("\n")).forEach(super::addTextContent);
     }
 }

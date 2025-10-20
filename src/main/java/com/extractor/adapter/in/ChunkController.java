@@ -142,7 +142,6 @@ public class ChunkController {
                     .chunkCount(chunkDocumentVo.getTrainingDocumentVos().size())
                     .chunks(chunkDocumentVo.getTrainingDocumentVos())
                     .chunkInfo(chunkPatternVo)
-                    .content(chunkDocumentVo.getOriginalDocumentVo().getContent())
                     .build());
 
         } catch (RuntimeException e) {
@@ -201,7 +200,6 @@ public class ChunkController {
                         .chunkCount(chunkDocumentVo.getTrainingDocumentVos().size())
                         // .chunks(chunkDocumentVo.getTrainingDocumentVos())
                         // .chunkInfo(chunkPatternVo)
-                        // .content(chunkDocumentVo.getOriginalDocumentVo().getContent())
                         .build());
 
             } catch (NotFoundDocumentException e) {

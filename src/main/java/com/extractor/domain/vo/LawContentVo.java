@@ -1,4 +1,4 @@
-package com.extractor.domain.model;
+package com.extractor.domain.vo;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -8,7 +8,7 @@ import java.util.List;
 
 @ToString
 @Getter
-public class LawContent {
+public class LawContentVo {
 
     private final Long lawContentId;
 
@@ -28,10 +28,10 @@ public class LawContent {
 
     private final String content;
 
-    private final List<LawLink> lawLinks;
+    private final List<LawLinkVo> lawLinkVos;
 
     @Builder
-    public LawContent(Long lawContentId, Long lawId, Integer version, String contentType, String categoryCode, Integer arrange, String simpleTitle, String title, String content, List<LawLink> lawLinks) {
+    public LawContentVo(Long lawContentId, Long lawId, Integer version, String contentType, String categoryCode, Integer arrange, String simpleTitle, String title, String content, List<LawLinkVo> lawLinkVos) {
         this.lawContentId = lawContentId;
         this.lawId = lawId;
         this.version = version;
@@ -41,6 +41,6 @@ public class LawContent {
         this.simpleTitle = simpleTitle;
         this.title = title;
         this.content = content;
-        this.lawLinks = lawLinks;
+        this.lawLinkVos = lawLinkVos;
     }
 }
