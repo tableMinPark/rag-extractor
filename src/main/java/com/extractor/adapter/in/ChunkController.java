@@ -67,7 +67,7 @@ public class ChunkController {
             MultipartFile multipartFile
     ) {
         try {
-            FileExtension extension = FileExtension.find(multipartFile.getContentType());
+            FileExtension extension = FileExtension.find(multipartFile.getOriginalFilename());
             ExtractType extractType = ExtractType.find(chunkDocumentRequestDto.getExtractType());
 
             ChunkPatternVo chunkPatternVo = new ChunkPatternVo(
