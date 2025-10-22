@@ -1,7 +1,10 @@
 package com.extractor.global.utils;
 
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.*;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
+import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
@@ -11,7 +14,6 @@ import java.util.UUID;
 
 public class StringUtil {
 
-    private static final Set<String> TABLE_TAGS = Set.of("table", "tr", "td", "thead", "tbody", "th");
     private static final Set<String> BLOCK_TAGS = Set.of(
             "div", "p", "section", "article", "header", "footer", "aside", "nav", "main",
             "li", "tr", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "br", "hr"
@@ -56,7 +58,7 @@ public class StringUtil {
         String convertMarkdown = doc.outerHtml().replace("&lt;br&gt;", "\n<br>");
 
         if (!tableMarkdownBuilder.toString().trim().isBlank()) {
-            convertMarkdown += "---\n<br>\n<br>" + tableMarkdownBuilder.toString().trim();
+            convertMarkdown += "\n<br>\n<br>---\n<br>\n<br>" + tableMarkdownBuilder.toString().trim();
         }
 
         return normalize(convertMarkdown);
@@ -212,7 +214,6 @@ public class StringUtil {
      * @return HTML 태그 삭제 문자열
      */
     public static String removeHtml(String html) {
-
         // table 태그 표 마크 다운 문자열 변환
         String convertTableHtml = convertTableHtmlToMarkDown(html);
         Document doc = Jsoup.parse(convertTableHtml);
