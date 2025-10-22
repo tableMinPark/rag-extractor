@@ -13,7 +13,6 @@ import com.extractor.global.enums.FileExtension;
 import com.extractor.global.utils.StringUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,12 +59,14 @@ public class ManualPersistenceAdapter implements ManualPersistencePort {
                     if (manualAgendaDtoMap.containsKey(manualContentDto.getUuid())) {
                         ManualAgendaDto manualAgendaDto = manualAgendaDtoMap.get(manualContentDto.getUuid());
 
+                        String context = StringUtil.removeHtml(manualContentDto.getContent());
+
                         documentContents.add(DocumentContent.builder()
                                 .contentId(Long.parseLong(manualAgendaDto.getId()))
-                                .compareText(StringUtil.removeHtml(StringUtil.convertHtmlToMarkdown(manualContentDto.getContent())))
+                                .compareText(context)
                                 .title(manualAgendaDto.getTitle())
                                 .simpleTitle(manualAgendaDto.getTitle())
-                                .context(StringUtil.removeHtml(StringUtil.convertHtmlToMarkdown(manualContentDto.getContent())))
+                                .context(context)
                                 .subDocumentContents(Collections.emptyList())
                                 .type(DocumentContent.LineType.TEXT)
                                 .build());
@@ -82,7 +83,7 @@ public class ManualPersistenceAdapter implements ManualPersistencePort {
         documentContents.forEach(documentContent -> {
             // TODO: HTML 태그 제거 로직 추가 필요
             // TODO: 1 depth 의 테이블 벗기고 -> 이후 table 태그 제외하고 모든 태그 벗기기 순으로 진행할 예정
-            log.info("{} >> {}", documentContent.getTitle(), documentContent.getContext());//.substring(0, Math.min(100, documentContent.getContext().length())));
+            log.info("\ntitle: {}\ncontent: {}", documentContent.getTitle(), documentContent.getContext());//.substring(0, Math.min(100, documentContent.getContext().length())));
         });
 
         return new Document(manualDocumentEntity.getTitle(), FileExtension.DATABASE, null, documentContents);
