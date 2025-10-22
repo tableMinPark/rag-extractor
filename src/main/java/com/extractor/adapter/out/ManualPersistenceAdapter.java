@@ -42,7 +42,6 @@ public class ManualPersistenceAdapter implements ManualPersistencePort {
         ManualDocumentEntity manualDocumentEntity = manualDocumentRepository.findById(manualId)
                 .orElseThrow(NotFoundDocumentException::new);
 
-
         try {
             // object mapper 역직렬화
             List<ManualTableContentDto> manualTableContentDto = objectMapper.readValue(manualDocumentEntity.getTableContent(), new TypeReference<List<ManualTableContentDto>>() {});
@@ -79,12 +78,6 @@ public class ManualPersistenceAdapter implements ManualPersistencePort {
         } catch (JsonProcessingException e) {
             throw new NotFoundDocumentException();
         }
-
-        documentContents.forEach(documentContent -> {
-            // TODO: HTML 태그 제거 로직 추가 필요
-            // TODO: 1 depth 의 테이블 벗기고 -> 이후 table 태그 제외하고 모든 태그 벗기기 순으로 진행할 예정
-            log.info("\ntitle: {}\ncontent: {}", documentContent.getTitle(), documentContent.getContext());//.substring(0, Math.min(100, documentContent.getContext().length())));
-        });
 
         return new Document(manualDocumentEntity.getTitle(), FileExtension.DATABASE, null, documentContents);
     }
