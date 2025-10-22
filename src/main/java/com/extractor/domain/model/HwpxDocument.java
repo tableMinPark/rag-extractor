@@ -54,7 +54,8 @@ public class HwpxDocument extends Document {
                                 Arrays.stream(contentBuilder.toString().split("\n")).forEach(super::addTextContent);
                                 String tableContent = this.convertTableXmlToHtml(node, 0);
                                 if (ExtractType.MARK_DOWN.equals(extractType)) {
-                                    tableContent = StringUtil.convertHtmlToMarkdown(tableContent);
+                                    tableContent = StringUtil.convertTableHtmlToMarkDown(tableContent);
+                                    tableContent = StringUtil.convertTableHtmlToMarkDown(tableContent);
                                 }
                                 super.addTableContent(tableContent);
                                 contentBuilder = new StringBuilder();

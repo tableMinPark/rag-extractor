@@ -1,21 +1,22 @@
 package com.extractor.global.utils;
 
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.nodes.Node;
-import org.jsoup.nodes.TextNode;
+import org.jsoup.nodes.*;
 import org.jsoup.select.Elements;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 public class StringUtil {
 
-    private static final Set<String> BLOCK_TAGS = new HashSet<>(Arrays.asList(
+    private static final Set<String> TABLE_TAGS = Set.of("table", "tr", "td", "thead", "tbody", "th");
+    private static final Set<String> BLOCK_TAGS = Set.of(
             "div", "p", "section", "article", "header", "footer", "aside", "nav", "main",
-            "li", "tr", "h1", "h2", "h3", "h4", "h5", "h6",
-            "blockquote", "br", "hr"
-    ));
+            "li", "tr", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "br", "hr"
+    );
+
 
     /**
      * 랜덤 ID 값 생성
@@ -40,12 +41,79 @@ public class StringUtil {
     }
 
     /**
-     * 표 데이터 HTML 마크 다운 변환 (1 DEPTH 만 가능)
+     * HTML 표 데이터 마크 다운 변환
      *
      * @param html HTML 문자열
+     * @return 표 Markdown 변환 된, HTML 문자열
+     */
+    public static String convertTableHtmlToMarkDown(String html) {
+
+        Document doc = Jsoup.parse(html);
+        StringBuilder tableMarkdownBuilder = new StringBuilder();
+
+        convertTableHtmlToMarkDown(doc.body(), tableMarkdownBuilder, -1);
+
+        String convertMarkdown = doc.outerHtml().replace("&lt;br&gt;", "\n<br>");
+
+        if (!tableMarkdownBuilder.toString().trim().isBlank()) {
+            convertMarkdown += "---\n<br>\n<br>" + tableMarkdownBuilder.toString().trim();
+        }
+
+        return normalize(convertMarkdown);
+    }
+
+    private static void convertTableHtmlToMarkDown(Node node, StringBuilder tableMarkdownBuilder, int depth) {
+
+        // 표안의 표 처리
+        for (Node child : node.childNodes()) {
+            if (child instanceof Element el) {
+                String tag = el.tagName();
+
+                if ("table".equals(tag)) {
+                    convertTableHtmlToMarkDown(child, tableMarkdownBuilder, depth + 1);
+                } else {
+                    convertTableHtmlToMarkDown(child, tableMarkdownBuilder, depth);
+                }
+            }
+        }
+
+        if (node instanceof Element el) {
+            String tag = el.tagName();
+
+            if ("table".equals(tag)) {
+                if (depth == 0) {
+                    node.replaceWith(new TextNode(convertTableHtmlToMarkdownOneDepth(node.toString(), "\n<br>")));
+                } else if (depth > 0){
+                    String tableId = generateRandomId();
+                    // 표 마크 다운 내부 개행 기호 => "\\n"
+                    node.replaceWith(new TextNode("\\n[" + tableId + "](#" + tableId + ")\\n"));
+                    tableMarkdownBuilder
+                            .append("#").append(" ").append(tableId).append("\n<br>")
+                            .append(convertTableHtmlToMarkdownOneDepth(node.toString(), "\n<br>"))
+                            .append("\n<br>\n<br>");
+                }
+            }
+        }
+    }
+
+    /**
+     * 표 데이터 HTML 마크 다운 1Depth 변환
+     *
+     * @param html HTML 문자열
+     * @return 표 Markdown 변환 된, HTML 문자열
+     */
+    public static String convertTableHtmlToMarkdownOneDepth(String html) {
+        return convertTableHtmlToMarkdownOneDepth(html, "\n");
+    }
+
+    /**
+     * 표 데이터 HTML 마크 다운 1Depth 변환
+     *
+     * @param html HTML 문자열
+     * @param newLineSeparator 개행 구분자
      * @return 마크 다운 문자열
      */
-    public static String convertHtmlToMarkdown(String html) {
+    private static String convertTableHtmlToMarkdownOneDepth(String html, String newLineSeparator) {
 
         Document doc = Jsoup.parse(html);
         Element table = doc.selectFirst("table");
@@ -113,7 +181,8 @@ public class StringUtil {
             // 헤더
             sb.append("| ");
             sb.append(String.join(" | ", grid.getFirst()));
-            sb.append(" |\n");
+            sb.append(" |");
+            sb.append("\n");
 
             // 구분선
             sb.append("| ");
@@ -121,38 +190,49 @@ public class StringUtil {
                 sb.append("---");
                 if (i < maxCols - 1) sb.append(" | ");
             }
-            sb.append(" |\n");
+            sb.append(" |");
+            sb.append("\n");
 
             // 나머지 행
             for (int i = 1; i < grid.size(); i++) {
                 sb.append("| ");
                 sb.append(String.join(" | ", grid.get(i)));
-                sb.append(" |\n");
+                sb.append(" |");
+                sb.append("\n");
             }
         }
-        return sb.toString().trim();
+
+        return sb.toString().trim().replace("\n", newLineSeparator);
     }
 
     /**
      * HTML 태그 삭제
      *
-     * @param str 문자열
+     * @param html HTML 문자열
      * @return HTML 태그 삭제 문자열
      */
-    public static String removeHtml(String str) {
-        Document doc = Jsoup.parse(str);
+    public static String removeHtml(String html) {
+
+        // table 태그 표 마크 다운 문자열 변환
+        String convertTableHtml = convertTableHtmlToMarkDown(html);
+        Document doc = Jsoup.parse(convertTableHtml);
+
         StringBuilder sb = new StringBuilder();
-        appendNodes(doc.body(), sb);
-        return normalize(sb.toString());
+
+        // HTML 태그 삭제
+        removeHtml(doc.body(), sb);
+
+        // 표 마크 다운 셀 내부 개행 처리
+        return normalize(sb.toString().replace("\\n", "<br>"));
     }
 
-    private static void appendNodes(Node node, StringBuilder sb) {
+    private static void removeHtml(Node node, StringBuilder sb) {
         for (Node child : node.childNodes()) {
             if (child instanceof TextNode) {
                 sb.append(((TextNode) child).text());
             } else if (child instanceof Element el) {
-                appendNodes(el, sb);
                 String tag = el.tagName().toLowerCase();
+                removeHtml(el, sb);
                 if (BLOCK_TAGS.contains(tag)) {
                     sb.append("\n");
                 }
@@ -160,10 +240,14 @@ public class StringUtil {
         }
     }
 
-    // 공백/개행 정리
-    private static String normalize(String s) {
-        s = s.replaceAll("[ \\t\\f\\r]+", " ");   // 연속 공백 → 하나
-        s = s.replaceAll(" *\\n+ *", "\n");       // 개행 여러 개 → 하나
-        return s.trim();
+    /**
+     * 공백/개행 정리
+     * @param str 원본 문자열
+     * @return 공백 정리 문자열
+     */
+    private static String normalize(String str) {
+        str = str.replaceAll("[ \\t\\f\\r]+", " ");   // 연속 공백 → 하나
+        str = str.replaceAll(" *\\n+ *", "\n");       // 개행 여러 개 → 하나
+        return str.trim();
     }
 }
