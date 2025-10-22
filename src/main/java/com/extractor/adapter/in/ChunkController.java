@@ -3,12 +3,10 @@ package com.extractor.adapter.in;
 import com.extractor.adapter.in.dto.etc.PatternDto;
 import com.extractor.adapter.in.dto.request.ChunkDocumentRequestDto;
 import com.extractor.adapter.in.dto.request.ChunkLawRequestDto;
-import com.extractor.adapter.in.dto.request.ChunkLawsRequestDto;
+import com.extractor.adapter.in.dto.request.ChunkManualRequestDto;
 import com.extractor.adapter.in.dto.response.ChunkDocumentResponseDto;
 import com.extractor.adapter.in.dto.response.ErrorResponseDto;
-import com.extractor.application.exception.NotFoundDocumentException;
 import com.extractor.application.usecase.ChunkUseCase;
-import com.extractor.application.usecase.DocumentUseCase;
 import com.extractor.application.vo.ChunkDocumentVo;
 import com.extractor.domain.vo.ChunkPatternVo;
 import com.extractor.domain.vo.FileDocumentVo;
@@ -42,8 +40,6 @@ import java.util.List;
 public class ChunkController {
 
     private final ChunkUseCase chunkUseCase;
-
-    private final DocumentUseCase documentUseCase;
 
     /**
      * 문서 전처리
@@ -156,68 +152,52 @@ public class ChunkController {
     }
 
     /**
-     * 법령 일괄 전처리
+     * 메뉴얼 전처리
      *
-     * @param chunkLawsRequestDto 전처리 요청 정보
+     * @param chunkManualRequestDto 전처리 요청 정보
      */
-    @PostMapping(path = "/law")
+    @PostMapping(path = "/manual/{manualId}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Success", content = {@Content(schema = @Schema(implementation = ChunkDocumentResponseDto.class, description = "전처리 응답"))}),
             @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ErrorResponseDto.class, description = "에러 응답"))}),
     })
-    @Operation(summary = "법령 일괄 전처리")
-    public ResponseEntity<?> chunkLaws(
-            @Parameter(name = "chunkLawsRequestDto", description = "전처리 요청 정보", required = true)
+    @Operation(summary = "메뉴얼 전처리")
+    public ResponseEntity<?> chunkManual(
+            @Parameter(name = "chunkManualRequestDto", description = "전처리 요청 정보", required = true)
             @RequestBody
-            ChunkLawsRequestDto chunkLawsRequestDto
+            ChunkManualRequestDto chunkManualRequestDto,
+
+            @Parameter(name = "manualId", description = "메뉴얼 ID", example = "3714", required = true)
+            @PathVariable("manualId")
+            Long manualId
     ) {
-        ChunkPatternVo chunkPatternVo = new ChunkPatternVo(
-                convertPatternVo(chunkLawsRequestDto.getPatterns()), chunkLawsRequestDto.getExcludeContentTypes(), chunkLawsRequestDto.getMaxTokenSize(), chunkLawsRequestDto.getOverlapSize());
+        try {
+            String version = StringUtil.generateRandomId();
 
-        String version = StringUtil.generateRandomId();
+            ChunkDocumentVo chunkDocumentVo = chunkUseCase.chunkManualDocumentUseCase(version, chunkManualRequestDto.getCategoryCode(), manualId);
 
-        List<ChunkDocumentResponseDto> chunkDocumentResponseDtos = new ArrayList<>();
+            log.info("/chunk/manual/{} | {}", manualId, manualId);
 
-        for (Long lawId : chunkLawsRequestDto.getLawIds()) {
-            try {
-                ChunkDocumentVo chunkDocumentVo = chunkUseCase.chunkLawDocumentUseCase(version, chunkLawsRequestDto.getCategoryCode(), lawId, chunkPatternVo);
+            return ResponseEntity.ok(ChunkDocumentResponseDto.builder()
+                    .originalId(chunkDocumentVo.getOriginalDocumentVo().getOriginalId())
+                    .version(chunkDocumentVo.getOriginalDocumentVo().getVersion())
+                    .name(chunkDocumentVo.getOriginalDocumentVo().getName())
+                    .docType(chunkDocumentVo.getOriginalDocumentVo().getDocType())
+                    .categoryCode(chunkDocumentVo.getOriginalDocumentVo().getCategoryCode())
+                    .chunkCount(chunkDocumentVo.getTrainingDocumentVos().size())
+                    .chunks(chunkDocumentVo.getTrainingDocumentVos())
+                    .chunkInfo(null)
+                    .build());
 
-                // DB 저장
-                if (!chunkDocumentVo.getTrainingDocumentVos().isEmpty()) {
-                    documentUseCase.registerDocument(chunkDocumentVo.getOriginalDocumentVo(), chunkDocumentVo.getTrainingDocumentVos());
+        } catch (RuntimeException e) {
 
-                    log.info("/chunk/law | {} | {}", lawId, chunkDocumentVo.getTrainingDocumentVos().size());
-                } else {
-                    log.warn("/chunk/law | {} | not found passage", lawId);
-                }
+            log.error("/chunk/manual/{} | {}| {}", manualId, manualId, e.getMessage());
 
-                chunkDocumentResponseDtos.add(ChunkDocumentResponseDto.builder()
-                        .originalId(chunkDocumentVo.getOriginalDocumentVo().getOriginalId())
-                        .version(chunkDocumentVo.getOriginalDocumentVo().getVersion())
-                        .name(chunkDocumentVo.getOriginalDocumentVo().getName())
-                        .docType(chunkDocumentVo.getOriginalDocumentVo().getDocType())
-                        .categoryCode(chunkDocumentVo.getOriginalDocumentVo().getCategoryCode())
-                        .chunkCount(chunkDocumentVo.getTrainingDocumentVos().size())
-                        // .chunks(chunkDocumentVo.getTrainingDocumentVos())
-                        // .chunkInfo(chunkPatternVo)
-                        .build());
-
-            } catch (NotFoundDocumentException e) {
-
-                log.info("/chunk/law | {} | not found law in database", lawId);
-
-            } catch (RuntimeException e) {
-
-                log.error("/chunk/law | {} | {}", lawId, e.getMessage());
-
-                return ResponseEntity.internalServerError().body(ErrorResponseDto.builder()
-                        .message(e.getMessage())
-                        .stackTrace(e.getStackTrace())
-                        .build());
-            }
+            return ResponseEntity.internalServerError().body(ErrorResponseDto.builder()
+                    .message(e.getMessage())
+                    .stackTrace(e.getStackTrace())
+                    .build());
         }
-
-        return ResponseEntity.ok(chunkDocumentResponseDtos);
     }
 
     /**

@@ -3,6 +3,7 @@ package com.extractor.application.service;
 import com.extractor.application.port.ExtractPort;
 import com.extractor.application.port.FilePort;
 import com.extractor.application.port.LawPersistencePort;
+import com.extractor.application.port.ManualPersistencePort;
 import com.extractor.application.usecase.ChunkUseCase;
 import com.extractor.application.vo.ChunkDocumentVo;
 import com.extractor.application.vo.OriginalDocumentVo;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -30,6 +32,7 @@ public class ChunkService implements ChunkUseCase {
     private final FilePort filePort;
 
     private final LawPersistencePort lawPersistencePort;
+    private final ManualPersistencePort manualPersistencePort;
 
     /**
      * 한글 문서 청킹
@@ -169,12 +172,45 @@ public class ChunkService implements ChunkUseCase {
     }
 
     /**
+     * 메뉴얼 문서 청킹
+     * @param version        버전 구분 코드
+     * @param categoryCode   카테고리 코드
+     */
+    @Override
+    public ChunkDocumentVo chunkManualDocumentUseCase(String version, String categoryCode, Long manualId) {
+
+        Document document = manualPersistencePort.getManualDocumentsPort(manualId);
+
+        OriginalDocumentVo originalDocumentVo = OriginalDocumentVo.builder()
+                .version(version)
+                .docType("DOC-TYPE-DB")
+                .categoryCode(categoryCode)
+                .name(document.getName())
+                .content(document.getContent())
+                .build();
+
+        List<TrainingDocumentVo> trainingDocumentVos = chunkToTrainingDocument(
+                originalDocumentVo.getName(),
+                originalDocumentVo.getDocType(),
+                originalDocumentVo.getCategoryCode(),
+                originalDocumentVo.getVersion(),
+                Chunk.chunking(document.getDocumentContents(), ChunkOption.builder()
+                        .maxTokenSize(Integer.MIN_VALUE)
+                        .overlapSize(0)
+                        .patterns(Collections.emptyList())
+                        .type(ChunkOption.ChunkType.NONE)
+                        .build()));
+
+        return new ChunkDocumentVo(originalDocumentVo, trainingDocumentVos);
+    }
+
+    /**
      * Chunk Vo -> 전처리 문서로 변환
      */
     private static List<TrainingDocumentVo> chunkToTrainingDocument(String title, String docType, String categoryCode, String version, List<Chunk> chunks) {
         return chunks.stream()
                 .map(chunk -> {
-                    String subTitle = "";
+                    String subTitle = !chunk.getDocumentContents().isEmpty() ? chunk.getDocumentContents().getFirst().getTitle() : "";
                     String thirdTitle = "";
                     String content = chunk.getContent();
                     String subContent = chunk.getSubContent();

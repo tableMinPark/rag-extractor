@@ -37,4 +37,12 @@ public interface ChunkUseCase {
      * @param chunkPatternVo 청킹 패턴 정보
      */
     ChunkDocumentVo chunkLawDocumentUseCase(String version, String categoryCode, Long lawId, ChunkPatternVo chunkPatternVo);
+
+    /**
+     * 메뉴얼 문서 청킹
+     * @param version        버전 구분 코드
+     * @param categoryCode   카테고리 코드
+     * @param manualId       메뉴얼 ID
+     */
+    ChunkDocumentVo chunkManualDocumentUseCase(String version, String categoryCode, Long manualId);
 }

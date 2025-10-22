@@ -13,7 +13,7 @@ import java.util.List;
 public class ChunkOption {
 
     public enum ChunkType {
-        EQUALS, REGEX,
+        EQUALS, REGEX, NONE,
     }
 
     private final int maxTokenSize;

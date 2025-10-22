@@ -189,6 +189,10 @@ public class Chunk {
                         new Chunk(nextDepth, titleBuffer, chunk.getDocumentContents().subList(mid, chunk.getDocumentContents().size())),
                         chunkOption));
             }
+            // 최대 토큰 수가 음수인 경우 (재귀 종료)
+            else if (chunk.getDocumentContents().size() == 1 && chunkOption.getMaxTokenSize() < 0) {
+                chunks.add(chunk);
+            }
             // documentContent 가 1개인 경우 (재귀 종료)
             else if (chunk.getDocumentContents().size() == 1) {
                 DocumentContent documentContent = chunk.getDocumentContents().getFirst();
