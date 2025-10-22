@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @ToString
 @Getter
@@ -54,8 +55,7 @@ public class HwpxDocument extends Document {
                                 Arrays.stream(contentBuilder.toString().split("\n")).forEach(super::addTextContent);
                                 String tableContent = this.convertTableXmlToHtml(node, 0);
                                 if (ExtractType.MARK_DOWN.equals(extractType)) {
-                                    tableContent = StringUtil.convertTableHtmlToMarkDown(tableContent);
-                                    tableContent = StringUtil.convertTableHtmlToMarkDown(tableContent);
+                                    tableContent = StringUtil.removeHtml(tableContent);
                                 }
                                 super.addTableContent(tableContent);
                                 contentBuilder = new StringBuilder();
@@ -92,13 +92,16 @@ public class HwpxDocument extends Document {
      */
     private String convertTableXmlToHtml(Element element, int depth) {
 
-        StringBuilder tableHtmlBuilder = new StringBuilder();
+        AtomicInteger rowMax = new AtomicInteger();
+        AtomicInteger colMax = new AtomicInteger();
+        StringBuilder tableHtmlBodyBuilder = new StringBuilder();
 
-        tableHtmlBuilder.append("<table>");
-
+        tableHtmlBodyBuilder.append("<tbody>");
         XmlUtil.findChildElementsByTagName(element, "hp:tr").forEach(tr -> {
-            tableHtmlBuilder.append("<tr>");
+            rowMax.incrementAndGet();
+            tableHtmlBodyBuilder.append("<tr>");
 
+            AtomicInteger colCount = new AtomicInteger();
             XmlUtil.findChildElementsByTagName(tr, "hp:tc").forEach(td -> {
                 Element cellSpan = XmlUtil.findChildElementByTagName(td, "hp:cellSpan");
 
@@ -106,25 +109,26 @@ public class HwpxDocument extends Document {
                 if (cellSpan != null) {
                     String colSpan = cellSpan.getAttribute("colSpan");
                     String rowSpan = cellSpan.getAttribute("rowSpan");
+                    colCount.set(colCount.get() + Integer.parseInt(colSpan));
 
                     if (!"1".equals(colSpan) && !"1".equals(rowSpan)) {
-                        tableHtmlBuilder
+                        tableHtmlBodyBuilder
                                 .append("<td")
                                 .append(" ").append("colspan=\"").append(colSpan).append("\"")
                                 .append(" ").append("rowspan=\"").append(rowSpan).append("\"")
                                 .append(">");
                     } else if ("1".equals(colSpan) && !"1".equals(rowSpan)) {
-                        tableHtmlBuilder
+                        tableHtmlBodyBuilder
                                 .append("<td")
                                 .append(" ").append("rowspan=\"").append(rowSpan).append("\"")
                                 .append(">");
                     } else if (!"1".equals(colSpan)) {
-                        tableHtmlBuilder
+                        tableHtmlBodyBuilder
                                 .append("<td")
                                 .append(" ").append("colspan=\"").append(colSpan).append("\"")
                                 .append(">");
-                    } else tableHtmlBuilder.append("<td>");
-                } else tableHtmlBuilder.append("<td>");
+                    } else tableHtmlBodyBuilder.append("<td>");
+                } else tableHtmlBodyBuilder.append("<td>");
 
                 // 표 셀 데이터 추출
                 XmlUtil.findChildElementsByTagName(td, "hp:subList").forEach(subList -> {
@@ -134,10 +138,10 @@ public class HwpxDocument extends Document {
                                 XmlUtil.findChildElements(run).forEach(node -> {
                                     switch (node.getNodeName()) {
                                         // 텍스트
-                                        case "hp:t" -> tableHtmlBuilder.append(node.getTextContent());
+                                        case "hp:t" -> tableHtmlBodyBuilder.append(node.getTextContent());
                                         // 표
                                         case "hp:tbl" ->
-                                                tableHtmlBuilder.append(convertTableXmlToHtml(node, depth + 1));
+                                                tableHtmlBodyBuilder.append(convertTableXmlToHtml(node, depth + 1));
                                         // 이미지
                                         case "hp:pic" -> {
                                             // TODO: Image -> Text 추출 (OCR)
@@ -146,17 +150,34 @@ public class HwpxDocument extends Document {
                                 }));
 
                         if (pIndex < ps.size() - 1) {
-                            tableHtmlBuilder.append("<br>");
+                            tableHtmlBodyBuilder.append("<br>");
                         }
                     }
                 });
 
-                tableHtmlBuilder.append("</td>");
+                tableHtmlBodyBuilder.append("</td>");
             });
 
-            tableHtmlBuilder.append("</tr>");
+            colMax.set(Math.max(colMax.get(), colCount.get()));
+            tableHtmlBodyBuilder.append("</tr>");
         });
 
+        tableHtmlBodyBuilder.append("</tbody>");
+
+
+        StringBuilder tableHtmlBuilder = new StringBuilder();
+
+        tableHtmlBuilder.append("<table>");
+
+        if (rowMax.get() <= 1) {
+            tableHtmlBuilder.append("<thead>");
+            tableHtmlBuilder.append("<tr>");
+            tableHtmlBuilder.append("<td></td>".repeat(Math.max(0, colMax.get())));
+            tableHtmlBuilder.append("</tr>");
+            tableHtmlBuilder.append("</thead>");
+        }
+
+        tableHtmlBuilder.append(tableHtmlBodyBuilder);
         tableHtmlBuilder.append("</table>");
 
         return tableHtmlBuilder.toString();
