@@ -2,7 +2,7 @@ package com.extractor.adapter.out;
 
 import com.extractor.application.port.FilePort;
 import com.extractor.domain.model.FileDocument;
-import com.extractor.domain.vo.FileDocumentVo;
+import com.extractor.application.vo.FileDocumentVo;
 import com.extractor.global.enums.FileExtension;
 import com.extractor.global.utils.FileUtil;
 import com.extractor.global.utils.StringUtil;

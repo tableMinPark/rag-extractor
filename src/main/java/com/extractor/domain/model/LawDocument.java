@@ -16,13 +16,13 @@ public class LawDocument extends Document {
 
     private final Long lawId;
 
-    private final List<LawContentVo> lawContentVos;
+    private final List<LawContentVo> lawContents;
 
     @Builder
-    public LawDocument(Long lawId, String lawName, List<LawContentVo> lawContentVos) {
-        super(lawName, FileExtension.DATABASE, null);
+    public LawDocument(Long lawId, String lawName, List<LawContentVo> lawContents) {
+        super(lawName, null, null);
         this.lawId = lawId;
-        this.lawContentVos = lawContentVos;
+        this.lawContents = lawContents;
         this.extract();
     }
 
@@ -31,7 +31,7 @@ public class LawDocument extends Document {
      */
     public void extract() {
         this.clearDocumentContents();
-        this.lawContentVos.forEach(lawContentVo -> {
+        this.lawContents.forEach(lawContentVo -> {
 
             List<DocumentContent> subDocumentContents = new ArrayList<>();
             lawContentVo.getLawLinkVos().forEach(lawLinkVo -> {

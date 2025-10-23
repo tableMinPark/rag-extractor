@@ -152,7 +152,7 @@ public class LawPersistenceAdapter implements LawPersistencePort {
         return LawDocument.builder()
                 .lawId(lawDocumentEntity.getLawId())
                 .lawName(lawDocumentEntity.getLawName())
-                .lawContentVos(lawContentVos)
+                .lawContents(lawContentVos)
                 .build();
     }
 

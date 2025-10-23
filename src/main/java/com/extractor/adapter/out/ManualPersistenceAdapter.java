@@ -9,7 +9,6 @@ import com.extractor.application.exception.NotFoundDocumentException;
 import com.extractor.application.port.ManualPersistencePort;
 import com.extractor.domain.model.Document;
 import com.extractor.domain.model.DocumentContent;
-import com.extractor.global.enums.FileExtension;
 import com.extractor.global.utils.StringUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -50,8 +49,7 @@ public class ManualPersistenceAdapter implements ManualPersistencePort {
             // 목차 목록화
             if (!manualTableContentDto.isEmpty()) {
                 Map<String, ManualAgendaDto> manualAgendaDtoMap = new HashMap<>();
-                manualTableContentDto.getFirst().getContents().forEach(manualAgendaDto ->
-                    manualAgendaDtoMap.put(manualAgendaDto.getUuid(), manualAgendaDto));
+                manualTableContentDto.getFirst().getContents().forEach(manualAgendaDto -> manualAgendaDtoMap.put(manualAgendaDto.getUuid(), manualAgendaDto));
 
                 // 본문 매핑
                 manualContentDtos.forEach(manualContentDto -> {
@@ -79,6 +77,6 @@ public class ManualPersistenceAdapter implements ManualPersistencePort {
             throw new NotFoundDocumentException();
         }
 
-        return new Document(manualDocumentEntity.getTitle(), FileExtension.DATABASE, null, documentContents);
+        return new Document(manualDocumentEntity.getTitle(), null, null, documentContents);
     }
 }

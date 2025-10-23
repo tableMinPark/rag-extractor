@@ -1,7 +1,7 @@
 package com.extractor.application.usecase;
 
 import com.extractor.application.vo.ExtractDocumentVo;
-import com.extractor.domain.vo.FileDocumentVo;
+import com.extractor.application.vo.FileDocumentVo;
 import com.extractor.global.enums.ExtractType;
 
 public interface ExtractUseCase {

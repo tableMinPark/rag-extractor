@@ -1,11 +1,12 @@
 package com.extractor.adapter.out;
 
 import com.extractor.application.port.ExtractPort;
+import com.extractor.domain.model.FileDocument;
 import com.extractor.domain.model.HwpxDocument;
 import com.extractor.domain.model.PdfDocument;
-import com.extractor.domain.model.FileDocument;
 import com.extractor.domain.vo.HwpxImageVo;
 import com.extractor.domain.vo.HwpxSectionVo;
+import com.extractor.global.enums.ExtractType;
 import com.extractor.global.enums.FileExtension;
 import com.extractor.global.utils.FileUtil;
 import com.extractor.global.utils.XmlUtil;
@@ -42,7 +43,7 @@ public class ExtractAdapter implements ExtractPort {
      * @param fileDocument 원본 문서 정보
      */
     @Override
-    public HwpxDocument extractHwpxDocumentPort(FileDocument fileDocument) {
+    public HwpxDocument extractHwpxDocumentPort(FileDocument fileDocument, ExtractType extractType) {
 
         // 데이터 저장
         List<HwpxSectionVo> sections = new ArrayList<>();
@@ -78,7 +79,9 @@ public class ExtractAdapter implements ExtractPort {
                 }
             } else if (mediaType.startsWith("image/")) {
                 File imageFile = fileDocument.getPath().resolve(filePath).toFile();
-                String content = "<img id=\"" + id + "\"/>";    // TODO: Image -> Text 추출 (OCR)
+
+                // TODO: Image -> Text 추출 (OCR)
+                String content = "<img id=\"" + id + "\"/>";
 
                 if (imageFile.exists()) {
                     images.put(id, HwpxImageVo.builder()
@@ -94,6 +97,7 @@ public class ExtractAdapter implements ExtractPort {
         return HwpxDocument.builder()
                 .name(fileDocument.getOriginalFileName())
                 .extension(fileDocument.getExtension())
+                .extractType(extractType)
                 .path(fileDocument.getPath())
                 .sections(sections)
                 .images(images)
