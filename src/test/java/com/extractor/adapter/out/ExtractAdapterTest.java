@@ -1,9 +1,11 @@
 package com.extractor.adapter.out;
 
 import com.extractor.application.port.ExtractPort;
+import com.extractor.domain.model.Document;
 import com.extractor.domain.model.HwpxDocument;
 import com.extractor.domain.model.PdfDocument;
 import com.extractor.domain.model.FileDocument;
+import com.extractor.global.enums.ExtractType;
 import com.extractor.global.enums.FileExtension;
 import com.extractor.global.utils.FileUtil;
 import org.junit.jupiter.api.DisplayName;
@@ -57,7 +59,8 @@ class ExtractAdapterTest {
                 .build();
 
         // act
-        HwpxDocument extractHwpxDocument = extractPort.extractHwpxDocumentPort(fileDocument);
+        Document document = extractPort.extractHwpxDocumentPort(fileDocument, ExtractType.MARK_DOWN);
+        HwpxDocument extractHwpxDocument = (HwpxDocument) document;
 
         // 압축 해제 디렉토리 삭제
         FileUtil.deleteDirectory(fileDocument.getPath());
@@ -87,7 +90,8 @@ class ExtractAdapterTest {
                 .build();
 
         // act
-        PdfDocument extractPdfDocument = extractPort.extractPdfDocumentPort(fileDocument);
+        Document document = extractPort.extractPdfDocumentPort(fileDocument);
+        PdfDocument extractPdfDocument = (PdfDocument) document;
 
         assertNotNull(extractPdfDocument);
         assertFalse(extractPdfDocument.getContent().isBlank());

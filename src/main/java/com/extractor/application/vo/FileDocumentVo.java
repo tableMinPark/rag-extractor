@@ -1,4 +1,4 @@
-package com.extractor.domain.vo;
+package com.extractor.application.vo;
 
 import com.extractor.global.enums.FileExtension;
 import lombok.Builder;

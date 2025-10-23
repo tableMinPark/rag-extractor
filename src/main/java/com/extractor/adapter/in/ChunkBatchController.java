@@ -8,7 +8,7 @@ import com.extractor.application.exception.NotFoundDocumentException;
 import com.extractor.application.usecase.ChunkUseCase;
 import com.extractor.application.usecase.DocumentUseCase;
 import com.extractor.application.vo.ChunkDocumentVo;
-import com.extractor.domain.vo.ChunkPatternVo;
+import com.extractor.application.vo.ChunkPatternVo;
 import com.extractor.domain.vo.PatternVo;
 import com.extractor.domain.vo.PrefixVo;
 import com.extractor.global.utils.StringUtil;
@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-@Tag(name = "BatchChunkController", description = "문서 청킹 배차")
+@Tag(name = "ChunkBatchController", description = "문서 청킹 배치")
 @RequiredArgsConstructor
 @RequestMapping("/batch/chunk")
 @RestController
@@ -72,9 +72,9 @@ public class ChunkBatchController {
                 if (!chunkDocumentVo.getTrainingDocumentVos().isEmpty()) {
                     documentUseCase.registerDocument(chunkDocumentVo.getOriginalDocumentVo(), chunkDocumentVo.getTrainingDocumentVos());
 
-                    log.info("/chunk/law | {} | {}", lawId, chunkDocumentVo.getTrainingDocumentVos().size());
+                    log.info("/batch/chunk/law | {} | {}", lawId, chunkDocumentVo.getTrainingDocumentVos().size());
                 } else {
-                    log.warn("/chunk/law | {} | not found passage", lawId);
+                    log.warn("/batch/chunk/law | {} | not found passage", lawId);
                 }
 
                 chunkDocumentResponseDtos.add(ChunkDocumentResponseDto.builder()
@@ -90,11 +90,11 @@ public class ChunkBatchController {
 
             } catch (NotFoundDocumentException e) {
 
-                log.info("/chunk/law | {} | not found law in database", lawId);
+                log.info("/batch/chunk/law | {} | not found law in database", lawId);
 
             } catch (RuntimeException e) {
 
-                log.error("/chunk/law | {} | {}", lawId, e.getMessage());
+                log.error("/batch/chunk/law | {} | {}", lawId, e.getMessage());
 
                 return ResponseEntity.internalServerError().body(ErrorResponseDto.builder()
                         .message(e.getMessage())

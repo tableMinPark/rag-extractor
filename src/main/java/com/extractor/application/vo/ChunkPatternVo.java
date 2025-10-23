@@ -1,5 +1,6 @@
-package com.extractor.domain.vo;
+package com.extractor.application.vo;
 
+import com.extractor.domain.vo.PatternVo;
 import lombok.Getter;
 
 import java.util.List;

@@ -8,9 +8,13 @@ import com.extractor.application.usecase.ChunkUseCase;
 import com.extractor.application.vo.ChunkDocumentVo;
 import com.extractor.application.vo.OriginalDocumentVo;
 import com.extractor.application.vo.TrainingDocumentVo;
-import com.extractor.domain.model.*;
-import com.extractor.domain.vo.ChunkPatternVo;
-import com.extractor.domain.vo.FileDocumentVo;
+import com.extractor.domain.model.Chunk;
+import com.extractor.domain.model.ChunkOption;
+import com.extractor.domain.model.Document;
+import com.extractor.domain.model.FileDocument;
+import com.extractor.application.vo.ChunkPatternVo;
+import com.extractor.application.vo.FileDocumentVo;
+import com.extractor.global.enums.DocumentType;
 import com.extractor.global.enums.ExtractType;
 import com.extractor.global.enums.FileExtension;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +36,7 @@ public class ChunkService implements ChunkUseCase {
     private final FilePort filePort;
 
     private final LawPersistencePort lawPersistencePort;
+
     private final ManualPersistencePort manualPersistencePort;
 
     /**
@@ -39,31 +44,27 @@ public class ChunkService implements ChunkUseCase {
      *
      * @param version        버전 구분 코드
      * @param categoryCode   카테고리 코드
-     * @param extractType    표 데이터 변환 타입
      * @param fileDocumentVo 원본 문서 정보
      * @param chunkPatternVo 청킹 패턴 정보
+     * @param extractType    표 데이터 변환 타입
      */
     @Override
-    public ChunkDocumentVo chunkHwpxDocumentUseCase(String version, String categoryCode, ExtractType extractType, FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo) {
+    public ChunkDocumentVo chunkHwpxDocumentUseCase(String version, String categoryCode, FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo, ExtractType extractType) {
 
         // 파일 업로드
         FileDocument fileDocument = filePort.uploadFilePort(fileDocumentVo);
 
         Document document;
         if (FileExtension.PDF.equals(fileDocument.getExtension())) {
-            PdfDocument extractPdfDocument = extractPort.extractPdfDocumentPort(fileDocument);
-            extractPdfDocument.extract();
-            document = extractPdfDocument;
+            document = extractPort.extractPdfDocumentPort(fileDocument);
         } else {
-            HwpxDocument extractHwpxDocument = extractPort.extractHwpxDocumentPort(fileDocument);
-            extractHwpxDocument.extract(extractType);
-            document = extractHwpxDocument;
+            document = extractPort.extractHwpxDocumentPort(fileDocument, extractType);
         }
 
         try {
             OriginalDocumentVo originalDocumentVo = OriginalDocumentVo.builder()
                     .version(version)
-                    .docType("DOC-TYPE-FILE")
+                    .docType(DocumentType.FILE.getCode())
                     .categoryCode(categoryCode)
                     .name(document.getName())
                     .content(document.getContent())
@@ -103,12 +104,11 @@ public class ChunkService implements ChunkUseCase {
         FileDocument fileDocument = filePort.uploadFilePort(fileDocumentVo);
 
         try {
-            PdfDocument document = extractPort.extractPdfDocumentPort(fileDocument);
-            document.extract();
+            Document document = extractPort.extractPdfDocumentPort(fileDocument);
 
             OriginalDocumentVo originalDocumentVo = OriginalDocumentVo.builder()
                     .version(version)
-                    .docType("DOC-TYPE-FILE")
+                    .docType(DocumentType.FILE.getCode())
                     .categoryCode(categoryCode)
                     .name(document.getName())
                     .content(document.getContent())
@@ -146,11 +146,11 @@ public class ChunkService implements ChunkUseCase {
     @Transactional
     public ChunkDocumentVo chunkLawDocumentUseCase(String version, String categoryCode, Long lawId, ChunkPatternVo chunkPatternVo) {
 
-        LawDocument document = lawPersistencePort.getLawDocumentsPort(lawId);
+        Document document = lawPersistencePort.getLawDocumentsPort(lawId);
 
         OriginalDocumentVo originalDocumentVo = OriginalDocumentVo.builder()
                 .version(version)
-                .docType("DOC-TYPE-DB")
+                .docType(DocumentType.DB.getCode())
                 .categoryCode(categoryCode)
                 .name(document.getName())
                 .content(document.getContent())
@@ -183,7 +183,7 @@ public class ChunkService implements ChunkUseCase {
 
         OriginalDocumentVo originalDocumentVo = OriginalDocumentVo.builder()
                 .version(version)
-                .docType("DOC-TYPE-DB")
+                .docType(DocumentType.DB.getCode())
                 .categoryCode(categoryCode)
                 .name(document.getName())
                 .content(document.getContent())
@@ -210,7 +210,7 @@ public class ChunkService implements ChunkUseCase {
     private static List<TrainingDocumentVo> chunkToTrainingDocument(String title, String docType, String categoryCode, String version, List<Chunk> chunks) {
         return chunks.stream()
                 .map(chunk -> {
-                    String subTitle = !chunk.getDocumentContents().isEmpty() ? chunk.getDocumentContents().getFirst().getTitle() : "";
+                    String subTitle = chunk.getDocumentContents().size() == 1 ? chunk.getDocumentContents().getFirst().getTitle() : "";
                     String thirdTitle = "";
                     String content = chunk.getContent();
                     String subContent = chunk.getSubContent();
@@ -219,9 +219,11 @@ public class ChunkService implements ChunkUseCase {
                     int totalTokenSize = chunk.getTotalTokenSize();
 
                     String[] titles = chunk.getTitles();
+
                     if (titles.length > 0) {
                         subTitle = titles[0];
                     }
+
                     if (titles.length > 1) {
                         thirdTitle = String.join(" | ", Arrays.stream(titles)
                                         .toList()

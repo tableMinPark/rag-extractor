@@ -8,8 +8,8 @@ import com.extractor.adapter.in.dto.response.ChunkDocumentResponseDto;
 import com.extractor.adapter.in.dto.response.ErrorResponseDto;
 import com.extractor.application.usecase.ChunkUseCase;
 import com.extractor.application.vo.ChunkDocumentVo;
-import com.extractor.domain.vo.ChunkPatternVo;
-import com.extractor.domain.vo.FileDocumentVo;
+import com.extractor.application.vo.ChunkPatternVo;
+import com.extractor.application.vo.FileDocumentVo;
 import com.extractor.domain.vo.PatternVo;
 import com.extractor.domain.vo.PrefixVo;
 import com.extractor.global.enums.ExtractType;
@@ -74,7 +74,7 @@ public class ChunkController {
             ChunkDocumentVo chunkDocumentVo;
             switch (extension) {
                 case HWP, HWPX -> chunkDocumentVo =
-                        chunkUseCase.chunkHwpxDocumentUseCase(version, chunkDocumentRequestDto.getCategoryCode(), extractType, new FileDocumentVo(multipartFile), chunkPatternVo);
+                        chunkUseCase.chunkHwpxDocumentUseCase(version, chunkDocumentRequestDto.getCategoryCode(), new FileDocumentVo(multipartFile), chunkPatternVo, extractType);
                 case PDF -> chunkDocumentVo =
                         chunkUseCase.chunkPdfDocumentUseCase(version, chunkDocumentRequestDto.getCategoryCode(), new FileDocumentVo(multipartFile), chunkPatternVo);
                 default -> throw new RuntimeException("미지원 파일 형식 (HWP, HWPX, PDF 만 지원)");

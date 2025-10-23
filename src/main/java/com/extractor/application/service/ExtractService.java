@@ -6,10 +6,8 @@ import com.extractor.application.usecase.ExtractUseCase;
 import com.extractor.application.vo.ExtractContentVo;
 import com.extractor.application.vo.ExtractDocumentVo;
 import com.extractor.domain.model.Document;
-import com.extractor.domain.model.HwpxDocument;
-import com.extractor.domain.model.PdfDocument;
 import com.extractor.domain.model.FileDocument;
-import com.extractor.domain.vo.FileDocumentVo;
+import com.extractor.application.vo.FileDocumentVo;
 import com.extractor.global.enums.ExtractType;
 import com.extractor.global.enums.FileExtension;
 import lombok.RequiredArgsConstructor;
@@ -36,13 +34,9 @@ public class ExtractService implements ExtractUseCase {
 
         Document document;
         if (FileExtension.PDF.equals(fileDocument.getExtension())) {
-            PdfDocument extractPdfDocument = extractPort.extractPdfDocumentPort(fileDocument);
-            extractPdfDocument.extract();
-            document = extractPdfDocument;
+            document = extractPort.extractPdfDocumentPort(fileDocument);
         } else {
-            HwpxDocument extractHwpxDocument = extractPort.extractHwpxDocumentPort(fileDocument);
-            extractHwpxDocument.extract(extractType);
-            document = extractHwpxDocument;
+            document = extractPort.extractHwpxDocumentPort(fileDocument, extractType);
         }
 
         try {
@@ -74,12 +68,11 @@ public class ExtractService implements ExtractUseCase {
         FileDocument fileDocument = filePort.uploadFilePort(fileDocumentVo);
 
         try {
-            PdfDocument extractPdfDocument = extractPort.extractPdfDocumentPort(fileDocument);
-            extractPdfDocument.extract();
+            Document document = extractPort.extractPdfDocumentPort(fileDocument);
             return ExtractDocumentVo.builder()
-                    .name(extractPdfDocument.getName())
-                    .extension(extractPdfDocument.getExtension())
-                    .extractContents(extractPdfDocument.getDocumentContents().stream()
+                    .name(document.getName())
+                    .extension(document.getExtension())
+                    .extractContents(document.getDocumentContents().stream()
                             .map(line -> ExtractContentVo.builder()
                                     .type(line.getType().name())
                                     .content(line.getContext())

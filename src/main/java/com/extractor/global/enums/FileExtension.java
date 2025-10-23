@@ -11,7 +11,6 @@ public enum FileExtension {
     HWPX("hwpx"),
     PDF("pdf"),
     XML("xml"),
-    DATABASE("DATABASE"),
     ;
 
     private final String simpleExtension;
@@ -19,7 +18,6 @@ public enum FileExtension {
     public static FileExtension find(String extension) {
 
         for (FileExtension ext : FileExtension.values()) {
-            if (ext.equals(FileExtension.DATABASE)) continue;
             if (extension != null && extension.endsWith(ext.simpleExtension)) {
                 return ext;
             }

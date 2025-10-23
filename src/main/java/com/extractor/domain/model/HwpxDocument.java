@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @ToString
@@ -26,11 +27,11 @@ public class HwpxDocument extends Document {
     private final Map<String, HwpxImageVo> images;
 
     @Builder
-    public HwpxDocument(String name, FileExtension extension, List<HwpxSectionVo> sections, Map<String, HwpxImageVo> images, Path path) {
+    public HwpxDocument(String name, FileExtension extension, ExtractType extractType, List<HwpxSectionVo> sections, Map<String, HwpxImageVo> images, Path path) {
         super(name, extension, path);
         this.sections = sections;
         this.images = images;
-        this.extract(ExtractType.MARK_DOWN);
+        this.extract(Objects.requireNonNullElse(extractType, ExtractType.HTML));
     }
 
     /**
@@ -54,9 +55,7 @@ public class HwpxDocument extends Document {
                             case "hp:tbl" -> {
                                 Arrays.stream(contentBuilder.toString().split("\n")).forEach(super::addTextContent);
                                 String tableContent = this.convertTableXmlToHtml(node, 0);
-                                if (ExtractType.MARK_DOWN.equals(extractType)) {
-                                    tableContent = StringUtil.removeHtml(tableContent);
-                                }
+                                tableContent = StringUtil.removeHtml(tableContent, ExtractType.MARK_DOWN);
                                 super.addTableContent(tableContent);
                                 contentBuilder = new StringBuilder();
                             }
@@ -144,7 +143,11 @@ public class HwpxDocument extends Document {
                                                 tableHtmlBodyBuilder.append(convertTableXmlToHtml(node, depth + 1));
                                         // 이미지
                                         case "hp:pic" -> {
-                                            // TODO: Image -> Text 추출 (OCR)
+                                            Element img = XmlUtil.findChildElementByTagName(node, "hc:img");
+                                            if (img != null) {
+                                                String id = img.getAttribute("binaryItemIDRef");
+                                                tableHtmlBodyBuilder.append(this.images.containsKey(id) ? this.images.get(id).getContent() : "");
+                                            }
                                         }
                                     }
                                 }));

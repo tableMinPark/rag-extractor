@@ -1,10 +1,8 @@
 package com.extractor.global.utils;
 
+import com.extractor.global.enums.ExtractType;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.nodes.Node;
-import org.jsoup.nodes.TextNode;
+import org.jsoup.nodes.*;
 import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
@@ -14,6 +12,7 @@ import java.util.UUID;
 
 public class StringUtil {
 
+    private static final Set<String> TABLE_TAGS = Set.of("table", "tr", "td", "thead", "tbody", "th");
     private static final Set<String> BLOCK_TAGS = Set.of(
             "div", "p", "section", "article", "header", "footer", "aside", "nav", "main",
             "li", "tr", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "br", "hr"
@@ -48,7 +47,7 @@ public class StringUtil {
      * @param html HTML 문자열
      * @return 표 Markdown 변환 된, HTML 문자열
      */
-    public static String convertTableHtmlToMarkDown(String html) {
+    private static String convertTableHtmlToMarkDown(String html) {
 
         Document doc = Jsoup.parse(html);
         StringBuilder tableMarkdownBuilder = new StringBuilder();
@@ -208,34 +207,68 @@ public class StringUtil {
     }
 
     /**
-     * HTML 태그 삭제
+     * HTML 태그 삭제 (표 HTML 보존)
      *
      * @param html HTML 문자열
      * @return HTML 태그 삭제 문자열
      */
     public static String removeHtml(String html) {
-        // table 태그 표 마크 다운 문자열 변환
-        String convertTableHtml = convertTableHtmlToMarkDown(html);
-        Document doc = Jsoup.parse(convertTableHtml);
-
-        StringBuilder sb = new StringBuilder();
-
-        // HTML 태그 삭제
-        removeHtml(doc.body(), sb);
-
-        // 표 마크 다운 셀 내부 개행 처리
-        return normalize(sb.toString().replace("\\n", "<br>"));
+        return removeHtml(html, ExtractType.HTML);
     }
 
-    private static void removeHtml(Node node, StringBuilder sb) {
+    /**
+     * HTML 태그 삭제 (표 HTML 보존)
+     *
+     * @param html HTML 문자열
+     * @return HTML 태그 삭제 문자열
+     */
+    public static String removeHtml(String html, ExtractType extractType) {
+        // table 태그 표 마크 다운 문자열 변환
+        String convertTableHtml = html;
+
+        if (ExtractType.MARK_DOWN.equals(extractType)) {
+            convertTableHtml = convertTableHtmlToMarkDown(html);
+        }
+
+        Document doc = Jsoup.parse(convertTableHtml);
+
+        StringBuilder stringBuilder = new StringBuilder();
+
+        // HTML 태그 삭제
+        removeHtml(doc.body(), stringBuilder);
+
+        // 표 마크 다운 셀 내부 개행 처리
+        return normalize(stringBuilder.toString().replace("\\n", "<br>"));
+    }
+
+    private static void removeHtml(Node node, StringBuilder stringBuilder) {
         for (Node child : node.childNodes()) {
             if (child instanceof TextNode) {
-                sb.append(((TextNode) child).text());
+                stringBuilder.append(((TextNode) child).text());
             } else if (child instanceof Element el) {
                 String tag = el.tagName().toLowerCase();
-                removeHtml(el, sb);
-                if (BLOCK_TAGS.contains(tag)) {
-                    sb.append("\n");
+
+                if (TABLE_TAGS.contains(tag)) {
+                    // table 구조 태그 유지 + 속성 포함
+                    stringBuilder.append("<").append(tag);
+
+                    // 속성 보존 (colspan, rowspan)
+                    for (Attribute attr : el.attributes()) {
+                        if (Set.of("colspan", "rowspan").contains(attr.getKey())) {
+                            stringBuilder.append(" ")
+                                    .append(attr.getKey())
+                                    .append("=\"").append(attr.getValue()).append("\"");
+                        }
+                    }
+
+                    stringBuilder.append(">");
+                    removeHtml(el, stringBuilder);
+                    stringBuilder.append("</").append(tag).append(">");
+                } else {
+                    removeHtml(el, stringBuilder);
+                    if (BLOCK_TAGS.contains(tag)) {
+                        stringBuilder.append("\n");
+                    }
                 }
             }
         }

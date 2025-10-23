@@ -5,7 +5,7 @@ import com.extractor.adapter.in.dto.response.ErrorResponseDto;
 import com.extractor.adapter.in.dto.response.ExtractResponseDto;
 import com.extractor.application.usecase.ExtractUseCase;
 import com.extractor.application.vo.ExtractDocumentVo;
-import com.extractor.domain.vo.FileDocumentVo;
+import com.extractor.application.vo.FileDocumentVo;
 import com.extractor.global.enums.ExtractType;
 import com.extractor.global.enums.FileExtension;
 import io.swagger.v3.oas.annotations.Operation;

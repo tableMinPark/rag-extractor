@@ -1,7 +1,7 @@
 package com.extractor.application.port;
 
 import com.extractor.domain.model.FileDocument;
-import com.extractor.domain.vo.FileDocumentVo;
+import com.extractor.application.vo.FileDocumentVo;
 
 public interface FilePort {
 

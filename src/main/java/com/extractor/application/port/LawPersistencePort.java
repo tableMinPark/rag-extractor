@@ -1,6 +1,6 @@
 package com.extractor.application.port;
 
-import com.extractor.domain.model.LawDocument;
+import com.extractor.domain.model.Document;
 
 public interface LawPersistencePort {
 
@@ -9,5 +9,5 @@ public interface LawPersistencePort {
      *
      * @param lawId 법령 ID
      */
-    LawDocument getLawDocumentsPort(Long lawId);
+    Document getLawDocumentsPort(Long lawId);
 }

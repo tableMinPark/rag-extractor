@@ -1,7 +1,7 @@
 package com.extractor.adapter.in.dto.response;
 
 import com.extractor.application.vo.TrainingDocumentVo;
-import com.extractor.domain.vo.ChunkPatternVo;
+import com.extractor.application.vo.ChunkPatternVo;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;

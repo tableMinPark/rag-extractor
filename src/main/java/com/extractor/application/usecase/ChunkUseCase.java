@@ -1,8 +1,8 @@
 package com.extractor.application.usecase;
 
 import com.extractor.application.vo.ChunkDocumentVo;
-import com.extractor.domain.vo.ChunkPatternVo;
-import com.extractor.domain.vo.FileDocumentVo;
+import com.extractor.application.vo.ChunkPatternVo;
+import com.extractor.application.vo.FileDocumentVo;
 import com.extractor.global.enums.ExtractType;
 
 public interface ChunkUseCase {
@@ -12,11 +12,11 @@ public interface ChunkUseCase {
      *
      * @param version        버전 구분 코드
      * @param categoryCode   카테고리 코드
-     * @param extractType    표 데이터 변환 타입
      * @param fileDocumentVo 원본 문서 정보
      * @param chunkPatternVo 청킹 패턴 정보
+     * @param extractType    표 데이터 변환 타입
      */
-    ChunkDocumentVo chunkHwpxDocumentUseCase(String version, String categoryCode, ExtractType extractType, FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo);
+    ChunkDocumentVo chunkHwpxDocumentUseCase(String version, String categoryCode, FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo, ExtractType extractType);
 
     /**
      * PDF 문서 청킹
