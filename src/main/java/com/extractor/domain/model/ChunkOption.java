@@ -1,6 +1,7 @@
 package com.extractor.domain.model;
 
 import com.extractor.domain.vo.PatternVo;
+import com.extractor.global.enums.ChunkType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
@@ -11,10 +12,6 @@ import java.util.List;
 @ToString
 @Getter
 public class ChunkOption {
-
-    public enum ChunkType {
-        EQUALS, REGEX, NONE,
-    }
 
     private final int maxTokenSize;
 

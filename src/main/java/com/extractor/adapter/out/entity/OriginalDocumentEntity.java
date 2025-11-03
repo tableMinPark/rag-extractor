@@ -46,11 +46,11 @@ public class OriginalDocumentEntity {
     @Column(name = "content")
     private String content;
 
-    @Column(name = "created_at")
+    @Column(name = "sys_create_dt")
     @CreatedDate
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "sys_modify_dt")
     @LastModifiedDate
     private LocalDateTime updatedAt;
 

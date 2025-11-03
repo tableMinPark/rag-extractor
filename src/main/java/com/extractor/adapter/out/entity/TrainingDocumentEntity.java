@@ -58,11 +58,11 @@ public class TrainingDocumentEntity {
     @Column(name = "token_size")
     private Integer tokenSize;
 
-    @Column(name = "created_at")
+    @Column(name = "sys_create_dt")
     @CreatedDate
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "sys_modify_dt")
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
