@@ -3,6 +3,7 @@ package com.extractor.application.usecase;
 import com.extractor.application.vo.ChunkDocumentVo;
 import com.extractor.application.vo.ChunkPatternVo;
 import com.extractor.application.vo.FileDocumentVo;
+import com.extractor.global.enums.ChunkType;
 import com.extractor.global.enums.ExtractType;
 
 public interface ChunkUseCase {
@@ -16,7 +17,7 @@ public interface ChunkUseCase {
      * @param chunkPatternVo 청킹 패턴 정보
      * @param extractType    표 데이터 변환 타입
      */
-    ChunkDocumentVo chunkHwpxDocumentUseCase(String version, String categoryCode, FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo, ExtractType extractType);
+    ChunkDocumentVo chunkHwpxDocumentUseCase(String version, String categoryCode, FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo, ExtractType extractType, ChunkType chunkType);
 
     /**
      * PDF 문서 청킹
@@ -26,7 +27,7 @@ public interface ChunkUseCase {
      * @param fileDocumentVo 원본 문서 정보
      * @param chunkPatternVo 청킹 패턴 정보
      */
-    ChunkDocumentVo chunkPdfDocumentUseCase(String version, String categoryCode, FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo);
+    ChunkDocumentVo chunkPdfDocumentUseCase(String version, String categoryCode, FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo, ChunkType chunkType);
 
     /**
      * 법령 문서 청킹

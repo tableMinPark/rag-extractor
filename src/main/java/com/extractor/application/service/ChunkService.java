@@ -5,15 +5,12 @@ import com.extractor.application.port.FilePort;
 import com.extractor.application.port.LawPersistencePort;
 import com.extractor.application.port.ManualPersistencePort;
 import com.extractor.application.usecase.ChunkUseCase;
-import com.extractor.application.vo.ChunkDocumentVo;
-import com.extractor.application.vo.OriginalDocumentVo;
-import com.extractor.application.vo.TrainingDocumentVo;
+import com.extractor.application.vo.*;
 import com.extractor.domain.model.Chunk;
 import com.extractor.domain.model.ChunkOption;
 import com.extractor.domain.model.Document;
 import com.extractor.domain.model.FileDocument;
-import com.extractor.application.vo.ChunkPatternVo;
-import com.extractor.application.vo.FileDocumentVo;
+import com.extractor.global.enums.ChunkType;
 import com.extractor.global.enums.DocumentType;
 import com.extractor.global.enums.ExtractType;
 import com.extractor.global.enums.FileExtension;
@@ -49,7 +46,7 @@ public class ChunkService implements ChunkUseCase {
      * @param extractType    표 데이터 변환 타입
      */
     @Override
-    public ChunkDocumentVo chunkHwpxDocumentUseCase(String version, String categoryCode, FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo, ExtractType extractType) {
+    public ChunkDocumentVo chunkHwpxDocumentUseCase(String version, String categoryCode, FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo, ExtractType extractType, ChunkType chunkType) {
 
         // 파일 업로드
         FileDocument fileDocument = filePort.uploadFilePort(fileDocumentVo);
@@ -79,7 +76,7 @@ public class ChunkService implements ChunkUseCase {
                             .maxTokenSize(chunkPatternVo.getMaxTokenSize())
                             .overlapSize(chunkPatternVo.getOverlapSize())
                             .patterns(chunkPatternVo.getPatterns())
-                            .type(ChunkOption.ChunkType.REGEX)
+                            .type(chunkType)
                             .build()));
 
             return new ChunkDocumentVo(originalDocumentVo, trainingDocumentVos);
@@ -98,7 +95,7 @@ public class ChunkService implements ChunkUseCase {
      * @param fileDocumentVo 원본 문서 정보
      */
     @Override
-    public ChunkDocumentVo chunkPdfDocumentUseCase(String version, String categoryCode, FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo) {
+    public ChunkDocumentVo chunkPdfDocumentUseCase(String version, String categoryCode, FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo, ChunkType chunkType) {
 
         // 파일 업로드
         FileDocument fileDocument = filePort.uploadFilePort(fileDocumentVo);
@@ -123,7 +120,7 @@ public class ChunkService implements ChunkUseCase {
                             .maxTokenSize(chunkPatternVo.getMaxTokenSize())
                             .overlapSize(chunkPatternVo.getOverlapSize())
                             .patterns(chunkPatternVo.getPatterns())
-                            .type(ChunkOption.ChunkType.REGEX)
+                            .type(chunkType)
                             .build()));
 
             return new ChunkDocumentVo(originalDocumentVo, trainingDocumentVos);
@@ -165,7 +162,7 @@ public class ChunkService implements ChunkUseCase {
                         .maxTokenSize(chunkPatternVo.getMaxTokenSize())
                         .overlapSize(chunkPatternVo.getOverlapSize())
                         .patterns(chunkPatternVo.getPatterns())
-                        .type(ChunkOption.ChunkType.EQUALS)
+                        .type(ChunkType.EQUALS)
                         .build()));
 
         return new ChunkDocumentVo(originalDocumentVo, trainingDocumentVos);
@@ -195,10 +192,10 @@ public class ChunkService implements ChunkUseCase {
                 originalDocumentVo.getCategoryCode(),
                 originalDocumentVo.getVersion(),
                 Chunk.chunking(document.getDocumentContents(), ChunkOption.builder()
-                        .maxTokenSize(Integer.MIN_VALUE)
-                        .overlapSize(0)
-                        .patterns(Collections.emptyList())
-                        .type(ChunkOption.ChunkType.NONE)
+                        .maxTokenSize(Integer.MIN_VALUE)        // 토큰 제한 없음
+                        .overlapSize(0)                         // 오버랩 설정 X
+                        .patterns(Collections.emptyList())      // 청킹 패턴 설정 X
+                        .type(ChunkType.NORMAL)                 // 청킹 타입 기본
                         .build()));
 
         return new ChunkDocumentVo(originalDocumentVo, trainingDocumentVos);

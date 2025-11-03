@@ -31,7 +31,7 @@ public class HwpxDocument extends Document {
         super(name, extension, path);
         this.sections = sections;
         this.images = images;
-        this.extract(Objects.requireNonNullElse(extractType, ExtractType.HTML));
+        this.extract(Objects.requireNonNullElse(extractType, ExtractType.MARK_DOWN));
     }
 
     /**
@@ -55,7 +55,7 @@ public class HwpxDocument extends Document {
                             case "hp:tbl" -> {
                                 Arrays.stream(contentBuilder.toString().split("\n")).forEach(super::addTextContent);
                                 String tableContent = this.convertTableXmlToHtml(node, 0);
-                                tableContent = StringUtil.removeHtml(tableContent, ExtractType.MARK_DOWN);
+                                tableContent = StringUtil.removeHtml(tableContent, extractType);
                                 super.addTableContent(tableContent);
                                 contentBuilder = new StringBuilder();
                             }

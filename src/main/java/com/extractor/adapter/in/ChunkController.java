@@ -12,6 +12,7 @@ import com.extractor.application.vo.ChunkPatternVo;
 import com.extractor.application.vo.FileDocumentVo;
 import com.extractor.domain.vo.PatternVo;
 import com.extractor.domain.vo.PrefixVo;
+import com.extractor.global.enums.ChunkType;
 import com.extractor.global.enums.ExtractType;
 import com.extractor.global.enums.FileExtension;
 import com.extractor.global.utils.StringUtil;
@@ -65,6 +66,7 @@ public class ChunkController {
         try {
             FileExtension extension = FileExtension.find(multipartFile.getOriginalFilename());
             ExtractType extractType = ExtractType.find(chunkDocumentRequestDto.getExtractType());
+            ChunkType chunkType = ChunkType.find(chunkDocumentRequestDto.getChunkType());
 
             ChunkPatternVo chunkPatternVo = new ChunkPatternVo(
                     convertPatternVo(chunkDocumentRequestDto.getPatterns()), chunkDocumentRequestDto.getStopPatterns(), chunkDocumentRequestDto.getMaxTokenSize(), chunkDocumentRequestDto.getOverlapSize());
@@ -73,10 +75,8 @@ public class ChunkController {
 
             ChunkDocumentVo chunkDocumentVo;
             switch (extension) {
-                case HWP, HWPX -> chunkDocumentVo =
-                        chunkUseCase.chunkHwpxDocumentUseCase(version, chunkDocumentRequestDto.getCategoryCode(), new FileDocumentVo(multipartFile), chunkPatternVo, extractType);
-                case PDF -> chunkDocumentVo =
-                        chunkUseCase.chunkPdfDocumentUseCase(version, chunkDocumentRequestDto.getCategoryCode(), new FileDocumentVo(multipartFile), chunkPatternVo);
+                case HWP, HWPX -> chunkDocumentVo = chunkUseCase.chunkHwpxDocumentUseCase(version, chunkDocumentRequestDto.getCategoryCode(), new FileDocumentVo(multipartFile), chunkPatternVo, extractType, chunkType);
+                case PDF -> chunkDocumentVo = chunkUseCase.chunkPdfDocumentUseCase(version, chunkDocumentRequestDto.getCategoryCode(), new FileDocumentVo(multipartFile), chunkPatternVo, chunkType);
                 default -> throw new RuntimeException("미지원 파일 형식 (HWP, HWPX, PDF 만 지원)");
             }
 
@@ -127,7 +127,7 @@ public class ChunkController {
 
             ChunkDocumentVo chunkDocumentVo = chunkUseCase.chunkLawDocumentUseCase(version, chunkLawRequestDto.getCategoryCode(), lawId, chunkPatternVo);
 
-            log.info("/chunk/law/{} | {}", lawId, lawId);
+            log.info("/chunk/law/{}", lawId);
 
             return ResponseEntity.ok(ChunkDocumentResponseDto.builder()
                     .originalId(chunkDocumentVo.getOriginalDocumentVo().getOriginalId())
@@ -142,7 +142,7 @@ public class ChunkController {
 
         } catch (RuntimeException e) {
 
-            log.error("/chunk/law/{} | {} | {}", lawId, lawId, e.getMessage());
+            log.error("/chunk/law/{} | {}", lawId, e.getMessage());
 
             return ResponseEntity.internalServerError().body(ErrorResponseDto.builder()
                     .message(e.getMessage())
@@ -176,7 +176,7 @@ public class ChunkController {
 
             ChunkDocumentVo chunkDocumentVo = chunkUseCase.chunkManualDocumentUseCase(version, chunkManualRequestDto.getCategoryCode(), manualId);
 
-            log.info("/chunk/manual/{} | {}", manualId, manualId);
+            log.info("/chunk/manual/{}", manualId);
 
             return ResponseEntity.ok(ChunkDocumentResponseDto.builder()
                     .originalId(chunkDocumentVo.getOriginalDocumentVo().getOriginalId())
@@ -191,7 +191,7 @@ public class ChunkController {
 
         } catch (RuntimeException e) {
 
-            log.error("/chunk/manual/{} | {}| {}", manualId, manualId, e.getMessage());
+            log.error("/chunk/manual/{} | {}", manualId, e.getMessage());
 
             return ResponseEntity.internalServerError().body(ErrorResponseDto.builder()
                     .message(e.getMessage())

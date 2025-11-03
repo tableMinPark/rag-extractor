@@ -2,6 +2,7 @@ package com.extractor.domain.model;
 
 import com.extractor.domain.vo.PatternVo;
 import com.extractor.domain.vo.PrefixVo;
+import com.extractor.global.enums.ChunkType;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -69,8 +70,12 @@ public class Chunk {
             Arrays.fill(titleBuffer[depth], null);
         }
 
+        // 토큰 수 기반 청킹
+        if (ChunkType.TOKEN.equals(chunkOption.getType())) {
+            return chunking(new Chunk(titleBuffer, documentContents), chunkOption);
+        }
         // 타이틀 추출
-        if (ChunkOption.ChunkType.REGEX.equals(chunkOption.getType())) {
+        else if (ChunkType.REGEX.equals(chunkOption.getType())) {
             List<String> prefixes = new ArrayList<>();
             chunkOption.getPatterns().forEach(patternVo -> prefixes.addAll(patternVo.getPrefixes().stream().map(PrefixVo::getPrefix).toList()));
             documentContents.forEach(documentContent -> documentContent.extractTitle(prefixes));
@@ -158,9 +163,89 @@ public class Chunk {
     }
 
     /**
-     * 청킹 재귀 프로 세스
+     * 청킹 프로 세스 (토큰)
+     * @param chunk 부모 청크
+     * @param chunkOption 청킹 옵션
+     * @return 문서 청크 목록
+     */
+    private static List<Chunk> chunking(Chunk chunk, ChunkOption chunkOption) {
+
+        List<Chunk> chunks = new ArrayList<>();
+        Queue<String> contextQueue = new ArrayDeque<>();
+
+        contextQueue.offer(chunk.getContent());
+
+        // chunkOption.maxTokenSize 크기 기준 문자열 분리
+        if (!contextQueue.isEmpty()) {
+            int queueSize = contextQueue.size();
+
+            while (!contextQueue.isEmpty() && queueSize > 0) {
+                String context = contextQueue.poll();
+
+                if (context.isBlank()) continue;
+                else if (context.length() <= chunkOption.getMaxTokenSize()) {
+                    contextQueue.offer(context);
+                } else {
+                    for (int contextIndex = 0; contextIndex < context.length(); contextIndex += chunkOption.getMaxTokenSize()) {
+                        contextQueue.offer(context.substring(contextIndex, Math.min(contextIndex + chunkOption.getMaxTokenSize(), context.length())));
+                    }
+                }
+
+                queueSize--;
+            }
+        }
+
+        // 분리 문자열 저장 (오버랩)
+        if (!contextQueue.isEmpty()) {
+            String preContext = "";
+            String currentContext = "";
+            String nextContext = "";
+
+            while (!contextQueue.isEmpty()) {
+                preContext = currentContext;
+                currentContext = contextQueue.poll();
+                nextContext = "";
+
+                if (!contextQueue.isEmpty()) {
+                    nextContext = contextQueue.peek();
+                }
+
+                int emptyContextSize = Math.max(0, chunkOption.getMaxTokenSize() - currentContext.length());
+                int overlapSize = chunkOption.getOverlapSize() + Math.max(0, emptyContextSize / 2);
+
+                String headOverlap = preContext.substring(Math.max(0, preContext.length() - overlapSize));
+                String tailOverlap = nextContext.substring(0, Math.min(overlapSize, nextContext.length()));
+
+                boolean isSubContentMatch = false;
+                StringBuilder subContentBuilder = new StringBuilder();
+                for (DocumentContent documentContent : chunk.getDocumentContents()) {
+                    for (DocumentContent subDocumentContent : documentContent.getSubDocumentContents()) {
+                        if (currentContext.contains(subDocumentContent.getCompareText())) {
+                            subContentBuilder.append("\n")
+                                    .append(subDocumentContent.getTitle().trim())
+                                    .append(subDocumentContent.getTitle().trim().isBlank() ? " " : "")
+                                    .append(subDocumentContent.getContext().trim());
+
+                            isSubContentMatch = true;
+                            break;
+                        }
+                    }
+
+                    if (isSubContentMatch) break;
+                }
+
+                chunks.add(new Chunk(-1, chunk.getTitleBuffer(), headOverlap + currentContext + tailOverlap, subContentBuilder.toString().trim()));
+            }
+        }
+
+        return chunks;
+    }
+
+    /**
+      청킹 재귀 프로 세스 (패턴)
      *
      * @param chunk 부모 청크
+     * @param chunkOption 청킹 옵션
      * @return 문서 청크 목록
      */
     private static List<Chunk> chunking(DocumentContent[][] titleBuffer, Chunk chunk, ChunkOption chunkOption) {
@@ -198,73 +283,95 @@ public class Chunk {
                 DocumentContent documentContent = chunk.getDocumentContents().getFirst();
                 Queue<String> contextQueue = new ArrayDeque<>();
 
+                contextQueue.offer(documentContent.getContext());
+
                 // 개행 두번 기준 문자열 분리
-                for (String splitContext : documentContent.getContext().split("\n\n")) {
-                    contextQueue.offer(splitContext + "\n\n");
+                if (!contextQueue.isEmpty()) {
+                    int queueSize = contextQueue.size();
+                    while (!contextQueue.isEmpty() && queueSize > 0) {
+                        String context = contextQueue.poll().trim();
+
+                        for (String splitContext : context.split("\n\n")) {
+                            contextQueue.offer(splitContext + "\n\n");
+                        }
+
+                        queueSize--;
+                    }
                 }
 
                 // 개행 한번 기준 문자열 분리
-                int contextQueueSize = contextQueue.size();
-                while (!contextQueue.isEmpty() && contextQueueSize > 0) {
-                    String context = contextQueue.poll().trim();
+                if (!contextQueue.isEmpty()) {
+                    int queueSize = contextQueue.size();
 
-                    if (context.isBlank()) continue;
-                    else if (context.length() <= chunkOption.getMaxTokenSize()) {
-                        contextQueue.offer(context);
-                    } else {
-                        for (String splitContext : context.split("\n")) {
-                            contextQueue.offer(splitContext + "\n");
+                    while (!contextQueue.isEmpty() && queueSize > 0) {
+                        String context = contextQueue.poll().trim();
+
+                        if (context.isBlank()) continue;
+                        else if (context.length() <= chunkOption.getMaxTokenSize()) {
+                            contextQueue.offer(context);
+                        } else {
+                            for (String splitContext : context.split("\n")) {
+                                contextQueue.offer(splitContext + "\n");
+                            }
                         }
-                    }
 
-                    contextQueueSize--;
+                        queueSize--;
+                    }
                 }
 
                 // chunkOption.maxTokenSize 크기 기준 문자열 분리
-                contextQueueSize = contextQueue.size();
-                while (!contextQueue.isEmpty() && contextQueueSize > 0) {
-                    String context = contextQueue.poll();
+                if (!contextQueue.isEmpty()) {
+                    int queueSize = contextQueue.size();
 
-                    if (context.isBlank()) continue;
-                    else if (context.length() <= chunkOption.getMaxTokenSize()) {
-                        contextQueue.offer(context);
-                    } else {
-                        for (int contextIndex = 0; contextIndex < context.length(); contextIndex += chunkOption.getMaxTokenSize()) {
-                            contextQueue.offer(context.substring(contextIndex, Math.min(contextIndex + chunkOption.getMaxTokenSize(), context.length())));
+                    while (!contextQueue.isEmpty() && queueSize > 0) {
+                        String context = contextQueue.poll();
+
+                        if (context.isBlank()) continue;
+                        else if (context.length() <= chunkOption.getMaxTokenSize()) {
+                            contextQueue.offer(context);
+                        } else {
+                            for (int contextIndex = 0; contextIndex < context.length(); contextIndex += chunkOption.getMaxTokenSize()) {
+                                contextQueue.offer(context.substring(contextIndex, Math.min(contextIndex + chunkOption.getMaxTokenSize(), context.length())));
+                            }
                         }
-                    }
 
-                    contextQueueSize--;
+                        queueSize--;
+                    }
                 }
 
-                // 분리 문자열 저장
-                String headOverlap = "";
-                String tailOverlap = "";
-                while (!contextQueue.isEmpty()) {
-                    String context = contextQueue.poll();
+                // 분리 문자열 저장 (오버랩)
+                if (!contextQueue.isEmpty()) {
+                    String preContext = "";
+                    String currentContext = "";
+                    String nextContext = "";
 
-                    // 다음 context overlap 설정
-                    if (!contextQueue.isEmpty()) {
-                        String tailContext = contextQueue.peek();
-                        tailOverlap = tailContext.substring(0, Math.min(chunkOption.getOverlapSize(), tailContext.length()));
-                    } else {
-                        tailOverlap = "";
-                    }
+                    while (!contextQueue.isEmpty()) {
+                        preContext = currentContext;
+                        currentContext = contextQueue.poll();
+                        nextContext = "";
 
-                    StringBuilder subContentBuilder = new StringBuilder();
-                    for (DocumentContent subDocumentContent : documentContent.getSubDocumentContents()) {
-                        if (context.contains(subDocumentContent.getCompareText())) {
-                            subContentBuilder.append("\n")
-                                    .append(subDocumentContent.getTitle().trim())
-                                    .append(subDocumentContent.getTitle().trim().isBlank() ? " " : "")
-                                    .append(subDocumentContent.getContext().trim());
+                        if (!contextQueue.isEmpty()) {
+                            nextContext = contextQueue.peek();
                         }
+
+                        int emptyContextSize = Math.max(0, chunkOption.getMaxTokenSize() - currentContext.length());
+                        int overlapSize = chunkOption.getOverlapSize() + Math.max(0, emptyContextSize / 2);
+
+                        String headOverlap = preContext.substring(Math.max(0, preContext.length() - overlapSize));
+                        String tailOverlap = nextContext.substring(0, Math.min(overlapSize, nextContext.length()));
+
+                        StringBuilder subContentBuilder = new StringBuilder();
+                        for (DocumentContent subDocumentContent : documentContent.getSubDocumentContents()) {
+                            if (currentContext.contains(subDocumentContent.getCompareText())) {
+                                subContentBuilder.append("\n")
+                                        .append(subDocumentContent.getTitle().trim())
+                                        .append(subDocumentContent.getTitle().trim().isBlank() ? " " : "")
+                                        .append(subDocumentContent.getContext().trim());
+                            }
+                        }
+
+                        chunks.add(new Chunk(nextDepth, titleBuffer, headOverlap + currentContext + tailOverlap, subContentBuilder.toString().trim()));
                     }
-
-                    chunks.add(new Chunk(nextDepth, titleBuffer, headOverlap + context + tailOverlap, subContentBuilder.toString().trim()));
-
-                    // 현재 context overlap 설정
-                    headOverlap = context.substring(Math.max(0, context.length() - chunkOption.getOverlapSize()));
                 }
             }
         }
@@ -287,7 +394,7 @@ public class Chunk {
                     boolean isMatch;
 
                     // 완전 일치 조건 확인
-                    if (ChunkOption.ChunkType.EQUALS.equals(chunkOption.getType())) {
+                    if (ChunkType.EQUALS.equals(chunkOption.getType())) {
                         isMatch = prefix.getPrefix().equals(documentContent.getCompareText());
                     }
                     // 정규식 부합 조건 확인

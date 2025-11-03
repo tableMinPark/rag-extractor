@@ -14,6 +14,9 @@ import java.util.List;
 @Schema(description = "전처리 패턴 정보")
 public class ChunkDocumentRequestDto {
 
+    @Schema(description = "청크 타입", example = "token")
+    private String chunkType;
+
     @Schema(description = "표 추출 타입", example = "markdown")
     private String extractType;
 

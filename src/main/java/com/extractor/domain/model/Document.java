@@ -28,7 +28,6 @@ public class Document {
         this(name, extension, path, new ArrayList<>());
     }
 
-
     public Document(String name, FileExtension extension, Path path, List<DocumentContent> documentContents) {
         this.name = name;
         this.extension = extension;
