@@ -2,8 +2,8 @@ package com.extractor.application.service;
 
 import com.extractor.application.port.ExtractPort;
 import com.extractor.application.port.FilePort;
-import com.extractor.application.port.LawPersistencePort;
-import com.extractor.application.port.ManualPersistencePort;
+import com.extractor.application.port.LawReadPort;
+import com.extractor.application.port.ManualReadPort;
 import com.extractor.application.usecase.ChunkUseCase;
 import com.extractor.application.vo.*;
 import com.extractor.domain.model.Chunk;
@@ -16,6 +16,8 @@ import com.extractor.global.enums.ExtractType;
 import com.extractor.global.enums.FileExtension;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,16 +27,27 @@ import java.util.List;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class ChunkService implements ChunkUseCase {
 
     private final ExtractPort extractPort;
 
     private final FilePort filePort;
 
-    private final LawPersistencePort lawPersistencePort;
+    private final LawReadPort lawReadPort;
 
-    private final ManualPersistencePort manualPersistencePort;
+    private final ManualReadPort manualReadPort;
+
+    public ChunkService(
+            @Autowired ExtractPort extractPort,
+            @Autowired FilePort filePort,
+            @Qualifier("lawDatabaseReadAdapter") LawReadPort lawReadPort,
+            @Autowired ManualReadPort manualReadPort
+    ) {
+        this.extractPort = extractPort;
+        this.filePort = filePort;
+        this.lawReadPort = lawReadPort;
+        this.manualReadPort = manualReadPort;
+    }
 
     /**
      * 한글 문서 청킹
@@ -143,7 +156,7 @@ public class ChunkService implements ChunkUseCase {
     @Transactional
     public ChunkDocumentVo chunkLawDocumentUseCase(String version, String categoryCode, Long lawId, ChunkPatternVo chunkPatternVo) {
 
-        Document document = lawPersistencePort.getLawDocumentsPort(lawId);
+        Document document = lawReadPort.getLawDocumentsPort(lawId);
 
         OriginalDocumentVo originalDocumentVo = OriginalDocumentVo.builder()
                 .version(version)
@@ -176,7 +189,7 @@ public class ChunkService implements ChunkUseCase {
     @Override
     public ChunkDocumentVo chunkManualDocumentUseCase(String version, String categoryCode, Long manualId) {
 
-        Document document = manualPersistencePort.getManualDocumentsPort(manualId);
+        Document document = manualReadPort.getManualDocumentsPort(manualId);
 
         OriginalDocumentVo originalDocumentVo = OriginalDocumentVo.builder()
                 .version(version)

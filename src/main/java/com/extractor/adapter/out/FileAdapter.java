@@ -49,7 +49,7 @@ public class FileAdapter implements FilePort {
         try {
             Files.write(fullPath, fileDocumentVo.getData());
         } catch (IOException e) {
-            throw new RuntimeException("upload file error");
+            throw new RuntimeException(e.getMessage() + " | upload file error");
         }
 
         // HWP 파일 변환

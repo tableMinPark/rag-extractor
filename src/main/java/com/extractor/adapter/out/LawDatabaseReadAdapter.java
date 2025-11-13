@@ -7,7 +7,7 @@ import com.extractor.adapter.out.repository.LawContentRepository;
 import com.extractor.adapter.out.repository.LawDocumentRepository;
 import com.extractor.adapter.out.repository.LawLinkRepository;
 import com.extractor.application.exception.NotFoundDocumentException;
-import com.extractor.application.port.LawPersistencePort;
+import com.extractor.application.port.LawReadPort;
 import com.extractor.domain.model.LawDocument;
 import com.extractor.domain.vo.LawContentVo;
 import com.extractor.domain.vo.LawLinkVo;
@@ -21,10 +21,13 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * DB 기반 법령 정보 조회 어댑터
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class LawPersistenceAdapter implements LawPersistencePort {
+public class LawDatabaseReadAdapter implements LawReadPort {
 
     private final LawDocumentRepository lawDocumentRepository;
 

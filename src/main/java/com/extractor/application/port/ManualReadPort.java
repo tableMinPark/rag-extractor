@@ -2,7 +2,7 @@ package com.extractor.application.port;
 
 import com.extractor.domain.model.Document;
 
-public interface ManualPersistencePort {
+public interface ManualReadPort {
 
     /**
      * 메뉴얼 문서 조회
