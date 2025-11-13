@@ -1,4 +1,4 @@
-package com.extractor.adapter.out.dto;
+package com.extractor.adapter.out.dto.manual;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

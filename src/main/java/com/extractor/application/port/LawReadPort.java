@@ -2,7 +2,7 @@ package com.extractor.application.port;
 
 import com.extractor.domain.model.Document;
 
-public interface LawPersistencePort {
+public interface LawReadPort {
 
     /**
      * 법령 문서 조회

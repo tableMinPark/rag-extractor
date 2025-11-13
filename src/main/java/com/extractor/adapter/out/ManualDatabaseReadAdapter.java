@@ -1,12 +1,12 @@
 package com.extractor.adapter.out;
 
-import com.extractor.adapter.out.dto.ManualAgendaDto;
-import com.extractor.adapter.out.dto.ManualContentDto;
-import com.extractor.adapter.out.dto.ManualTableContentDto;
+import com.extractor.adapter.out.dto.manual.ManualAgendaDto;
+import com.extractor.adapter.out.dto.manual.ManualContentDto;
+import com.extractor.adapter.out.dto.manual.ManualTableContentDto;
 import com.extractor.adapter.out.entity.ManualDocumentEntity;
 import com.extractor.adapter.out.repository.ManualDocumentRepository;
 import com.extractor.application.exception.NotFoundDocumentException;
-import com.extractor.application.port.ManualPersistencePort;
+import com.extractor.application.port.ManualReadPort;
 import com.extractor.domain.model.Document;
 import com.extractor.domain.model.DocumentContent;
 import com.extractor.global.utils.StringUtil;
@@ -22,7 +22,7 @@ import java.util.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ManualPersistenceAdapter implements ManualPersistencePort {
+public class ManualDatabaseReadAdapter implements ManualReadPort {
 
     private final ManualDocumentRepository manualDocumentRepository;
 

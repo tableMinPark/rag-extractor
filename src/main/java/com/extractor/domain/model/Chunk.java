@@ -258,7 +258,7 @@ public class Chunk {
         // 깊이 초과
         if (nextDepth >= chunkOption.getDepthSize()) {
             // 전체 토큰 수 충족 (재귀 종료)
-            if (tokenSize <= chunkOption.getMaxTokenSize()) {
+            if (0 <= chunkOption.getMaxTokenSize() && chunkOption.getMaxTokenSize() <= tokenSize) {
                 chunks.add(chunk);
             }
             // documentContent 가 1개 초과인 경우 (재귀 실행/토큰 기준 분리)
@@ -275,7 +275,7 @@ public class Chunk {
                         chunkOption));
             }
             // 최대 토큰 수가 음수인 경우 (재귀 종료)
-            else if (chunk.getDocumentContents().size() == 1 && chunkOption.getMaxTokenSize() < 0) {
+            else if (chunk.getDocumentContents().size() == 1 && chunkOption.getMaxTokenSize() <= 0) {
                 chunks.add(chunk);
             }
             // documentContent 가 1개인 경우 (재귀 종료)
@@ -285,39 +285,40 @@ public class Chunk {
 
                 contextQueue.offer(documentContent.getContext());
 
-                // 개행 두번 기준 문자열 분리
-                if (!contextQueue.isEmpty()) {
-                    int queueSize = contextQueue.size();
-                    while (!contextQueue.isEmpty() && queueSize > 0) {
-                        String context = contextQueue.poll().trim();
-
-                        for (String splitContext : context.split("\n\n")) {
-                            contextQueue.offer(splitContext + "\n\n");
-                        }
-
-                        queueSize--;
-                    }
-                }
-
-                // 개행 한번 기준 문자열 분리
-                if (!contextQueue.isEmpty()) {
-                    int queueSize = contextQueue.size();
-
-                    while (!contextQueue.isEmpty() && queueSize > 0) {
-                        String context = contextQueue.poll().trim();
-
-                        if (context.isBlank()) continue;
-                        else if (context.length() <= chunkOption.getMaxTokenSize()) {
-                            contextQueue.offer(context);
-                        } else {
-                            for (String splitContext : context.split("\n")) {
-                                contextQueue.offer(splitContext + "\n");
-                            }
-                        }
-
-                        queueSize--;
-                    }
-                }
+                // TODO: 개행 기준 마지막 분리 중지
+//                // 개행 두번 기준 문자열 분리
+//                if (!contextQueue.isEmpty()) {
+//                    int queueSize = contextQueue.size();
+//                    while (!contextQueue.isEmpty() && queueSize > 0) {
+//                        String context = contextQueue.poll().trim();
+//
+//                        for (String splitContext : context.split("\n\n")) {
+//                            contextQueue.offer(splitContext + "\n\n");
+//                        }
+//
+//                        queueSize--;
+//                    }
+//                }
+//
+//                // 개행 한번 기준 문자열 분리
+//                if (!contextQueue.isEmpty()) {
+//                    int queueSize = contextQueue.size();
+//
+//                    while (!contextQueue.isEmpty() && queueSize > 0) {
+//                        String context = contextQueue.poll().trim();
+//
+//                        if (context.isBlank()) continue;
+//                        else if (context.length() <= chunkOption.getMaxTokenSize()) {
+//                            contextQueue.offer(context);
+//                        } else {
+//                            for (String splitContext : context.split("\n")) {
+//                                contextQueue.offer(splitContext + "\n");
+//                            }
+//                        }
+//
+//                        queueSize--;
+//                    }
+//                }
 
                 // chunkOption.maxTokenSize 크기 기준 문자열 분리
                 if (!contextQueue.isEmpty()) {

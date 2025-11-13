@@ -1,4 +1,4 @@
-package com.extractor.adapter.out.dto;
+package com.extractor.adapter.out.dto.manual;
 
 import lombok.*;
 
