@@ -52,7 +52,7 @@ public class ExtractController {
             MultipartFile multipartFile
     ) {
         try {
-            FileExtension extension = FileExtension.find(multipartFile.getContentType());
+            FileExtension extension = FileExtension.find(multipartFile.getOriginalFilename());
             ExtractType extractType = ExtractType.find(extractDocumentRequestDto.getExtractType());
 
             ExtractDocumentVo extractDocumentVo;
