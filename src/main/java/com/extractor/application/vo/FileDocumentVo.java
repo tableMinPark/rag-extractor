@@ -22,7 +22,7 @@ public class FileDocumentVo {
             throw new RuntimeException("multipart filename is null");
         }
 
-        this.extension = FileExtension.find(multipartFile.getContentType());
+        this.extension = FileExtension.find(multipartFile.getOriginalFilename());
         this.originalFileName = multipartFile.getOriginalFilename().replace("." + extension.getSimpleExtension(), "");
 
         try {
