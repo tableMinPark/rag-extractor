@@ -44,9 +44,9 @@ public class StringUtil {
      */
     public static boolean isNumber(String str) {
         if (str != null && !str.isBlank()) {
-            return str.chars().allMatch(Character::isDigit);
+            return !str.chars().allMatch(Character::isDigit);
         }
-        return false;
+        return true;
     }
 
     /**
@@ -92,7 +92,7 @@ public class StringUtil {
             if ("table".equals(tag)) {
                 if (depth == 0) {
                     node.replaceWith(new TextNode(convertTableHtmlToMarkdownOneDepth(node.toString(), "\n<br>")));
-                } else if (depth > 0){
+                } else if (depth > 0) {
                     String tableId = generateRandomId();
                     // 표 마크 다운 내부 개행 기호 => "\\n"
                     node.replaceWith(new TextNode("\\n[" + tableId + "](#" + tableId + ")\\n"));
@@ -118,7 +118,7 @@ public class StringUtil {
     /**
      * 표 데이터 HTML 마크 다운 1Depth 변환
      *
-     * @param html HTML 문자열
+     * @param html             HTML 문자열
      * @param newLineSeparator 개행 구분자
      * @return 마크 다운 문자열
      */
@@ -220,17 +220,7 @@ public class StringUtil {
      * @param html HTML 문자열
      * @return HTML 태그 삭제 문자열
      */
-    public static String removeHtml(String html) {
-        return removeHtml(html, ExtractType.HTML);
-    }
-
-    /**
-     * HTML 태그 삭제 (표 HTML 보존)
-     *
-     * @param html HTML 문자열
-     * @return HTML 태그 삭제 문자열
-     */
-    public static String removeHtml(String html, ExtractType extractType) {
+    public static String removeHtmlExceptTable(String html, ExtractType extractType) {
         // table 태그 표 마크 다운 문자열 변환
         String convertTableHtml = html;
 
@@ -243,13 +233,13 @@ public class StringUtil {
         StringBuilder stringBuilder = new StringBuilder();
 
         // HTML 태그 삭제
-        removeHtml(doc.body(), stringBuilder);
+        removeHtmlExceptTable(doc.body(), stringBuilder);
 
         // 표 마크 다운 셀 내부 개행 처리
         return normalize(stringBuilder.toString().replace("\\n", "<br>"));
     }
 
-    private static void removeHtml(Node node, StringBuilder stringBuilder) {
+    private static void removeHtmlExceptTable(Node node, StringBuilder stringBuilder) {
         for (Node child : node.childNodes()) {
             if (child instanceof TextNode) {
                 stringBuilder.append(((TextNode) child).text());
@@ -270,10 +260,10 @@ public class StringUtil {
                     }
 
                     stringBuilder.append(">");
-                    removeHtml(el, stringBuilder);
+                    removeHtmlExceptTable(el, stringBuilder);
                     stringBuilder.append("</").append(tag).append(">");
                 } else {
-                    removeHtml(el, stringBuilder);
+                    removeHtmlExceptTable(el, stringBuilder);
                     if (BLOCK_TAGS.contains(tag)) {
                         stringBuilder.append("\n");
                     }
@@ -284,6 +274,7 @@ public class StringUtil {
 
     /**
      * 공백/개행 정리
+     *
      * @param str 원본 문자열
      * @return 공백 정리 문자열
      */
@@ -295,6 +286,7 @@ public class StringUtil {
 
     /**
      * 원형 숫자 기호 대치
+     *
      * @param c 문자
      * @return 대치 문자열
      */

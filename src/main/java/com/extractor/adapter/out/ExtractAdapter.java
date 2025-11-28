@@ -43,7 +43,7 @@ public class ExtractAdapter implements ExtractPort {
      * @param fileDocument 원본 문서 정보
      */
     @Override
-    public HwpxDocument extractHwpxDocumentPort(FileDocument fileDocument, ExtractType extractType) {
+    public HwpxDocument extractHwpxPort(FileDocument fileDocument, ExtractType extractType) {
 
         // 데이터 저장
         List<HwpxSectionVo> sections = new ArrayList<>();
@@ -64,7 +64,7 @@ public class ExtractAdapter implements ExtractPort {
             String filePath = item.getAttributes().getNamedItem("href").getTextContent();
             String mediaType = item.getAttributes().getNamedItem("media-type").getTextContent();
 
-            if (mediaType.endsWith(FileExtension.XML.getSimpleExtension()) && id.startsWith("section")) {
+            if (mediaType.endsWith(FileExtension.XML.getExt()) && id.startsWith("section")) {
                 File xmlFile = fileDocument.getPath().resolve(filePath).toFile();
 
                 if (xmlFile.exists()) {
@@ -110,7 +110,7 @@ public class ExtractAdapter implements ExtractPort {
      * @param fileDocument 원본 문서 정보
      */
     @Override
-    public PdfDocument extractPdfDocumentPort(FileDocument fileDocument) {
+    public PdfDocument extractPdfPort(FileDocument fileDocument) {
         return PdfDocument.builder()
                 .name(fileDocument.getOriginalFileName())
                 .extension(fileDocument.getExtension())
@@ -125,7 +125,7 @@ public class ExtractAdapter implements ExtractPort {
      * @param fileDocument 원본 문서 정보
      */
     @Override
-    public String extractDocumentPort(FileDocument fileDocument) {
+    public String extractTextPort(FileDocument fileDocument) {
         return this.extractWithSnf(fileDocument.getFullPath()).trim();
     }
 

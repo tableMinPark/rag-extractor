@@ -5,24 +5,23 @@ import com.extractor.application.port.FilePort;
 import com.extractor.application.port.LawReadPort;
 import com.extractor.application.port.ManualReadPort;
 import com.extractor.application.usecase.ChunkUseCase;
-import com.extractor.application.vo.*;
-import com.extractor.domain.model.Chunk;
-import com.extractor.domain.model.ChunkOption;
+import com.extractor.application.vo.ChunkOptionVo;
+import com.extractor.application.vo.FileVo;
+import com.extractor.application.vo.PassageVo;
+import com.extractor.application.vo.SourceVo;
+import com.extractor.domain.factory.PassageFactory;
 import com.extractor.domain.model.Document;
 import com.extractor.domain.model.FileDocument;
-import com.extractor.global.enums.ChunkType;
-import com.extractor.global.enums.DocumentType;
-import com.extractor.global.enums.ExtractType;
+import com.extractor.domain.model.Passage;
+import com.extractor.domain.model.PassageOption;
 import com.extractor.global.enums.FileExtension;
-import lombok.RequiredArgsConstructor;
+import com.extractor.global.enums.SelectType;
+import com.extractor.global.enums.SourceType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -30,19 +29,12 @@ import java.util.List;
 public class ChunkService implements ChunkUseCase {
 
     private final ExtractPort extractPort;
-
     private final FilePort filePort;
-
     private final LawReadPort lawReadPort;
-
     private final ManualReadPort manualReadPort;
 
-    public ChunkService(
-            @Autowired ExtractPort extractPort,
-            @Autowired FilePort filePort,
-            @Qualifier("lawDatabaseReadAdapter") LawReadPort lawReadPort,
-            @Autowired ManualReadPort manualReadPort
-    ) {
+    @Autowired
+    public ChunkService(ExtractPort extractPort, FilePort filePort, LawReadPort lawReadPort, ManualReadPort manualReadPort) {
         this.extractPort = extractPort;
         this.filePort = filePort;
         this.lawReadPort = lawReadPort;
@@ -50,213 +42,116 @@ public class ChunkService implements ChunkUseCase {
     }
 
     /**
-     * 한글 문서 청킹
+     * 파일 청킹
      *
-     * @param version        버전 구분 코드
-     * @param categoryCode   카테고리 코드
-     * @param fileDocumentVo 원본 문서 정보
-     * @param chunkPatternVo 청킹 패턴 정보
-     * @param extractType    표 데이터 변환 타입
+     * @param chunkOptionVo 청킹 옵션
+     * @param fileVo        파일
      */
     @Override
-    public ChunkDocumentVo chunkHwpxDocumentUseCase(String version, String categoryCode, FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo, ExtractType extractType, ChunkType chunkType) {
+    public SourceVo chunkFileUseCase(ChunkOptionVo chunkOptionVo, FileVo fileVo) {
 
         // 파일 업로드
-        FileDocument fileDocument = filePort.uploadFilePort(fileDocumentVo);
+        FileDocument fileDocument = filePort.uploadFilePort(fileVo);
 
         Document document;
         if (FileExtension.PDF.equals(fileDocument.getExtension())) {
-            document = extractPort.extractPdfDocumentPort(fileDocument);
+            document = extractPort.extractPdfPort(fileDocument);
         } else {
-            document = extractPort.extractHwpxDocumentPort(fileDocument, extractType);
+            document = extractPort.extractHwpxPort(fileDocument, chunkOptionVo.getExtractType());
         }
 
         try {
-            OriginalDocumentVo originalDocumentVo = OriginalDocumentVo.builder()
-                    .version(version)
-                    .docType(DocumentType.FILE.getCode())
-                    .categoryCode(categoryCode)
-                    .name(document.getName())
-                    .content(document.getContent())
+            PassageOption passageOption = PassageOption.builder()
+                    .patterns(chunkOptionVo.getPatterns())
+                    .type(chunkOptionVo.getSelectType())
+                    .isExtractTitle(chunkOptionVo.isExtractTitle())
                     .build();
 
-            List<TrainingDocumentVo> trainingDocumentVos = chunkToTrainingDocument(
-                    originalDocumentVo.getName(),
-                    originalDocumentVo.getDocType(),
-                    originalDocumentVo.getCategoryCode(),
-                    originalDocumentVo.getVersion(),
-                    Chunk.chunking(document.getDocumentContents(), ChunkOption.builder()
-                            .maxTokenSize(chunkPatternVo.getMaxTokenSize())
-                            .overlapSize(chunkPatternVo.getOverlapSize())
-                            .patterns(chunkPatternVo.getPatterns())
-                            .type(chunkType)
-                            .build()));
+            List<Passage> passages = SelectType.TOKEN.equals(chunkOptionVo.getSelectType())
+                    ? PassageFactory.passaging(document.getDocumentContents(), passageOption, chunkOptionVo.getMaxTokenSize())
+                    : PassageFactory.passaging(document.getDocumentContents(), passageOption);
 
-            return new ChunkDocumentVo(originalDocumentVo, trainingDocumentVos);
+            passages.forEach(passage -> passage.setTitle(fileDocument.getOriginalFileName()));
 
-        } finally {
-            // 파일 삭제
-            filePort.clearFilePort(fileDocument);
-        }
-    }
-
-    /**
-     * PDF 문서 청킹
-     *
-     * @param version        버전 구분 코드
-     * @param categoryCode   카테고리 코드
-     * @param fileDocumentVo 원본 문서 정보
-     */
-    @Override
-    public ChunkDocumentVo chunkPdfDocumentUseCase(String version, String categoryCode, FileDocumentVo fileDocumentVo, ChunkPatternVo chunkPatternVo, ChunkType chunkType) {
-
-        // 파일 업로드
-        FileDocument fileDocument = filePort.uploadFilePort(fileDocumentVo);
-
-        try {
-            Document document = extractPort.extractPdfDocumentPort(fileDocument);
-
-            OriginalDocumentVo originalDocumentVo = OriginalDocumentVo.builder()
-                    .version(version)
-                    .docType(DocumentType.FILE.getCode())
-                    .categoryCode(categoryCode)
+            return SourceVo.builder()
+                    .sourceType(SourceType.FILE.getCode())
                     .name(document.getName())
                     .content(document.getContent())
+                    .passageVos(passages.stream()
+                            .map(passage -> PassageVo.of(passage)
+                                    .chunking(chunkOptionVo.getMaxTokenSize(), chunkOptionVo.getOverlapSize()))
+                            .toList())
                     .build();
-
-            List<TrainingDocumentVo> trainingDocumentVos = chunkToTrainingDocument(
-                    originalDocumentVo.getName(),
-                    originalDocumentVo.getDocType(),
-                    originalDocumentVo.getCategoryCode(),
-                    originalDocumentVo.getVersion(),
-                    Chunk.chunking(document.getDocumentContents(), ChunkOption.builder()
-                            .maxTokenSize(chunkPatternVo.getMaxTokenSize())
-                            .overlapSize(chunkPatternVo.getOverlapSize())
-                            .patterns(chunkPatternVo.getPatterns())
-                            .type(chunkType)
-                            .build()));
-
-            return new ChunkDocumentVo(originalDocumentVo, trainingDocumentVos);
-
         } finally {
             // 파일 삭제
-            filePort.clearFilePort(fileDocument);
+            filePort.removeFilePort(fileDocument);
         }
     }
 
     /**
      * 법령 문서 청킹
      *
-     * @param version        버전 구분 코드
-     * @param categoryCode   카테고리 코드
-     * @param lawId          법령 목록
-     * @param chunkPatternVo 청킹 패턴 정보
+     * @param chunkOptionVo 청킹 패턴 정보
+     * @param lawId         법령 ID
      */
     @Override
     @Transactional
-    public ChunkDocumentVo chunkLawDocumentUseCase(String version, String categoryCode, Long lawId, ChunkPatternVo chunkPatternVo) {
+    public SourceVo chunkLawUseCase(ChunkOptionVo chunkOptionVo, Long lawId) {
 
-        Document document = lawReadPort.getLawDocumentsPort(lawId);
-
-        OriginalDocumentVo originalDocumentVo = OriginalDocumentVo.builder()
-                .version(version)
-                .docType(DocumentType.DB.getCode())
-                .categoryCode(categoryCode)
-                .name(document.getName())
-                .content(document.getContent())
+        Document document = lawReadPort.getLawsPort(lawId, chunkOptionVo.getExtractType());
+        PassageOption passageOption = PassageOption.builder()
+                .patterns(chunkOptionVo.getPatterns())
+                .type(chunkOptionVo.getSelectType())
+                .isExtractTitle(chunkOptionVo.isExtractTitle())
                 .build();
 
-        List<TrainingDocumentVo> trainingDocumentVos = chunkToTrainingDocument(
-                originalDocumentVo.getName(),
-                originalDocumentVo.getDocType(),
-                originalDocumentVo.getCategoryCode(),
-                originalDocumentVo.getVersion(),
-                Chunk.chunking(document.getDocumentContents(), ChunkOption.builder()
-                        .maxTokenSize(chunkPatternVo.getMaxTokenSize())
-                        .overlapSize(chunkPatternVo.getOverlapSize())
-                        .patterns(chunkPatternVo.getPatterns())
-                        .type(ChunkType.EQUALS)
-                        .build()));
+        List<Passage> passages = SelectType.TOKEN.equals(chunkOptionVo.getSelectType())
+                ? PassageFactory.passaging(document.getDocumentContents(), passageOption, chunkOptionVo.getMaxTokenSize())
+                : PassageFactory.passaging(document.getDocumentContents(), passageOption);
 
-        return new ChunkDocumentVo(originalDocumentVo, trainingDocumentVos);
+        passages.forEach(passage -> passage.setTitle(document.getName()));
+
+        return SourceVo.builder()
+                .sourceType(SourceType.DB.getCode())
+                .name(document.getName())
+                .content(document.getContent())
+                .passageVos(passages.stream()
+                        .map(passage -> PassageVo.of(passage)
+                                    .chunking(chunkOptionVo.getMaxTokenSize(), chunkOptionVo.getOverlapSize()))
+                        .toList())
+                .build();
     }
 
     /**
      * 메뉴얼 문서 청킹
-     * @param version        버전 구분 코드
-     * @param categoryCode   카테고리 코드
+     *
+     * @param chunkOptionVo 청킹 패턴 정보
+     * @param manualId      메뉴얼 ID
      */
     @Override
-    public ChunkDocumentVo chunkManualDocumentUseCase(String version, String categoryCode, Long manualId) {
+    public SourceVo chunkManualUseCase(ChunkOptionVo chunkOptionVo, Long manualId) {
 
-        Document document = manualReadPort.getManualDocumentsPort(manualId);
-
-        OriginalDocumentVo originalDocumentVo = OriginalDocumentVo.builder()
-                .version(version)
-                .docType(DocumentType.DB.getCode())
-                .categoryCode(categoryCode)
-                .name(document.getName())
-                .content(document.getContent())
+        Document document = manualReadPort.getManualsPort(manualId, chunkOptionVo.getExtractType());
+        PassageOption passageOption = PassageOption.builder()
+                .patterns(chunkOptionVo.getPatterns())
+                .type(chunkOptionVo.getSelectType())
+                .isExtractTitle(chunkOptionVo.isExtractTitle())
                 .build();
 
-        List<TrainingDocumentVo> trainingDocumentVos = chunkToTrainingDocument(
-                originalDocumentVo.getName(),
-                originalDocumentVo.getDocType(),
-                originalDocumentVo.getCategoryCode(),
-                originalDocumentVo.getVersion(),
-                Chunk.chunking(document.getDocumentContents(), ChunkOption.builder()
-                        .maxTokenSize(Integer.MIN_VALUE)        // 토큰 제한 없음
-                        .overlapSize(0)                         // 오버랩 설정 X
-                        .patterns(Collections.emptyList())      // 청킹 패턴 설정 X
-                        .type(ChunkType.NORMAL)                 // 청킹 타입 기본
-                        .build()));
+        List<Passage> passages = SelectType.TOKEN.equals(chunkOptionVo.getSelectType())
+                ? PassageFactory.passaging(document.getDocumentContents(), passageOption, chunkOptionVo.getMaxTokenSize())
+                : PassageFactory.passaging(document.getDocumentContents(), passageOption);
 
-        return new ChunkDocumentVo(originalDocumentVo, trainingDocumentVos);
-    }
+        passages.forEach(passage -> passage.setTitle(document.getName()));
 
-    /**
-     * Chunk Vo -> 전처리 문서로 변환
-     */
-    private static List<TrainingDocumentVo> chunkToTrainingDocument(String title, String docType, String categoryCode, String version, List<Chunk> chunks) {
-        return chunks.stream()
-                .map(chunk -> {
-                    String subTitle = chunk.getDocumentContents().size() == 1 ? chunk.getDocumentContents().getFirst().getTitle() : "";
-                    String thirdTitle = "";
-                    String content = chunk.getContent();
-                    String subContent = chunk.getSubContent();
-                    int contentTokenSize = chunk.getContentTokenSize();
-                    int subContentTokenSize = chunk.getSubContentTokenSize();
-                    int totalTokenSize = chunk.getTotalTokenSize();
-
-                    String[] titles = chunk.getTitles();
-
-                    if (titles.length > 0) {
-                        subTitle = titles[0];
-                    }
-
-                    if (titles.length > 1) {
-                        thirdTitle = String.join(" | ", Arrays.stream(titles)
-                                        .toList()
-                                        .subList(1, titles.length)
-                                        .stream()
-                                        .filter(s -> !s.isBlank()).toList())
-                                .trim();
-                    }
-
-                    return TrainingDocumentVo.builder()
-                            .docType(docType)
-                            .categoryCode(categoryCode)
-                            .version(version)
-                            .title(title)
-                            .subTitle(subTitle)
-                            .thirdTitle(thirdTitle)
-                            .content(content)
-                            .subContent(subContent)
-                            .totalTokenSize(totalTokenSize)
-                            .contentTokenSize(contentTokenSize)
-                            .subContentTokenSize(subContentTokenSize)
-                            .build();
-                })
-                .toList();
+        return SourceVo.builder()
+                .sourceType(SourceType.DB.getCode())
+                .name(document.getName())
+                .content(document.getContent())
+                .passageVos(passages.stream()
+                        .map(passage -> PassageVo.of(passage)
+                                .chunking(chunkOptionVo.getMaxTokenSize(), chunkOptionVo.getOverlapSize()))
+                        .toList())
+                .build();
     }
 }

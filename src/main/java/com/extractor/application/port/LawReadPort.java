@@ -1,6 +1,7 @@
 package com.extractor.application.port;
 
 import com.extractor.domain.model.Document;
+import com.extractor.global.enums.ExtractType;
 
 public interface LawReadPort {
 
@@ -9,5 +10,5 @@ public interface LawReadPort {
      *
      * @param lawId 법령 ID
      */
-    Document getLawDocumentsPort(Long lawId);
+    Document getLawsPort(Long lawId, ExtractType extractType);
 }

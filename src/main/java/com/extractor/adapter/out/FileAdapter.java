@@ -2,7 +2,7 @@ package com.extractor.adapter.out;
 
 import com.extractor.application.port.FilePort;
 import com.extractor.domain.model.FileDocument;
-import com.extractor.application.vo.FileDocumentVo;
+import com.extractor.application.vo.FileVo;
 import com.extractor.global.enums.FileExtension;
 import com.extractor.global.utils.FileUtil;
 import com.extractor.global.utils.StringUtil;
@@ -28,18 +28,18 @@ public class FileAdapter implements FilePort {
     /**
      * 파일 업로드
      *
-     * @param fileDocumentVo 원본 문서 Vo
+     * @param fileVo 원본 문서 Vo
      * @return 원본 문서 데이터
      */
     @Override
-    public FileDocument uploadFilePort(FileDocumentVo fileDocumentVo) {
+    public FileDocument uploadFilePort(FileVo fileVo) {
 
         String fileId = StringUtil.generateRandomId();
-        String originalFileName = fileDocumentVo.getOriginalFileName();
+        String originalFileName = fileVo.getOriginalFileName();
         Path path = Paths.get(UPLOAD_PATH);
 
-        FileExtension extension = fileDocumentVo.getExtension();
-        String fileName = fileId + "." + extension.getSimpleExtension();
+        FileExtension extension = fileVo.getExtension();
+        String fileName = fileId + "." + extension.getExt();
         Path fullPath = path.resolve(fileName);
 
         if (!path.toFile().exists()) {
@@ -47,7 +47,7 @@ public class FileAdapter implements FilePort {
         }
 
         try {
-            Files.write(fullPath, fileDocumentVo.getData());
+            Files.write(fullPath, fileVo.getData());
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage() + " | upload file error");
         }
@@ -64,7 +64,7 @@ public class FileAdapter implements FilePort {
 
                 // 파일 메타 데이터 변경
                 extension = FileExtension.HWPX;
-                fileName = fileId + "." + extension.getSimpleExtension();
+                fileName = fileId + "." + extension.getExt();
                 fullPath = path.resolve(fileName);
 
                 // HWPX 파일 쓰기
@@ -72,7 +72,7 @@ public class FileAdapter implements FilePort {
 
             } catch (Exception e) {
                 extension = FileExtension.PDF;
-                fileName = fileId + "." + extension.getSimpleExtension();
+                fileName = fileId + "." + extension.getExt();
 
                 // 파일명 PDF 로 변경
                 FileUtil.moveFile(fullPath, path.resolve(fileName));
@@ -112,7 +112,7 @@ public class FileAdapter implements FilePort {
      * @param fileDocument 원본 문서 도메인 객체
      */
     @Override
-    public void clearFilePort(FileDocument fileDocument) {
+    public void removeFilePort(FileDocument fileDocument) {
         // 파일 삭제
         FileUtil.deleteFile(fileDocument.getFullPath());
 

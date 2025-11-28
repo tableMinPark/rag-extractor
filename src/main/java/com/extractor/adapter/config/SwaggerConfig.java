@@ -16,6 +16,6 @@ public class SwaggerConfig {
                 .info(new Info()
                         .title("Extractor API Docs")
                         .description("문서 전처리 모듈")
-                        .version("0.1.0"));
+                        .version("0.3.0"));
     }
 }
