@@ -1,16 +1,15 @@
 package com.extractor.domain.vo;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
+@Builder
 @Getter
+@AllArgsConstructor
 public class PrefixVo {
 
     private final String prefix;
 
-    private final Boolean isDeleting;
-
-    public PrefixVo(String prefix, Boolean isDeleting) {
-        this.prefix = prefix;
-        this.isDeleting = isDeleting;
-    }
+    private final Boolean isTitle;
 }

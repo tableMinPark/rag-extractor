@@ -31,7 +31,10 @@ public class PatternDto {
         for (PatternDto patternDto : patternDtos) {
 
             List<PrefixVo> prefixes = patternDto.getPrefixes().stream()
-                    .map(prefixDto -> new PrefixVo(prefixDto.getPrefix(), prefixDto.getIsDeleting()))
+                    .map(prefixDto -> PrefixVo.builder()
+                            .prefix(prefixDto.getPrefix())
+                            .isTitle(prefixDto.getIsTitle())
+                            .build())
                     .toList();
 
             patterns.add(PatternVo.builder()

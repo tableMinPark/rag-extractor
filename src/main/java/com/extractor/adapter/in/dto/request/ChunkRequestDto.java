@@ -22,7 +22,7 @@ public class ChunkRequestDto {
     @Schema(description = "토큰 초과 시, 오버랩 사이즈", example = "0", defaultValue = "0")
     private Integer overlapSize;
 
-    @Schema(description = "전처리 패턴", example = "[{\"tokenSize\":0,\"prefixes\":[{\"prefix\":\"^[\\\\[\\\\(][^\\\\]\\\\)]*별표[^\\\\]\\\\)]*[\\\\]\\\\)]\",\"isDeleting\":false },{\"prefix\":\"^부(\\\\s+)?칙\",\"isDeleting\":false },{\"prefix\":\"^제[0-9]{1,3}장[가-힣]+\",\"isDeleting\":false }]},{\"tokenSize\":0,\"prefixes\":[{\"prefix\":\"^제[0-9]{1,3}절[가-힣]+\",\"isDeleting\":false }]},{\"tokenSize\":0,\"prefixes\":[{\"prefix\":\"^제[0-9]{1,3}조(\\\\([가-힣 ]+\\\\))?\",\"isDeleting\":false }]}]", defaultValue = "[]")
+    @Schema(description = "전처리 패턴", example = "[{\"tokenSize\":0,\"prefixes\":[{\"prefix\":\"^[\\\\[\\\\(][^\\\\]\\\\)]*별표[^\\\\]\\\\)]*[\\\\]\\\\)]\",\"isTitle\":true },{\"prefix\":\"^부(\\\\s+)?칙\",\"isTitle\":true },{\"prefix\":\"^제[0-9]{1,3}장[가-힣]+\",\"isTitle\":true }]},{\"tokenSize\":0,\"prefixes\":[{\"prefix\":\"^제[0-9]{1,3}절[가-힣]+\",\"isTitle\":true }]},{\"tokenSize\":0,\"prefixes\":[{\"prefix\":\"^제[0-9]{1,3}조(\\\\([가-힣 ]+\\\\))?\",\"isTitle\":true }]}]", defaultValue = "[]")
     private List<PatternDto> patterns;
 
     @Schema(description = "전처리 중단 패턴", example = "[\"^[\\\\[\\\\(][^\\\\]\\\\)]*(별지|별첨|서식)[^\\\\]\\\\)]*[\\\\]\\\\)]\"]", defaultValue = "[]")

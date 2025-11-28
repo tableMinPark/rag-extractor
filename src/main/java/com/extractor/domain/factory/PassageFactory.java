@@ -238,7 +238,7 @@ public class PassageFactory {
                         clearTitleBuffer(titleBuffer, passageOption.getDepthSize(), nextDepth, prefixIndex);
 
                         // 타이틀 지정
-                        if (!prefix.getIsDeleting()) {
+                        if (prefix.getIsTitle()) {
                             titleBuffer[nextDepth][prefixIndex] = documentContent;
                         }
                         break;
