@@ -40,7 +40,7 @@ out/
 **/src/*/resources/*.yml
 
 ### file ###
-filter/
+fileStore/
 filterTest/
 
 ### lib ###

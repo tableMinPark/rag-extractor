@@ -16,5 +16,5 @@ public class PrefixDto {
     private String prefix;
 
     @Schema(description = "삭제 여부")
-    private Boolean isDeleting;
+    private Boolean isTitle;
 }

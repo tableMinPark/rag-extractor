@@ -1,7 +1,6 @@
 package com.extractor.application.port;
 
 import com.extractor.domain.model.Chunk;
-import com.extractor.domain.factory.PassageFactory;
 import com.extractor.domain.model.Passage;
 import com.extractor.domain.model.Source;
 
