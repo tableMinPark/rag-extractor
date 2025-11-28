@@ -11,7 +11,13 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ChunkLawsRequestDto {
+public class ChunkLawsBatchRequestDto {
+
+    @Schema(description = "카테고리 코드", example = "TRAIN-LAW", defaultValue = "TRAIN-LAW")
+    private String categoryCode;
+
+    @Schema(description = "컬렉션 ID", example = "rag", defaultValue = "rag")
+    private String collectionId;
 
     @Schema(description = "표 추출 타입", example = "markdown", defaultValue = "markdown")
     private String extractType;

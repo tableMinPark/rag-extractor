@@ -13,13 +13,13 @@ public enum FileExtension {
     XML("xml"),
     ;
 
-    private final String simpleExtension;
+    private final String ext;
 
     public static FileExtension find(String extension) {
 
-        for (FileExtension ext : FileExtension.values()) {
-            if (extension != null && extension.endsWith(ext.simpleExtension)) {
-                return ext;
+        for (FileExtension fileExtension : FileExtension.values()) {
+            if (extension != null && extension.endsWith(fileExtension.ext)) {
+                return fileExtension;
             }
         }
 

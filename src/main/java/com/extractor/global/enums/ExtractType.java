@@ -19,6 +19,7 @@ public enum ExtractType {
                 return extractType;
             }
         }
+
         throw new IllegalArgumentException("No enum constant with value " + code);
     }
 }

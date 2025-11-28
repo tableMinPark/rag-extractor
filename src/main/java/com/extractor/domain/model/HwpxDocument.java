@@ -55,7 +55,7 @@ public class HwpxDocument extends Document {
                             case "hp:tbl" -> {
                                 Arrays.stream(contentBuilder.toString().split("\n")).forEach(super::addTextContent);
                                 String tableContent = this.convertTableXmlToHtml(node, 0);
-                                tableContent = StringUtil.removeHtml(tableContent, extractType);
+                                tableContent = StringUtil.removeHtmlExceptTable(tableContent, extractType);
                                 super.addTableContent(tableContent);
                                 contentBuilder = new StringBuilder();
                             }

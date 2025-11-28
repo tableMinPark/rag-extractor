@@ -1,4 +1,4 @@
-package com.extractor.domain.model;
+package com.extractor.application.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Builder
 @Getter
 @AllArgsConstructor
-public class Chunk {
+public class ChunkVo {
 
     private Long chunkId;
 

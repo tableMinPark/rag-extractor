@@ -7,9 +7,11 @@ import lombok.Getter;
 @Builder
 @Getter
 @AllArgsConstructor
-public class ExtractContentVo {
+public class SourceOptionVo {
 
-    private final String type;
+    private String version;
 
-    private final String content;
+    private String collectionId;
+
+    private String categoryCode;
 }
