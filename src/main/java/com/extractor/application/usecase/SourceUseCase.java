@@ -1,17 +1,13 @@
 package com.extractor.application.usecase;
 
-import com.extractor.application.vo.SourceOptionVo;
-import com.extractor.application.vo.SourceVo;
-
-import java.util.List;
+import com.extractor.application.command.CreateSourceCommand;
 
 public interface SourceUseCase {
 
     /**
-     * 전처리 결과 등록
+     * 파일 대상 문서 등록
      *
-     * @param sourceOptionVo 결과 등록 옵션
-     * @param sourceVos      전처리 결과 목록
+     * @param command 파일 대상 문서 등록 Command
      */
-    void createSource(SourceOptionVo sourceOptionVo, List<SourceVo> sourceVos);
+    void createSourcesUseCase(CreateSourceCommand command);
 }

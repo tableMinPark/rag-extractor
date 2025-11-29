@@ -1,7 +1,8 @@
 package com.extractor.application.usecase;
 
-import com.extractor.application.vo.ChunkOptionVo;
-import com.extractor.application.vo.FileVo;
+import com.extractor.application.command.ChunkFileCommand;
+import com.extractor.application.command.ChunkLawCommand;
+import com.extractor.application.command.ChunkManualCommand;
 import com.extractor.application.vo.SourceVo;
 
 public interface ChunkUseCase {
@@ -9,24 +10,21 @@ public interface ChunkUseCase {
     /**
      * 파일 청킹
      *
-     * @param chunkOptionVo 청킹 옵션
-     * @param fileVo        파일
+     * @param command 파일 청킹 Command
      */
-    SourceVo chunkFileUseCase(ChunkOptionVo chunkOptionVo, FileVo fileVo);
+    SourceVo chunkFileUseCase(ChunkFileCommand command);
 
     /**
      * 법령 문서 청킹
      *
-     * @param chunkOptionVo 청킹 패턴 정보
-     * @param lawId         법령 ID
+     * @param command 법령 문서 청킹 Command
      */
-    SourceVo chunkLawUseCase(ChunkOptionVo chunkOptionVo, Long lawId);
+    SourceVo chunkLawUseCase(ChunkLawCommand command);
 
     /**
      * 메뉴얼 문서 청킹
      *
-     * @param chunkOptionVo 청킹 패턴 정보
-     * @param manualId      메뉴얼 ID
+     * @param command 메뉴얼 문서 청킹 Command
      */
-    SourceVo chunkManualUseCase(ChunkOptionVo chunkOptionVo, Long manualId);
+    SourceVo chunkManualUseCase(ChunkManualCommand command);
 }

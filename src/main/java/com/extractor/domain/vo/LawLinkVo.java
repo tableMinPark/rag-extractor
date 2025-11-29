@@ -1,9 +1,12 @@
 package com.extractor.domain.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+@Builder
 @Getter
+@AllArgsConstructor
 public class LawLinkVo {
 
     private final Long lawLinkId;
@@ -25,18 +28,4 @@ public class LawLinkVo {
     private final String title;
 
     private final String content;
-
-    @Builder
-    public LawLinkVo(Long lawLinkId, Long lawContentId, Long lawId, Integer version, String text, String type, Long targetLawId, String linkCode, String title, String content) {
-        this.lawLinkId = lawLinkId;
-        this.lawContentId = lawContentId;
-        this.lawId = lawId;
-        this.version = version;
-        this.text = text;
-        this.type = type;
-        this.targetLawId = targetLawId;
-        this.linkCode = linkCode;
-        this.title = title;
-        this.content = content;
-    }
 }

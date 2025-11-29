@@ -1,34 +1,25 @@
 package com.extractor.application.vo;
 
-import com.extractor.global.enums.FileExtension;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-
+@Builder
 @Getter
+@AllArgsConstructor
 public class FileVo {
 
-    private final String originalFileName;
+    private final String ip;
 
-    private final FileExtension extension;
+    private final String filePath;
 
-    private final byte[] data;
+    private final String originFileName;
 
-    @Builder
-    public FileVo(MultipartFile multipartFile) {
-        if (multipartFile == null || multipartFile.getOriginalFilename() == null) {
-            throw new RuntimeException("multipart filename is null");
-        }
+    private final String fileName;
 
-        this.extension = FileExtension.find(multipartFile.getOriginalFilename());
-        this.originalFileName = multipartFile.getOriginalFilename().replace("." + extension.getExt(), "");
+    private final Integer fileSize;
 
-        try {
-            this.data = multipartFile.getBytes();
-        } catch (IOException e) {
-            throw new RuntimeException("get binary data error");
-        }
-    }
+    private final String ext;
+
+    private final String url;
 }

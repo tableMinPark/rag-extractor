@@ -1,73 +1,78 @@
 package com.extractor.application.service;
 
+import com.extractor.application.port.FilePersistencePort;
+import com.extractor.application.command.CreateSourceCommand;
+import com.extractor.application.port.ExtractPort;
 import com.extractor.application.port.SourcePersistencePort;
 import com.extractor.application.usecase.SourceUseCase;
-import com.extractor.application.vo.ChunkVo;
-import com.extractor.application.vo.PassageVo;
-import com.extractor.application.vo.SourceOptionVo;
-import com.extractor.application.vo.SourceVo;
-import com.extractor.domain.model.Chunk;
-import com.extractor.domain.model.Passage;
+import com.extractor.application.vo.FileVo;
+import com.extractor.domain.model.FileDetail;
 import com.extractor.domain.model.Source;
+import com.extractor.domain.model.SourcePattern;
+import com.extractor.domain.model.SourcePrefix;
+import com.extractor.domain.vo.PatternVo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class SourceService implements SourceUseCase {
 
     private final SourcePersistencePort sourcePersistencePort;
+    private final FilePersistencePort filePersistencePort;
+    private final ExtractPort extractPort;
 
     /**
-     * 전처리 결과 등록
+     * 대상 문서 등록
      *
-     * @param sourceOptionVo 결과 등록 옵션
-     * @param sourceVos      전처리 결과 목록
+     * @param createSourceCommand 대상 문서 등록 Command
      */
     @Transactional
     @Override
-    public void createSource(SourceOptionVo sourceOptionVo, List<SourceVo> sourceVos) {
+    public void createSourcesUseCase(CreateSourceCommand createSourceCommand) {
 
-        long fileDetailId = 1;
+        FileVo fileVo = createSourceCommand.getFile();
 
-        for (SourceVo sourceVo : sourceVos) {
-            Source source = sourcePersistencePort.createSourcePort(Source.builder()
-                    .sourceId(sourceVo.getSourceId())
-                    .version(sourceVo.getVersion())
-                    .sourceType(sourceVo.getSourceType())
-                    .categoryCode(sourceVo.getCategoryCode())
-                    .name(sourceVo.getName())
-                    .content(sourceVo.getContent())
-                    .collectionId(sourceOptionVo.getCollectionId())
-                    .fileDetailId(fileDetailId)
+        // 파일 업로드
+        FileDetail fileDetail = filePersistencePort.createFileDetail(FileDetail.builder()
+                .originalFileName(fileVo.getOriginFileName())
+                .fileName(fileVo.getFileName())
+                .ip(fileVo.getIp())
+                .filePath(fileVo.getFilePath())
+                .fileSize(fileVo.getFileSize())
+                .ext(fileVo.getExt())
+                .url(fileVo.getUrl())
+                .build());
+
+        // Source 생성 및 영속화
+        Source source = sourcePersistencePort.createSourcePort(Source.builder()
+                .sourceType(createSourceCommand.getSourceType())
+                .categoryCode(createSourceCommand.getCategoryCode())
+                .name(fileVo.getOriginFileName())
+                .content(extractPort.extractTextPort(fileDetail))
+                .collectionId(createSourceCommand.getCollectionId())
+                .fileDetailId(fileDetail.getFileDetailId())
+                .maxTokenSize(createSourceCommand.getMaxTokenSize())
+                .overlapSize(createSourceCommand.getOverlapSize())
+                .isActive(false)
+                .build());
+
+        // SourcePattern 목록 생성 및 영속화
+        for (int depth = 1; depth < createSourceCommand.getPatterns().size(); depth++) {
+            PatternVo patternVo = createSourceCommand.getPatterns().get(depth);
+
+            sourcePersistencePort.createSourcePatternPort(SourcePattern.builder()
+                    .sourceId(source.getSourceId())
+                    .tokenSize(patternVo.getTokenSize())
+                    .depth(depth)
+                    .sourcePrefixes(patternVo.getPrefixes().stream()
+                            .map(prefixVo -> SourcePrefix.builder()
+                                    .prefix(prefixVo.getPrefix())
+                                    .isTitle(prefixVo.getIsTitle())
+                                    .build())
+                            .toList())
                     .build());
-
-            for (PassageVo passageVo : sourceVo.getPassageVos()) {
-                Passage passage = sourcePersistencePort.createPassagePort(Passage.builder()
-                        .sourceId(source.getSourceId())
-                        .title(passageVo.getTitle())
-                        .subTitle(passageVo.getSubTitle())
-                        .thirdTitle(passageVo.getThirdTitle())
-                        .content(passageVo.getContent())
-                        .subContent(passageVo.getSubContent())
-                        .tokenSize(passageVo.getTokenSize())
-                        .build());
-
-                for (ChunkVo chunkVo : passageVo.getChunkVos()) {
-                    sourcePersistencePort.createChunkPort(Chunk.builder()
-                            .passageId(passage.getPassageId())
-                            .title(chunkVo.getTitle())
-                            .subTitle(chunkVo.getSubTitle())
-                            .thirdTitle(chunkVo.getThirdTitle())
-                            .content(chunkVo.getContent())
-                            .subContent(chunkVo.getSubContent())
-                            .tokenSize(chunkVo.getTokenSize())
-                            .build());
-                }
-            }
         }
     }
 }

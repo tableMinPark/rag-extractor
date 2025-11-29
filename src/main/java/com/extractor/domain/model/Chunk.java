@@ -11,23 +11,23 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Chunk {
 
-    private Long chunkId;
+    private final Long chunkId;
 
-    private Long passageId;
+    private final Long passageId;
 
-    private String title;
+    private final String title;
 
-    private String subTitle;
+    private final String subTitle;
 
-    private String thirdTitle;
+    private final String thirdTitle;
 
-    private String content;
+    private final String content;
 
-    private String subContent;
+    private final String subContent;
 
-    private Integer tokenSize;
+    private final Integer tokenSize;
 
-    private LocalDateTime sysCreateDt;
+    private final LocalDateTime sysCreateDt;
 
-    private LocalDateTime sysModifyDt;
+    private final LocalDateTime sysModifyDt;
 }
