@@ -1,5 +1,6 @@
 package com.extractor.domain.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
@@ -7,7 +8,9 @@ import lombok.ToString;
 import java.nio.file.Path;
 
 @ToString
+@Builder
 @Getter
+@AllArgsConstructor
 public class HwpxImageVo {
 
     private final String id;
@@ -16,13 +19,5 @@ public class HwpxImageVo {
 
     private final Path path;
 
-    private final String extension;
-
-    @Builder
-    public HwpxImageVo(String id, String content, Path path, String extension) {
-        this.id = id;
-        this.content = content;
-        this.path = path;
-        this.extension = extension;
-    }
+    private final String ext;
 }

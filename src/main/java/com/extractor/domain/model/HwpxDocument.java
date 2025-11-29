@@ -1,17 +1,15 @@
 package com.extractor.domain.model;
 
+import com.extractor.global.utils.HtmlUtil;
 import com.extractor.domain.vo.HwpxImageVo;
 import com.extractor.domain.vo.HwpxSectionVo;
-import com.extractor.global.enums.ExtractType;
-import com.extractor.global.enums.FileExtension;
-import com.extractor.global.utils.StringUtil;
+import com.extractor.application.enums.ExtractType;
 import com.extractor.global.utils.XmlUtil;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 import org.w3c.dom.Element;
 
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +25,8 @@ public class HwpxDocument extends Document {
     private final Map<String, HwpxImageVo> images;
 
     @Builder
-    public HwpxDocument(String name, FileExtension extension, ExtractType extractType, List<HwpxSectionVo> sections, Map<String, HwpxImageVo> images, Path path) {
-        super(name, extension, path);
+    public HwpxDocument(String name, ExtractType extractType, List<HwpxSectionVo> sections, Map<String, HwpxImageVo> images) {
+        super(name);
         this.sections = sections;
         this.images = images;
         this.extract(Objects.requireNonNullElse(extractType, ExtractType.MARK_DOWN));
@@ -55,7 +53,7 @@ public class HwpxDocument extends Document {
                             case "hp:tbl" -> {
                                 Arrays.stream(contentBuilder.toString().split("\n")).forEach(super::addTextContent);
                                 String tableContent = this.convertTableXmlToHtml(node, 0);
-                                tableContent = StringUtil.removeHtmlExceptTable(tableContent, extractType);
+                                tableContent = HtmlUtil.removeHtmlExceptTable(tableContent, extractType);
                                 super.addTableContent(tableContent);
                                 contentBuilder = new StringBuilder();
                             }

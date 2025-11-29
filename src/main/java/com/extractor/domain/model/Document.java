@@ -1,10 +1,8 @@
 package com.extractor.domain.model;
 
-import com.extractor.global.enums.FileExtension;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -15,20 +13,14 @@ public class Document {
 
     private final String name;
 
-    private final FileExtension extension;
-
-    private final Path path;
-
     private final List<DocumentContent> documentContents;
 
-    public Document(String name, FileExtension extension, Path path) {
-        this(name, extension, path, new ArrayList<>());
+    public Document(String name) {
+        this(name, new ArrayList<>());
     }
 
-    public Document(String name, FileExtension extension, Path path, List<DocumentContent> documentContents) {
+    public Document(String name, List<DocumentContent> documentContents) {
         this.name = name;
-        this.extension = extension;
-        this.path = path;
         this.documentContents = documentContents;
     }
 

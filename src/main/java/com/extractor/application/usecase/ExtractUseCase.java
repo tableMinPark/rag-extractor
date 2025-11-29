@@ -1,29 +1,27 @@
 package com.extractor.application.usecase;
 
-import com.extractor.application.vo.ExtractVo;
-import com.extractor.application.vo.FileVo;
-import com.extractor.global.enums.ExtractType;
+import com.extractor.application.command.ExtractFileCommand;
+import com.extractor.application.command.ExtractFileTextCommand;
+import com.extractor.application.vo.ExtractContentVo;
+
+import java.util.List;
 
 public interface ExtractUseCase {
 
     /**
-     * 한글 문서 추출
+     * 문서 추출
      *
-     * @param fileVo 원본 문서 정보
+     * @param command 문서 추출 Command
+     * @return 추출 내용 목록
      */
-    ExtractVo extractHwpxDocumentUseCase(FileVo fileVo, ExtractType extractType);
-
-    /**
-     * PDf 문서 추출
-     *
-     * @param fileVo 원본 문서 정보
-     */
-    ExtractVo extractPdfDocumentUseCase(FileVo fileVo);
+    List<ExtractContentVo> extractFileUseCase(ExtractFileCommand command);
 
     /**
      * 문서 텍스트 추출
      *
-     * @param fileVo 원본 문서 정보
+     * @param command 문서 텍스트 추출 Command
+     * @return 추출 텍스트
      */
-    String extractDocumentUseCase(FileVo fileVo);
+    String extractFileTextUseCase(ExtractFileTextCommand command);
+
 }

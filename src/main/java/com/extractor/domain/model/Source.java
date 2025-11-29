@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Builder
 @Getter
@@ -27,7 +28,17 @@ public class Source {
 
     private final Long fileDetailId;
 
-    private LocalDateTime sysCreateDt;
+    private final Integer maxTokenSize;
 
-    private LocalDateTime sysModifyDt;
+    private final Integer overlapSize;
+
+    private final Boolean isActive;
+
+    private final LocalDateTime sysCreateDt;
+
+    private final LocalDateTime sysModifyDt;
+
+    private final List<SourcePattern> sourcePatterns;
+
+    private final List<SourceStopPattern> sourceStopPatterns;
 }

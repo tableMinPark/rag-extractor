@@ -1,18 +1,27 @@
 package com.extractor.application.port;
 
 import com.extractor.domain.model.Chunk;
-import com.extractor.domain.model.Passage;
 import com.extractor.domain.model.Source;
+import com.extractor.domain.model.Passage;
+import com.extractor.domain.model.SourcePattern;
 
 public interface SourcePersistencePort {
 
     /**
-     * 원본 문서 저장
+     * 대상 문서 등록
      *
-     * @param source 원본 문서
-     * @return 원본 문서
+     * @param source 대상 문서
+     * @return 대상 문서
      */
     Source createSourcePort(Source source);
+
+    /**
+     * 대상 문서 패턴 등록
+     *
+     * @param sourcePattern 대상 문서 패턴
+     * @return 대상 문서 패턴
+     */
+    SourcePattern createSourcePatternPort(SourcePattern sourcePattern);
 
     /**
      * 패시지 저장

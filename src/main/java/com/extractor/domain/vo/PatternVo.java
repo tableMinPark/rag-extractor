@@ -1,20 +1,17 @@
 package com.extractor.domain.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
 
+@Builder
 @Getter
+@AllArgsConstructor
 public class PatternVo {
 
     private final int tokenSize;
 
     private final List<PrefixVo> prefixes;
-
-    @Builder
-    public PatternVo(int tokenSize, List<PrefixVo> prefixes) {
-        this.tokenSize = tokenSize;
-        this.prefixes = prefixes;
-    }
 }

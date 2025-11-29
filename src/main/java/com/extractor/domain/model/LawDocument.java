@@ -1,7 +1,6 @@
 package com.extractor.domain.model;
 
 import com.extractor.domain.vo.LawContentVo;
-import com.extractor.global.enums.FileExtension;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
@@ -20,7 +19,7 @@ public class LawDocument extends Document {
 
     @Builder
     public LawDocument(Long lawId, String lawName, List<LawContentVo> lawContents) {
-        super(lawName, null, null);
+        super(lawName);
         this.lawId = lawId;
         this.lawContents = lawContents;
         this.extract();

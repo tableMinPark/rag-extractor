@@ -1,34 +1,38 @@
 package com.extractor.adapter.in;
 
-import com.extractor.adapter.in.dto.etc.PatternDto;
-import com.extractor.adapter.in.dto.request.ChunkLawsRequestDto;
-import com.extractor.adapter.in.dto.request.ChunkManualsRequestDto;
-import com.extractor.adapter.in.dto.request.ChunkRequestDto;
-import com.extractor.adapter.in.dto.response.ChunkResponseDto;
-import com.extractor.adapter.in.dto.response.ErrorResponseDto;
+import com.extractor.adapter.in.dto.PatternDto;
+import com.extractor.adapter.in.request.ChunkLawsRequestDto;
+import com.extractor.adapter.in.request.ChunkManualsRequestDto;
+import com.extractor.adapter.in.request.ChunkRequestDto;
+import com.extractor.adapter.in.response.ChunkResponseDto;
+import com.extractor.adapter.in.response.ResponseDto;
+import com.extractor.adapter.propery.FileProperty;
+import com.extractor.application.command.ChunkFileCommand;
+import com.extractor.application.command.ChunkLawCommand;
+import com.extractor.application.command.ChunkManualCommand;
+import com.extractor.application.enums.ExtractType;
+import com.extractor.application.enums.SelectType;
 import com.extractor.application.usecase.ChunkUseCase;
 import com.extractor.application.vo.*;
-import com.extractor.global.enums.ExtractType;
-import com.extractor.global.enums.SelectType;
+import com.extractor.global.utils.FileUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@Slf4j
+@Validated
 @Tag(name = "ChunkController", description = "청킹 컨트롤러")
 @RequiredArgsConstructor
 @RequestMapping("/chunk")
@@ -36,14 +40,13 @@ import java.util.List;
 public class ChunkController {
 
     private final ChunkUseCase chunkUseCase;
+    private final FileProperty fileProperty;
+    private final FileUtil fileUtil;
 
     @Operation(summary = "파일 청킹")
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Success", content = {@Content(schema = @Schema(implementation = ChunkResponseDto.class, description = "전처리 응답"))}),
-            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ErrorResponseDto.class, description = "에러 응답"))}),
-    })
-    public ResponseEntity<List<ChunkResponseDto>> chunkFiles(
+    @PostMapping(path = "/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ResponseDto<List<ChunkResponseDto>>> chunkFiles(
+            @Valid
             @Parameter(name = "chunkRequestDto", description = "파일 청킹 정보", required = true)
             @RequestPart("requestDto")
             ChunkRequestDto chunkRequestDto,
@@ -54,21 +57,29 @@ public class ChunkController {
         ChunkOptionVo chunkOptionVo = ChunkOptionVo.builder()
                 .extractType(ExtractType.find(chunkRequestDto.getExtractType()))
                 .selectType(SelectType.find(chunkRequestDto.getSelectType()))
-                .patterns(PatternDto.convertPatternVo(chunkRequestDto.getPatterns()))
+                .patterns(PatternDto.toPatternVo(chunkRequestDto.getPatterns()))
                 .antiPatterns(chunkRequestDto.getStopPatterns())
                 .maxTokenSize(chunkRequestDto.getMaxTokenSize())
                 .overlapSize(chunkRequestDto.getOverlapSize())
-                .isExtractTitle(chunkRequestDto.isExtractTitle())
                 .build();
 
         List<SourceVo> sourceVos = new ArrayList<>();
         for (MultipartFile multipartFile : multipartFiles) {
-            FileVo fileVo = FileVo.builder().multipartFile(multipartFile).build();
+            FileVo fileVo = null;
 
-            SourceVo sourceVo = chunkUseCase.chunkFileUseCase(chunkOptionVo, fileVo);
-            sourceVos.add(sourceVo);
-
-            log.info("/chunk | {} ", sourceVo.getName());
+            try {
+                fileVo = fileUtil.uploadFile(multipartFile, fileProperty.getTempDir());
+                sourceVos.add(chunkUseCase.chunkFileUseCase(ChunkFileCommand.builder()
+                        .chunkOption(chunkOptionVo)
+                        .file(fileVo)
+                        .build()));
+            } catch (IOException e) {
+                throw new RuntimeException("파일 업로드 실패");
+            } finally {
+                if (fileVo != null) {
+                    fileUtil.deleteFile(Paths.get(fileVo.getUrl()));
+                }
+            }
         }
 
         List<ChunkResponseDto> chunkResponseDtos = sourceVos.stream()
@@ -89,16 +100,16 @@ public class ChunkController {
                 })
                 .toList();
 
-        return ResponseEntity.ok(chunkResponseDtos);
+        return ResponseEntity.ok(ResponseDto.<List<ChunkResponseDto>>builder()
+                .message("파일 청킹 성공")
+                .data(chunkResponseDtos)
+                .build());
     }
 
     @Operation(summary = "법령 청킹")
     @PostMapping(path = "/law")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Success", content = {@Content(schema = @Schema(implementation = ChunkResponseDto.class, description = "전처리 응답"))}),
-            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ErrorResponseDto.class, description = "에러 응답"))}),
-    })
-    public ResponseEntity<List<ChunkResponseDto>> chunkLaws(
+    public ResponseEntity<ResponseDto<List<ChunkResponseDto>>> chunkLaws(
+            @Valid
             @Parameter(name = "chunkLawsRequestDto", description = "법령 청킹 정보", required = true)
             @RequestBody
             ChunkLawsRequestDto chunkLawsRequestDto
@@ -106,19 +117,18 @@ public class ChunkController {
         ChunkOptionVo chunkOptionVo = ChunkOptionVo.builder()
                 .extractType(ExtractType.find(chunkLawsRequestDto.getExtractType()))
                 .selectType(SelectType.REGEX)
-                .patterns(PatternDto.convertPatternVo(chunkLawsRequestDto.getPatterns()))
+                .patterns(PatternDto.toPatternVo(chunkLawsRequestDto.getPatterns()))
                 .antiPatterns(chunkLawsRequestDto.getExcludeContentTypes())
                 .maxTokenSize(chunkLawsRequestDto.getMaxTokenSize())
                 .overlapSize(chunkLawsRequestDto.getOverlapSize())
                 .build();
 
-        List<SourceVo> sourceVos = new ArrayList<>();
-        for (Long lawId : chunkLawsRequestDto.getLawIds()) {
-            SourceVo sourceVo = chunkUseCase.chunkLawUseCase(chunkOptionVo, lawId);
-            sourceVos.add(sourceVo);
-
-            log.info("/chunk/law | {} ", sourceVo.getName());
-        }
+        List<SourceVo> sourceVos = chunkLawsRequestDto.getLawIds().stream()
+                .map(lawId -> chunkUseCase.chunkLawUseCase(ChunkLawCommand.builder()
+                        .chunkOption(chunkOptionVo)
+                        .lawId(lawId)
+                        .build()))
+                .toList();
 
         List<ChunkResponseDto> chunkResponseDtos = sourceVos.stream()
                 .map(sourceVo -> {
@@ -138,17 +148,17 @@ public class ChunkController {
                 })
                 .toList();
 
-        return ResponseEntity.ok(chunkResponseDtos);
+        return ResponseEntity.ok(ResponseDto.<List<ChunkResponseDto>>builder()
+                .message("법령 청킹 성공")
+                .data(chunkResponseDtos)
+                .build());
     }
 
     @Operation(summary = "메뉴얼 청킹")
     @PostMapping(path = "/manual")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Success", content = {@Content(schema = @Schema(implementation = ChunkResponseDto.class, description = "전처리 응답"))}),
-            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ErrorResponseDto.class, description = "에러 응답"))}),
-    })
-    public ResponseEntity<List<ChunkResponseDto>> chunkManuals(
-            @Parameter(name = "chunkManualRequestDto", description = "메뉴얼 청킹 정보", required = true)
+    public ResponseEntity<ResponseDto<List<ChunkResponseDto>>> chunkManuals(
+            @Valid
+            @Parameter(name = "chunkManualsRequestDto", description = "메뉴얼 청킹 정보", required = true)
             @RequestBody
             ChunkManualsRequestDto chunkManualsRequestDto
     ) {
@@ -161,13 +171,12 @@ public class ChunkController {
                 .overlapSize(chunkManualsRequestDto.getOverlapSize())
                 .build();
 
-        List<SourceVo> sourceVos = new ArrayList<>();
-        for (Long manualId : chunkManualsRequestDto.getManualIds()) {
-            SourceVo sourceVo = chunkUseCase.chunkManualUseCase(chunkOptionVo, manualId);
-            sourceVos.add(sourceVo);
-
-            log.info("/chunk/manual | {} ", sourceVo.getName());
-        }
+        List<SourceVo> sourceVos = chunkManualsRequestDto.getManualIds().stream()
+                .map(manualId -> chunkUseCase.chunkManualUseCase(ChunkManualCommand.builder()
+                        .chunkOption(chunkOptionVo)
+                        .manualId(manualId)
+                        .build()))
+                .toList();
 
         List<ChunkResponseDto> chunkResponseDtos = sourceVos.stream()
                 .map(sourceVo -> {
@@ -187,6 +196,9 @@ public class ChunkController {
                 })
                 .toList();
 
-        return ResponseEntity.ok(chunkResponseDtos);
+        return ResponseEntity.ok(ResponseDto.<List<ChunkResponseDto>>builder()
+                .message("메뉴얼 청킹 성공")
+                .data(chunkResponseDtos)
+                .build());
     }
 }

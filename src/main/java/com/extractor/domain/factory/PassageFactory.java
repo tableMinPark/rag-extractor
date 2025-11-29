@@ -2,10 +2,10 @@ package com.extractor.domain.factory;
 
 import com.extractor.domain.model.DocumentContent;
 import com.extractor.domain.model.Passage;
-import com.extractor.domain.model.PassageOption;
+import com.extractor.domain.vo.PassageOptionVo;
 import com.extractor.domain.vo.PatternVo;
 import com.extractor.domain.vo.PrefixVo;
-import com.extractor.global.enums.SelectType;
+import com.extractor.application.enums.SelectType;
 import lombok.Builder;
 import lombok.ToString;
 
@@ -67,13 +67,13 @@ public class PassageFactory {
     /**
      * 패시징 (토큰)
      */
-    public static List<Passage> passaging(List<DocumentContent> documentContents, PassageOption passageOption, int tokenSize) {
+    public static List<Passage> passaging(List<DocumentContent> documentContents, PassageOptionVo passageOptionVo, int tokenSize) {
 
-        DocumentContent[][] titleBuffer = new DocumentContent[passageOption.getDepthSize()][];
+        DocumentContent[][] titleBuffer = new DocumentContent[passageOptionVo.getDepthSize()][];
 
         // 타이틀 버퍼 초기화
-        for (int depth = 0; depth < passageOption.getDepthSize(); depth++) {
-            int prefixSize = passageOption.getPatterns().get(depth).getPrefixes().size();
+        for (int depth = 0; depth < passageOptionVo.getDepthSize(); depth++) {
+            int prefixSize = passageOptionVo.getPatterns().get(depth).getPrefixes().size();
             titleBuffer[depth] = new DocumentContent[prefixSize];
             Arrays.fill(titleBuffer[depth], null);
         }
@@ -84,25 +84,25 @@ public class PassageFactory {
     /**
      * 패시징 (패턴)
      */
-    public static List<Passage> passaging(List<DocumentContent> documentContents, PassageOption passageOption) {
+    public static List<Passage> passaging(List<DocumentContent> documentContents, PassageOptionVo passageOptionVo) {
 
-        DocumentContent[][] titleBuffer = new DocumentContent[passageOption.getDepthSize()][];
+        DocumentContent[][] titleBuffer = new DocumentContent[passageOptionVo.getDepthSize()][];
 
         // 타이틀 버퍼 초기화
-        for (int depth = 0; depth < passageOption.getDepthSize(); depth++) {
-            int prefixSize = passageOption.getPatterns().get(depth).getPrefixes().size();
+        for (int depth = 0; depth < passageOptionVo.getDepthSize(); depth++) {
+            int prefixSize = passageOptionVo.getPatterns().get(depth).getPrefixes().size();
             titleBuffer[depth] = new DocumentContent[prefixSize];
             Arrays.fill(titleBuffer[depth], null);
         }
 
         // 본문 -> 타이틀 추출
-        if (passageOption.isExtractTitle()) {
+        if (passageOptionVo.isExtractTitle()) {
             List<String> prefixes = new ArrayList<>();
-            passageOption.getPatterns().forEach(patternVo -> prefixes.addAll(patternVo.getPrefixes().stream().map(PrefixVo::getPrefix).toList()));
+            passageOptionVo.getPatterns().forEach(patternVo -> prefixes.addAll(patternVo.getPrefixes().stream().map(PrefixVo::getPrefix).toList()));
             documentContents.forEach(documentContent -> documentContent.extractTitle(prefixes));
         }
 
-        return passaging(titleBuffer, PassageFactory.init(titleBuffer, documentContents), passageOption);
+        return passaging(titleBuffer, PassageFactory.init(titleBuffer, documentContents), passageOptionVo);
     }
 
     /**
@@ -152,12 +152,12 @@ public class PassageFactory {
      * 청킹 재귀 프로 세스 (패턴)
      *
      * @param passageFactory 부모 청크
-     * @param passageOption  청킹 옵션
+     * @param passageOptionVo  청킹 옵션
      * @return 문서 청크 목록
      */
-    private static List<Passage> passaging(DocumentContent[][] titleBuffer, PassageFactory passageFactory, PassageOption passageOption) {
+    private static List<Passage> passaging(DocumentContent[][] titleBuffer, PassageFactory passageFactory, PassageOptionVo passageOptionVo) {
 
-        List<PatternVo> patternVos = passageOption.getPatterns();
+        List<PatternVo> patternVos = passageOptionVo.getPatterns();
         int nextDepth = passageFactory.depth + 1;
         int contentTokenSize = passageFactory.contentTokenSize;
         int depthMaxTokenSize = patternVos.size() > nextDepth ? patternVos.get(nextDepth).getTokenSize() : 0;
@@ -179,11 +179,11 @@ public class PassageFactory {
                     .build());
         }
         // 깊이 초과 (재귀 종료)
-        else if (passageOption.getDepthSize() <= nextDepth) {
-            if (SelectType.NONE.equals(passageOption.getType())) {
+        else if (passageOptionVo.getDepthSize() <= nextDepth) {
+            if (SelectType.NONE.equals(passageOptionVo.getType())) {
                 // 1개씩 content 1개씩 재귀 호출
                 for (DocumentContent documentContent : passageFactory.documentContents) {
-                    passages.addAll(passaging(copyTitleBuffer(titleBuffer), PassageFactory.nextStep(nextDepth, titleBuffer, List.of(documentContent)), passageOption));
+                    passages.addAll(passaging(copyTitleBuffer(titleBuffer), PassageFactory.nextStep(nextDepth, titleBuffer, List.of(documentContent)), passageOptionVo));
                 }
             } else {
                 // 하나의 content 로 저장
@@ -208,7 +208,7 @@ public class PassageFactory {
         }
         else {
             int head = -1;
-            PatternVo patternVo = passageOption.getPatterns().get(nextDepth);
+            PatternVo patternVo = passageOptionVo.getPatterns().get(nextDepth);
 
             for (int contentIndex = 0; contentIndex < passageFactory.documentContents.size(); contentIndex++) {
                 DocumentContent documentContent = passageFactory.documentContents.get(contentIndex);
@@ -227,7 +227,7 @@ public class PassageFactory {
                                 passaging(
                                         copyTitleBuffer(titleBuffer),
                                         PassageFactory.nextStep(nextDepth, titleBuffer, passageFactory.documentContents.subList(Math.max(head, 0), contentIndex)),
-                                        passageOption
+                                        passageOptionVo
                                 )
                         );
 
@@ -235,7 +235,7 @@ public class PassageFactory {
                         head = contentIndex;
 
                         // 타이틀 버퍼 정리
-                        clearTitleBuffer(titleBuffer, passageOption.getDepthSize(), nextDepth, prefixIndex);
+                        clearTitleBuffer(titleBuffer, passageOptionVo.getDepthSize(), nextDepth, prefixIndex);
 
                         // 타이틀 지정
                         if (prefix.getIsTitle()) {
@@ -250,7 +250,7 @@ public class PassageFactory {
                     passaging(
                             copyTitleBuffer(titleBuffer),
                             PassageFactory.nextStep(nextDepth, titleBuffer, passageFactory.documentContents.subList(Math.max(head, 0), passageFactory.documentContents.size())),
-                            passageOption
+                            passageOptionVo
                     )
             );
         }

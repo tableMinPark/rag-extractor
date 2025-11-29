@@ -1,8 +1,8 @@
 package com.extractor.application.vo;
 
 import com.extractor.domain.vo.PatternVo;
-import com.extractor.global.enums.SelectType;
-import com.extractor.global.enums.ExtractType;
+import com.extractor.application.enums.SelectType;
+import com.extractor.application.enums.ExtractType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -25,6 +25,4 @@ public class ChunkOptionVo {
     private final int maxTokenSize;
 
     private final int overlapSize;
-
-    private final boolean isExtractTitle;
 }

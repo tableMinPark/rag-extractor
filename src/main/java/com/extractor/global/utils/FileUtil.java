@@ -1,29 +1,102 @@
 package com.extractor.global.utils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import com.extractor.adapter.propery.FileProperty;
+import com.extractor.application.vo.FileVo;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.*;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+@Component
+@RequiredArgsConstructor
 public class FileUtil {
 
+    private final FileProperty fileProperty;
+
     /**
-     * 폴더 생성
+     * 파일 저장
      *
-     * @param path 디렉토리 경로
+     * @param multipartFile 업로드 파일
+     * @param filePath      파일 경로
+     * @throws IOException 업로드 실패 예외
      */
-    public static void mkdirs(Path path) {
+    public FileVo uploadFile(MultipartFile multipartFile, String filePath) throws IOException {
 
-        boolean isSuccess = path.toFile().mkdirs();
+        String originFileName = "";
+        String fileName = "";
+        String ip = "127.0.0.1";
+        int fileSize = 0;
+        String ext = "";
+        String url = "";
 
-        if (!isSuccess) {
-            throw new RuntimeException("make directory error");
+        // 원본 파일명
+        originFileName = multipartFile.getOriginalFilename();
+        if (originFileName == null) originFileName = "Unknown";
+
+        // 파일명
+        fileName = StringUtil.generateRandomId();
+
+        // IP
+        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+        while (interfaces.hasMoreElements()) {
+            NetworkInterface ni = interfaces.nextElement();
+            Enumeration<InetAddress> addresses = ni.getInetAddresses();
+
+            while (addresses.hasMoreElements()) {
+                InetAddress addr = addresses.nextElement();
+
+                if (!addr.isLoopbackAddress() && addr instanceof Inet4Address) {
+                    ip = addr.getHostAddress();
+                }
+            }
         }
+
+        // 파일 크기
+        fileSize = (int) multipartFile.getSize();
+
+        // 파일 확장자
+        String[] extSplit = multipartFile.getOriginalFilename().trim().split("\\.");
+        ext = extSplit[extSplit.length - 1];
+
+        // 파일 저장 경로
+        Path fullPath = Paths.get(fileProperty.getFileStorePath(), filePath);
+        Path fullFilePath = Paths.get(fileProperty.getFileStorePath(), filePath, fileName);
+        url = fullFilePath.toString();
+
+        // 저장 경로 디렉토리 생성
+        if (!fullPath.toFile().exists()) {
+            mkdirs(fullPath);
+        }
+
+        // 파일 존재 여부 체크
+        if (fullFilePath.toFile().exists()) {
+            throw new IOException("File already exists!");
+        }
+
+        // 파일 저장
+        multipartFile.transferTo(fullFilePath);
+
+        // 파일 정보 반환
+        return FileVo.builder()
+                .originFileName(originFileName)
+                .fileName(fileName)
+                .ip(ip)
+                .filePath(filePath)
+                .fileSize(fileSize)
+                .ext(ext)
+                .url(url)
+                .build();
     }
 
     /**
@@ -32,14 +105,14 @@ public class FileUtil {
      * @param src 현재 경로
      * @param dst 이동 경로
      */
-    public static Path moveFile(Path src, Path dst) {
-        boolean isSuccess = src.toFile().renameTo(dst.toFile());
+    public void moveFile(Path src, Path dst) {
+        if (src.toFile().exists()) {
+            boolean isSuccess = src.toFile().renameTo(dst.toFile());
 
-        if (!isSuccess) {
-            throw new RuntimeException("move file error");
+            if (!isSuccess) {
+                throw new RuntimeException("move file error");
+            }
         }
-
-        return dst;
     }
 
     /**
@@ -48,9 +121,9 @@ public class FileUtil {
      * @param src 현재 경로
      * @param dst 이동 경로
      */
-    public static Path copyFile(Path src, Path dst) {
+    public void copyFile(Path src, Path dst) {
         try {
-            return Files.copy(src, dst, StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(src, dst, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new RuntimeException(" copy file error");
         }
@@ -61,12 +134,81 @@ public class FileUtil {
      *
      * @param path 파일 경로
      */
-    public static void deleteFile(Path path) {
+    public void deleteFile(Path path) {
+        if (path.toFile().exists()) {
+            boolean isSuccess = path.toFile().exists() && path.toFile().delete();
 
-        boolean isSuccess = path.toFile().exists() && path.toFile().delete();
+            if (!isSuccess) {
+                throw new RuntimeException("delete file error");
+            }
+        }
+    }
+
+    /**
+     * 파일 내용 추출
+     *
+     * @param path 파일 경로
+     * @return 추출 문자열
+     */
+    public String read(Path path) {
+
+        String content = "";
+
+        try {
+            content = new String(Files.readAllBytes(path));
+        } catch (IOException ignored) {
+        }
+
+        return content;
+    }
+
+    /**
+     * 파일 내용 추출
+     *
+     * @param path 파일 경로
+     * @return 추출 문자열
+     */
+    public String readFile(Path path) {
+        StringBuilder contentBuilder = new StringBuilder();
+
+        try {
+            String os = System.getProperty("os.name").toLowerCase();
+
+            String[] cmd;
+            if (os.contains("windows")) {
+                cmd = new String[]{"cmd.exe", "/c", fileProperty.getSnfPath().getWindows(), "-NO_WITHPAGE", "-C", "utf8", path.toString()};
+            } else if (os.contains("mac")) {
+                cmd = new String[]{fileProperty.getSnfPath().getMac(), "-NO_WITHPAGE", "-C", "utf8", path.toString()};
+            } else {
+                cmd = new String[]{fileProperty.getSnfPath().getLinux(), "-NO_WITHPAGE", "-C", "utf8", path.toString()};
+            }
+
+            Process process = Runtime.getRuntime().exec(cmd);
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                contentBuilder.append(line).append("\n");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("snf extract error");
+        }
+
+        return contentBuilder.toString();
+    }
+
+    /**
+     * 디렉토리 생성
+     *
+     * @param path 디렉토리 경로
+     */
+    public void mkdirs(Path path) {
+
+        boolean isSuccess = path.toFile().mkdirs();
 
         if (!isSuccess) {
-            throw new RuntimeException("delete file error");
+            throw new RuntimeException("make directory error");
         }
     }
 
@@ -75,7 +217,7 @@ public class FileUtil {
      *
      * @param path 디렉토리 경로
      */
-    public static boolean deleteDirectory(Path path) {
+    public boolean deleteDirectory(Path path) {
         boolean isSuccess = true;
 
         if (path.toFile().exists()) {
@@ -102,29 +244,12 @@ public class FileUtil {
     }
 
     /**
-     * 파일 내용 추출
-     *
-     * @param path 파일 경로
-     */
-    public static String readFile(Path path) {
-
-        String content = "";
-
-        try {
-            content = new String(Files.readAllBytes(path));
-        } catch (IOException ignored) {
-        }
-
-        return content;
-    }
-
-    /**
      * 파일 압축 해제
      *
      * @param zipFile 압축 파일
      * @param destDir 압축 해제 경로
      */
-    public static Path decompression(File zipFile, File destDir) {
+    public void decompression(File zipFile, File destDir) {
         if (!destDir.exists()) {
             mkdirs(destDir.toPath());
         } else {
@@ -159,9 +284,6 @@ public class FileUtil {
                 }
                 zis.closeEntry();
             }
-
-            return destDir.toPath();
-
         } catch (IOException e) {
             throw new RuntimeException("decompression error");
         }
@@ -170,7 +292,7 @@ public class FileUtil {
     /**
      * 보안 문제 방지 파일 생성 (Zip Slip 방어)
      */
-    private static File newFile(File destinationDir, ZipEntry zipEntry) throws IOException {
+    private File newFile(File destinationDir, ZipEntry zipEntry) throws IOException {
         File destFile = new File(destinationDir, zipEntry.getName());
 
         String destDirPath = destinationDir.getCanonicalPath();

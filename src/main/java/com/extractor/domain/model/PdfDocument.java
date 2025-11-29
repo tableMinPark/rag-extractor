@@ -1,11 +1,9 @@
 package com.extractor.domain.model;
 
-import com.extractor.global.enums.FileExtension;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.nio.file.Path;
 import java.util.Arrays;
 
 @ToString
@@ -15,8 +13,8 @@ public class PdfDocument extends Document {
     private final String content;
 
     @Builder
-    public PdfDocument(String name, FileExtension extension, Path path, String content) {
-        super(name, extension, path);
+    public PdfDocument(String name, String content) {
+        super(name);
         this.content = content;
         this.extract();
     }
