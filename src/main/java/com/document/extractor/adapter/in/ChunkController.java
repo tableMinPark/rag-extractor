@@ -113,7 +113,7 @@ public class ChunkController {
     ) {
         ChunkOptionVo chunkOptionVo = ChunkOptionVo.builder()
                 .extractType(ExtractType.find(chunkReposRequestDto.getExtractType()))
-                .selectType(SelectType.REGEX)
+                .selectType(SelectType.find(chunkReposRequestDto.getSelectType()))
                 .patterns(PatternDto.toPatternVo(chunkReposRequestDto.getPatterns()))
                 .antiPatterns(chunkReposRequestDto.getExcludeContentTypes())
                 .maxTokenSize(chunkReposRequestDto.getMaxTokenSize())

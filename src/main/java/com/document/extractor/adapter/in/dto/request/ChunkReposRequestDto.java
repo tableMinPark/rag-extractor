@@ -44,4 +44,8 @@ public class ChunkReposRequestDto {
     @NotNull
     @Schema(description = "원격 문서 ID 목록", example = "[27]", defaultValue = "[]")
     private List<String> repoIds;
+
+    @Pattern(regexp = "regex|token|none", message = "regex 과 token 만 지원")
+    @Schema(description = "전처리 타입", example = "regex", defaultValue = "none")
+    private String selectType = "none";
 }

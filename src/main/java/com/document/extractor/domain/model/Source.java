@@ -1,5 +1,6 @@
 package com.document.extractor.domain.model;
 
+import com.document.extractor.application.enums.SelectType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,6 +18,8 @@ public class Source {
     private final String version;
 
     private final String sourceType;
+
+    private final SelectType selectType;
 
     private final String categoryCode;
 
