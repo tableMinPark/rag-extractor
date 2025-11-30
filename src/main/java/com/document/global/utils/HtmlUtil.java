@@ -16,10 +16,8 @@ import java.util.stream.Collectors;
 public class HtmlUtil {
 
     private static final Set<String> TABLE_CHILD_TAGS = Set.of("tr", "td", "thead", "tbody", "th");
-    private static final Set<String> BLOCK_TAGS = Set.of(
-            "div", "p", "section", "article", "header", "footer", "aside", "nav", "main",
-            "li", "tr", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "br", "hr"
-    );
+    private static final Set<String> BLOCK_TAGS = Set.of("div", "p", "section", "article", "header", "footer", "aside", "nav", "main", "li", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "br", "hr" );
+    private static final String NEW_LINE_PREFIX = "__NEW_LINE__";
 
     /**
      * 마크 다운 표 데이터 HTML 변환
@@ -68,10 +66,11 @@ public class HtmlUtil {
     /**
      * 마크 다운 표 데이터 HTML 변환
      *
-     * @param markdown 마크 다운 문자열
+     * @param markdown     마크 다운 문자열
+     * @param addAttribute 텍스트 정렬 속성 포함 여부
      * @return 표 HTML 변환 된, 마크 다운 문자열
      */
-    private static String convertMarkdownTableToHtml(String markdown, boolean addAttribute) {
+    public static String convertMarkdownTableToHtml(String markdown, boolean addAttribute) {
         if (markdown == null) return "";
 
         // 1) 이스케이프된 파이프(\|)를 임시 토큰으로 치환
@@ -394,12 +393,13 @@ public class HtmlUtil {
     /**
      * HTML 태그 삭제 (표 HTML 보존)
      *
-     * @param html HTML 문자열
+     * @param html            HTML 문자열
+     * @param startTableDepth 표 보존 깊이
      * @return HTML 태그 삭제 문자열
      */
     public static String removeHtmlExceptTable(String html, int startTableDepth) {
         // 개형 변환
-        String convertNewLineHtml = html.replace("\n", "<br>");
+        String convertNewLineHtml = html.replace("\n", NEW_LINE_PREFIX);
 
         // table 태그 표 마크 다운 문자열 변환
         Document doc = Jsoup.parse(convertNewLineHtml);
@@ -409,7 +409,7 @@ public class HtmlUtil {
         removeHtmlExceptTable(doc.body(), stringBuilder, startTableDepth, 0);
 
         // 표 마크 다운 셀 내부 개행 처리
-        return StringUtil.normalize(stringBuilder.toString().replace("<br>", "\n"));
+        return StringUtil.normalize(stringBuilder.toString().replace(NEW_LINE_PREFIX, "\n"));
     }
 
     /**
@@ -417,23 +417,42 @@ public class HtmlUtil {
      */
     private static void removeHtmlExceptTable(Node node, StringBuilder stringBuilder, int startTableDepth, int depth) {
         for (Node child : node.childNodes()) {
-            if (child instanceof TextNode) {
-                stringBuilder.append(((TextNode) child).text());
-            } else if (child instanceof Element el) {
+            // 텍스트 노드의 경우
+            if (child instanceof TextNode textNode) {
+                // 개행만 있는 경우
+                if (NEW_LINE_PREFIX.equals(textNode.text().trim())) continue;
+
+                stringBuilder.append(textNode.text().trim());
+
+                // 테이블 태그 하위 텍스트 노드의 아닌 경우
+                if (child.parent() instanceof Element el) {
+                    String tag = el.tagName().toLowerCase();
+                    if (!TABLE_CHILD_TAGS.contains(tag)) {
+                        stringBuilder.append(NEW_LINE_PREFIX);
+                    }
+                }
+            }
+            // 텍스트 노드 외
+            else if (child instanceof Element el) {
                 String tag = el.tagName().toLowerCase();
 
+                // 테이블 태그인 경우
                 if ("table".equals(tag)) {
                     int nextDepth = depth + 1;
 
+                    // startTableDepth 이상 table은 HTML 유지
                     if (nextDepth > startTableDepth) {
-                        // 2depth 이상 table은 HTML 유지
                         stringBuilder.append("<table>");
                         removeHtmlExceptTable(el, stringBuilder, startTableDepth, nextDepth);
                         stringBuilder.append("</table>");
-                    } else {
+                    }
+                    // startTableDepth 이전 table 은 삭제
+                    else {
                         removeHtmlExceptTable(el, stringBuilder, startTableDepth, nextDepth);
                     }
-                } else if (TABLE_CHILD_TAGS.contains(tag) && depth > startTableDepth) {
+                }
+                // 테이블 하위 태그인 경우
+                else if (TABLE_CHILD_TAGS.contains(tag) && depth > startTableDepth) {
                     // table 구조 태그 유지 + 속성 포함
                     stringBuilder.append("<").append(tag);
 
@@ -452,7 +471,7 @@ public class HtmlUtil {
                 } else {
                     removeHtmlExceptTable(el, stringBuilder, startTableDepth, depth);
                     if (BLOCK_TAGS.contains(tag)) {
-                        stringBuilder.append("\n");
+                        stringBuilder.append(NEW_LINE_PREFIX);
                     }
                 }
             }
