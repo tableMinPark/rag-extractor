@@ -5,6 +5,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -15,9 +16,55 @@ import java.util.List;
 
 class HtmlUtilTest {
 
-    private static final String html = """
-            제목
-            부제목
+    private static final String tableHtml = """
+    제목
+    부제목
+    <table>
+      <thead>
+        <tr>
+          <th>A</th>
+          <th>B</th>
+          <th>C</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>D</td>
+          <td>E</td>
+          <td>F</td>
+        </tr>
+        <tr>
+          <td>1</td>
+          <td>2</td>
+          <td>3</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>5</td>
+          <td>6</td>
+        </tr>
+      </tbody>
+    </table>
+    """;
+
+    private static final String innerTableHtml = """
+    <제목>
+    <부제목>
+    <table border="1">\\n
+      <tr>
+        <th rowspan="2">A</th>
+        <th>B</th>
+        <th>C</th>
+      </tr>
+      <tr>
+        <th colspan="2">D</th>
+      </tr>
+      <tr>
+        <td>1</td>
+        <td rowspan="2" colspan="2">2</td>
+      </tr>
+      <tr>
+        <td>
             <table border="1">
               <tr>
                 <th rowspan="2">A</th>
@@ -47,42 +94,45 @@ class HtmlUtilTest {
                         <td rowspan="2" colspan="2">2</td>
                       </tr>
                       <tr>
-                        <td>
-                            <table border="1">
-                              <tr>
-                                <th rowspan="2">A</th>
-                                <th>B</th>
-                                <th>C</th>
-                              </tr>
-                              <tr>
-                                <th colspan="2">D</th>
-                              </tr>
-                              <tr>
-                                <td>1</td>
-                                <td rowspan="2" colspan="2">2</td>
-                              </tr>
-                              <tr>
-                                <td>3</td>
-                              </tr>
-                            </table>
-                        </td>
+                        <td>3</td>
                       </tr>
                     </table>
                 </td>
               </tr>
             </table>
+        </td>
+      </tr>
+    </table>
     """;
     private static final Logger log = LoggerFactory.getLogger(HtmlUtilTest.class);
+
+    @DisplayName("중첩 HTML 형식의 표를 특정 DEPTH 까지 삭제 한다.")
+    @Test
+    void removeHtmlExceptTable() {
+        String html = HtmlUtil.removeHtmlExceptTable(innerTableHtml);
+        log.info("\n{}", html);
+    }
+
+    @DisplayName("MARKDOWN 표를 HTML 형식의 표로 변환 한다.")
+    @Test
+    void convertMarkDownToHtml() {
+        String markdown = HtmlUtil.convertTableHtmlToMarkDown(tableHtml);
+        log.info("\n{}", markdown);
+
+        String html = HtmlUtil.convertMarkdownTableToHtml(markdown);
+        log.info("\n{}", html);
+
+        Assertions.assertEquals(tableHtml.trim(), html.trim());
+    }
 
     @DisplayName("HTML 표를 MARKDOWN 형식의 표로 변환 한다.")
     @Test
     void convertHtmlToMarkdown() {
-
-        String markdown = HtmlUtil.convertTableHtmlToMarkDown(html);
-
+        String markdown = HtmlUtil.convertTableHtmlToMarkDown(innerTableHtml);
         log.info("\n{}", markdown);
     }
 
+    @DisplayName("MARKDOWN 표를 HTML 형식의 표로 변환 한다.")
     @Test
     void convertHtmlToMarkdownTest() {
 
