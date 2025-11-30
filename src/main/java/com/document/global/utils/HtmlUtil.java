@@ -15,9 +15,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class HtmlUtil {
 
-    private static final Set<String> TABLE_CHILD_TAGS = Set.of("tr", "td", "thead", "tbody", "th");
-    private static final Set<String> BLOCK_TAGS = Set.of("div", "p", "section", "article", "header", "footer", "aside", "nav", "main", "li", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "br", "hr" );
+    private static final Set<String> SINGLE_TAGS = Set.of("br");
+    private static final Set<String> TABLE_CHILD_TAGS = Set.of("tr", "td", "thead", "tbody", "th", "br");
+    private static final Set<String> NEW_LINE_TAGS = Set.of("div", "p", "section", "article", "header", "footer", "aside", "nav", "main", "li", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "hr" );
     private static final String NEW_LINE_PREFIX = "__NEW_LINE__";
+    private static final String MARKDOWN_NEW_LINE_PREFIX = "__MARKDOWN_NEW_LINE__";
 
     /**
      * 마크 다운 표 데이터 HTML 변환
@@ -240,14 +242,15 @@ public class HtmlUtil {
             convertMarkdown += "\n---\n" + tableMarkdownBuilder.toString().trim();
         }
 
-        return StringUtil.normalize(convertMarkdown.replace("\\n", "<br>"));
+        convertMarkdown = convertMarkdown.replace(MARKDOWN_NEW_LINE_PREFIX, ",");
+
+        return StringUtil.normalize(convertMarkdown);
     }
 
     /**
      * HTML 표 데이터 마크 다운 변환 재귀 함수
      */
     private static void convertTableHtmlToMarkDown(Node node, StringBuilder tableMarkdownBuilder, int depth) {
-
         // 표안의 표 처리
         for (Node child : node.childNodes()) {
             if (child instanceof Element el) {
@@ -268,9 +271,9 @@ public class HtmlUtil {
                 if (depth == 0) {
                     node.replaceWith(new TextNode(convertTableHtmlToMarkdownOneDepth(node.toString(), "<br>")));
                 } else if (depth > 0) {
-                    String tableId = StringUtil.generateRandomId();
-                    // 표 마크 다운 내부 개행 기호 => "\\n"
-                    node.replaceWith(new TextNode("\\n[" + tableId + "](#" + tableId + ")\\n"));
+                    String tableId = String.valueOf(System.currentTimeMillis());
+                    // 표 마크 다운 내부 개행 기호 => MARKDOWN__NEW_LINE_PREFIX
+                    node.replaceWith(new TextNode(String.format("[%s](#%s)%s", tableId, tableId, MARKDOWN_NEW_LINE_PREFIX)));
                     tableMarkdownBuilder
                             .insert(0, "\n\n\n")
                             .insert(0, convertTableHtmlToMarkdownOneDepth(node.toString(), "\n"))
@@ -455,7 +458,6 @@ public class HtmlUtil {
                 else if (TABLE_CHILD_TAGS.contains(tag) && depth > startTableDepth) {
                     // table 구조 태그 유지 + 속성 포함
                     stringBuilder.append("<").append(tag);
-
                     // 속성 보존 (colspan, rowspan)
                     for (Attribute attr : el.attributes()) {
                         if (Set.of("colspan", "rowspan").contains(attr.getKey())) {
@@ -464,13 +466,14 @@ public class HtmlUtil {
                                     .append("=\"").append(attr.getValue()).append("\"");
                         }
                     }
-
                     stringBuilder.append(">");
                     removeHtmlExceptTable(el, stringBuilder, startTableDepth, depth);
-                    stringBuilder.append("</").append(tag).append(">");
-                } else {
+                    if (!SINGLE_TAGS.contains(tag)) stringBuilder.append("</").append(tag).append(">");
+                }
+                // 그 외 태그인 경우
+                else {
                     removeHtmlExceptTable(el, stringBuilder, startTableDepth, depth);
-                    if (BLOCK_TAGS.contains(tag)) {
+                    if (NEW_LINE_TAGS.contains(tag)) {
                         stringBuilder.append(NEW_LINE_PREFIX);
                     }
                 }
