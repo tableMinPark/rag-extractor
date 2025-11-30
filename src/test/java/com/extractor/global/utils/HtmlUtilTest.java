@@ -16,6 +16,8 @@ import java.util.List;
 
 class HtmlUtilTest {
 
+    private static final Logger log = LoggerFactory.getLogger(HtmlUtilTest.class);
+
     private static final String tableHtml = """
     제목
     부제목
@@ -48,9 +50,9 @@ class HtmlUtilTest {
     """;
 
     private static final String innerTableHtml = """
-    <제목>
-    <부제목>
-    <table border="1">\\n
+    제목
+    부제목
+    <table border="1">
       <tr>
         <th rowspan="2">A</th>
         <th>B</th>
@@ -103,8 +105,34 @@ class HtmlUtilTest {
         </td>
       </tr>
     </table>
+    테스트 본문
+    <table>
+      <thead>
+        <tr>
+          <th>A</th>
+          <th>B</th>
+          <th>C</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>D</td>
+          <td>E</td>
+          <td>F</td>
+        </tr>
+        <tr>
+          <td>1</td>
+          <td>2</td>
+          <td>3</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>5</td>
+          <td>6</td>
+        </tr>
+      </tbody>
+    </table>
     """;
-    private static final Logger log = LoggerFactory.getLogger(HtmlUtilTest.class);
 
     @DisplayName("중첩 HTML 형식의 표를 특정 DEPTH 까지 삭제 한다.")
     @Test
