@@ -16,7 +16,6 @@ public enum SelectType {
 
     public static SelectType find(String code) {
         for (SelectType selectType : SelectType.values()) {
-            if (code != null && code.equals(SelectType.NONE.code)) continue;
             if (code != null && code.equals(selectType.code)) {
                 return selectType;
             }

@@ -30,6 +30,7 @@ public class ChunkRequestDto {
     @Schema(description = "전처리 중단 패턴", example = "[\"^[\\\\[\\\\(][^\\\\]\\\\)]*(별지|별첨|서식)[^\\\\]\\\\)]*[\\\\]\\\\)]\"]", defaultValue = "[]")
     private List<String> stopPatterns;
 
+    @Pattern(regexp = "regex|token|none", message = "regex 과 token 만 지원")
     @Schema(description = "전처리 타입", example = "regex", defaultValue = "token")
-    private String selectType;
+    private String selectType = "none";
 }

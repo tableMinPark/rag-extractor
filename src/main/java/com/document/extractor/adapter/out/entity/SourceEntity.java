@@ -1,5 +1,6 @@
 package com.document.extractor.adapter.out.entity;
 
+import com.document.extractor.application.enums.SelectType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -33,6 +34,9 @@ public class SourceEntity {
 
     @Column(name = "category_code")
     private String categoryCode;
+
+    @Column(name = "select_type")
+    private String selectType;
 
     @Column(name = "name")
     private String name;
