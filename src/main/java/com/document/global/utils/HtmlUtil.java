@@ -227,22 +227,22 @@ public class HtmlUtil {
      */
     public static String convertTableHtmlToMarkDown(String html) {
         // 개형 변환
-        String convertNewLineHtml = html.replace("\n", "<br>");
+        String convertNewLineHtml = html.replace("\n", NEW_LINE_PREFIX);
 
         Document doc = Jsoup.parse(convertNewLineHtml);
         StringBuilder tableMarkdownBuilder = new StringBuilder();
 
         convertTableHtmlToMarkDown(doc.body(), tableMarkdownBuilder, -1);
 
-        String convertMarkdown = doc.body().html()
-                .replace("<br>", "\n")
-                .replace("&lt;br&gt;", "\n");
+        String convertMarkdown = doc.body().html();
 
         if (!tableMarkdownBuilder.toString().trim().isBlank()) {
             convertMarkdown += "\n---\n" + tableMarkdownBuilder.toString().trim();
         }
 
-        convertMarkdown = convertMarkdown.replace(MARKDOWN_NEW_LINE_PREFIX, ",");
+        convertMarkdown = convertMarkdown
+                .replace(NEW_LINE_PREFIX, "\n")
+                .replace(MARKDOWN_NEW_LINE_PREFIX, " ");
 
         return StringUtil.normalize(convertMarkdown);
     }
@@ -268,16 +268,18 @@ public class HtmlUtil {
             String tag = el.tagName();
 
             if ("table".equals(tag)) {
+                String html = node.toString() .replace(NEW_LINE_PREFIX, "\n");
+
                 if (depth == 0) {
-                    node.replaceWith(new TextNode(convertTableHtmlToMarkdownOneDepth(node.toString(), "<br>")));
+                    node.replaceWith(new TextNode(convertTableHtmlToMarkdownOneDepth(html)));
                 } else if (depth > 0) {
-                    String tableId = String.valueOf(System.currentTimeMillis());
+                    String tableId = StringUtil.generateRandomId();
                     // 표 마크 다운 내부 개행 기호 => MARKDOWN__NEW_LINE_PREFIX
-                    node.replaceWith(new TextNode(String.format("[%s](#%s)%s", tableId, tableId, MARKDOWN_NEW_LINE_PREFIX)));
+                    node.replaceWith(new TextNode(String.format("[#%d](#%s)%s", depth, tableId, MARKDOWN_NEW_LINE_PREFIX)));
                     tableMarkdownBuilder
-                            .insert(0, "\n\n\n")
-                            .insert(0, convertTableHtmlToMarkdownOneDepth(node.toString(), "\n"))
-                            .insert(0, String.format("# %s\n", tableId));
+                            .insert(0, NEW_LINE_PREFIX)
+                            .insert(0, convertTableHtmlToMarkdownOneDepth(html))
+                            .insert(0, String.format("# %s%s", tableId, NEW_LINE_PREFIX));
                 }
             }
         }
@@ -287,11 +289,9 @@ public class HtmlUtil {
      * 표 데이터 HTML 마크 다운 1Depth 변환 재귀 함수
      *
      * @param html             HTML 문자열
-     * @param newLineSeparator 개행 구분자
      * @return 마크 다운 문자열
      */
-    private static String convertTableHtmlToMarkdownOneDepth(String html, String newLineSeparator) {
-
+    private static String convertTableHtmlToMarkdownOneDepth(String html) {
         Document doc = Jsoup.parse(html);
         Element table = doc.selectFirst("table");
         if (table == null) return "";
@@ -379,7 +379,7 @@ public class HtmlUtil {
             }
         }
 
-        return sb.toString().trim().replace("\n", newLineSeparator);
+        return sb.toString().trim().replace("\n", NEW_LINE_PREFIX);
     }
 
 
