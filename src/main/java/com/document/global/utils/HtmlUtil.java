@@ -1,20 +1,222 @@
 package com.document.global.utils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.*;
 import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
+@Slf4j
 public class HtmlUtil {
 
-    private static final Set<String> TABLE_TAGS = Set.of("table", "tr", "td", "thead", "tbody", "th");
+    private static final Set<String> TABLE_CHILD_TAGS = Set.of("tr", "td", "thead", "tbody", "th");
     private static final Set<String> BLOCK_TAGS = Set.of(
             "div", "p", "section", "article", "header", "footer", "aside", "nav", "main",
             "li", "tr", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "br", "hr"
     );
+
+    /**
+     * 마크 다운 표 데이터 HTML 변환
+     *
+     * @param markdown 마크 다운 문자열
+     * @return 표 HTML 변환 된, 마크 다운 문자열
+     */
+    public static String convertMarkdownTableToHtml(String markdown) {
+        if (markdown == null) return "";
+
+        String[] lines = markdown.split("\\r?\\n");
+        StringBuilder result = new StringBuilder();
+
+        List<String> tableBlock = new ArrayList<>();
+        boolean inTable = false;
+
+        for (String line : lines) {
+            if (line.trim().startsWith("|")) {
+                // 표 시작 또는 이어지는 줄
+                tableBlock.add(line);
+                inTable = true;
+            } else {
+                // 표 종료
+                if (inTable && !tableBlock.isEmpty()) {
+                    String tableMarkdown = String.join("\n", tableBlock);
+                    String tableHtml = convertMarkdownTableToHtml(tableMarkdown, false);
+                    result.append(tableHtml).append("\n");
+                    tableBlock.clear();
+                }
+                inTable = false;
+                // 표가 아닌 일반 텍스트는 그대로
+                result.append(line).append("\n");
+            }
+        }
+
+        // 마지막 표 블록 처리
+        if (!tableBlock.isEmpty()) {
+            String tableMarkdown = String.join("\n", tableBlock);
+            String tableHtml = convertMarkdownTableToHtml(tableMarkdown, false);
+            result.append(tableHtml).append("\n");
+        }
+
+        return result.toString().trim();
+    }
+
+    /**
+     * 마크 다운 표 데이터 HTML 변환
+     *
+     * @param markdown 마크 다운 문자열
+     * @return 표 HTML 변환 된, 마크 다운 문자열
+     */
+    private static String convertMarkdownTableToHtml(String markdown, boolean addAttribute) {
+        if (markdown == null) return "";
+
+        // 1) 이스케이프된 파이프(\|)를 임시 토큰으로 치환
+        String token = "__ESCAPED_PIPE__";
+        String tmp = markdown.replaceAll("\\\\\\|", token); // regex "\\\\|" matches a backslash + pipe
+
+        // 2) 줄 단위로 나누고 공백 줄 제거
+        List<String> lines = Arrays.stream(tmp.split("\\r?\\n"))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+
+        if (lines.isEmpty()) return "";
+
+        // 3) 파이프(|)로 분할하는 헬퍼
+        Pattern splitPattern = Pattern.compile("\\|");
+        java.util.function.Function<String, List<String>> splitRow = row -> {
+            // 이스케이프된 파이프는 이미 처리했다고 가정
+            String[] parts = row.split("\\|", -1); // -1: 빈 문자열 유지
+            List<String> cols = Arrays.stream(parts)
+                    .map(String::trim)
+                    .filter(s -> true) // 빈 문자열 제거 여부 선택 가능
+                    .collect(Collectors.toList());
+
+            // 양 끝 빈 문자열 제거
+            if (!cols.isEmpty() && cols.getFirst().isEmpty()) {
+                cols.removeFirst();
+            }
+            if (!cols.isEmpty() && cols.getLast().isEmpty()) {
+                cols.removeLast();
+            }
+
+            return cols;
+        };
+
+        // 4) 헤더 구분선(두 번째 행이 sep인지) 판별
+        boolean hasSeparatorLine = false;
+        int sepIndex = -1;
+        if (lines.size() >= 2) {
+            String second = lines.get(1);
+            // 각 셀이 --- 또는 :---: 등으로만 이루어졌는지 확인
+            List<String> secondCols = splitRow.apply(second);
+            boolean allSepLike = true;
+            for (String c : secondCols) {
+                String t = c.trim();
+                if (t.isEmpty()) {
+                    // 빈 셀은 무시(허용)
+                    continue;
+                }
+                // 허용 문자: :, -, 공백
+                if (!t.matches("^:?-+:?$")) {
+                    allSepLike = false;
+                    break;
+                }
+            }
+            if (allSepLike) {
+                hasSeparatorLine = true;
+                sepIndex = 1;
+            }
+        }
+
+        List<List<String>> rows = new ArrayList<>();
+        for (String line : lines) {
+            rows.add(splitRow.apply(line));
+        }
+
+        // 5) 열 수 정하기 (가장 길게 분할된 열 수에 맞춤)
+        int colCount = rows.stream().mapToInt(List::size).max().orElse(0);
+
+        // Normalize each row to same column count (빈 문자열로 채움)
+        for (List<String> row : rows) {
+            while (row.size() < colCount) row.add("");
+        }
+
+        // 6) 정렬 정보 추출 (sep line이 있으면)
+        String[] alignments = new String[colCount]; // null이면 기본(없음)
+        if (hasSeparatorLine) {
+            List<String> sepCols = rows.get(sepIndex);
+            for (int i = 0; i < colCount; i++) {
+                String cell = i < sepCols.size() ? sepCols.get(i).trim() : "";
+                if (cell.startsWith(":") && cell.endsWith(":")) {
+                    alignments[i] = "center";
+                } else if (cell.startsWith(":")) {
+                    alignments[i] = "left";
+                } else if (cell.endsWith(":")) {
+                    alignments[i] = "right";
+                } else {
+                    alignments[i] = null;
+                }
+            }
+        }
+
+        // 7) HTML 조립
+        StringBuilder html = new StringBuilder();
+        html.append("<table>\n");
+
+        int startBodyRow = 0;
+        if (hasSeparatorLine) {
+            // 헤더는 첫 줄 (rows[0]), sep 라인은 제외
+            List<String> headerCols = rows.getFirst();
+            html.append("  <thead>\n");
+            html.append("    <tr>\n");
+            for (int i = 0; i < colCount; i++) {
+                String h = i < headerCols.size() ? headerCols.get(i) : "";
+                String th = escapeHtml(h);
+                if (alignments[i] != null) {
+                    if (addAttribute) {
+                        html.append(String.format("      <th style=\"text-align:%s\">%s</th>\n", alignments[i], th));
+                    } else {
+                        html.append(String.format("      <th>%s</th>\n", th));
+                    }
+                } else {
+                    html.append(String.format("      <th>%s</th>\n", th));
+                }
+            }
+            html.append("    </tr>\n");
+            html.append("  </thead>\n");
+            startBodyRow = sepIndex + 1;
+        }
+
+        html.append("  <tbody>\n");
+        for (int r = startBodyRow; r < rows.size(); r++) {
+            // 만약 sepIndex가 1이면 이미 sep line을 건너뛰었음
+            List<String> cols = rows.get(r);
+            html.append("    <tr>\n");
+            for (int i = 0; i < colCount; i++) {
+                String c = i < cols.size() ? cols.get(i) : "";
+                String td = escapeHtml(c);
+                if (alignments[i] != null) {
+                    if (addAttribute) {
+                        html.append(String.format("      <td style=\"text-align:%s\">%s</td>\n", alignments[i], td));
+                    } else {
+                        html.append(String.format("      <td>%s</td>\n", td));
+                    }
+                } else {
+                    html.append(String.format("      <td>%s</td>\n", td));
+                }
+            }
+            html.append("    </tr>\n");
+        }
+        html.append("  </tbody>\n");
+        html.append("</table>\n");
+
+        return html.toString();
+    }
 
     /**
      * HTML 표 데이터 마크 다운 변환
@@ -178,6 +380,7 @@ public class HtmlUtil {
         return sb.toString().trim().replace("\n", newLineSeparator);
     }
 
+
     /**
      * HTML 태그 삭제 (표 HTML 보존)
      *
@@ -185,6 +388,16 @@ public class HtmlUtil {
      * @return HTML 태그 삭제 문자열
      */
     public static String removeHtmlExceptTable(String html) {
+        return removeHtmlExceptTable(html, 0);
+    }
+
+    /**
+     * HTML 태그 삭제 (표 HTML 보존)
+     *
+     * @param html HTML 문자열
+     * @return HTML 태그 삭제 문자열
+     */
+    public static String removeHtmlExceptTable(String html, int startTableDepth) {
         // 개형 변환
         String convertNewLineHtml = html.replace("\n", "<br>");
 
@@ -193,7 +406,7 @@ public class HtmlUtil {
 
         StringBuilder stringBuilder = new StringBuilder();
         // HTML 태그 삭제
-        removeHtmlExceptTable(doc.body(), stringBuilder);
+        removeHtmlExceptTable(doc.body(), stringBuilder, startTableDepth, 0);
 
         // 표 마크 다운 셀 내부 개행 처리
         return StringUtil.normalize(stringBuilder.toString().replace("<br>", "\n"));
@@ -202,14 +415,25 @@ public class HtmlUtil {
     /**
      * HTML 태그 삭제 (표 HTML 보존) 재귀 함수
      */
-    private static void removeHtmlExceptTable(Node node, StringBuilder stringBuilder) {
+    private static void removeHtmlExceptTable(Node node, StringBuilder stringBuilder, int startTableDepth, int depth) {
         for (Node child : node.childNodes()) {
             if (child instanceof TextNode) {
                 stringBuilder.append(((TextNode) child).text());
             } else if (child instanceof Element el) {
                 String tag = el.tagName().toLowerCase();
 
-                if (TABLE_TAGS.contains(tag)) {
+                if ("table".equals(tag)) {
+                    int nextDepth = depth + 1;
+
+                    if (nextDepth > startTableDepth) {
+                        // 2depth 이상 table은 HTML 유지
+                        stringBuilder.append("<table>");
+                        removeHtmlExceptTable(el, stringBuilder, startTableDepth, nextDepth);
+                        stringBuilder.append("</table>");
+                    } else {
+                        removeHtmlExceptTable(el, stringBuilder, startTableDepth, nextDepth);
+                    }
+                } else if (TABLE_CHILD_TAGS.contains(tag) && depth > startTableDepth) {
                     // table 구조 태그 유지 + 속성 포함
                     stringBuilder.append("<").append(tag);
 
@@ -223,15 +447,22 @@ public class HtmlUtil {
                     }
 
                     stringBuilder.append(">");
-                    removeHtmlExceptTable(el, stringBuilder);
+                    removeHtmlExceptTable(el, stringBuilder, startTableDepth, depth);
                     stringBuilder.append("</").append(tag).append(">");
                 } else {
-                    removeHtmlExceptTable(el, stringBuilder);
+                    removeHtmlExceptTable(el, stringBuilder, startTableDepth, depth);
                     if (BLOCK_TAGS.contains(tag)) {
                         stringBuilder.append("\n");
                     }
                 }
             }
         }
+    }
+
+    private static String escapeHtml(String s) {
+        if (s == null || s.isEmpty()) return "";
+        return s.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;");
     }
 }
