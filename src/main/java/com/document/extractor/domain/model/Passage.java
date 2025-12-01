@@ -1,9 +1,9 @@
 package com.document.extractor.domain.model;
 
+import com.document.global.utils.HtmlUtil;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -16,9 +16,10 @@ public class Passage {
 
     private final Long passageId;
 
-    private final Long sourceId;
+    private Long sourceId;
 
-    @Setter
+    private Long version;
+
     private String title;
 
     private final String subTitle;
@@ -35,6 +36,12 @@ public class Passage {
 
     private final LocalDateTime sysModifyDt;
 
+    public void update(Long sourceId, Long version, String title) {
+        this.sourceId = sourceId;
+        this.version = version;
+        this.title = title;
+    }
+
     /**
      * 토큰 수 기준 청킹 처리
      *
@@ -42,6 +49,7 @@ public class Passage {
      * @param overlapSize 오버랩 사이즈
      */
     public List<Chunk> chunking(int tokenSize, int overlapSize) {
+
         List<Chunk> chunks = new ArrayList<>();
 
         if (0 < tokenSize && tokenSize < this.tokenSize) {
@@ -49,30 +57,35 @@ public class Passage {
 
             for (int start = 0; start < content.length(); start += step) {
                 int end = Math.min(content.length(), start + tokenSize);
-
                 String content = this.content.substring(start, end);
+                String compactContent = HtmlUtil.convertTableHtmlToMarkDown(content);
 
                 chunks.add(Chunk.builder()
                         .passageId(this.passageId)
+                        .version(this.version)
                         .title(this.title)
                         .subTitle(this.subTitle)
                         .thirdTitle(this.thirdTitle)
                         .content(content)
                         .subContent(this.subContent)
-                        .tokenSize(content.length())
+                        .compactContent(compactContent)
+                        .tokenSize(compactContent.length())
                         .sysCreateDt(this.sysCreateDt)
                         .sysModifyDt(this.sysModifyDt)
                         .build());
             }
         } else {
+            String compactContent = HtmlUtil.convertTableHtmlToMarkDown(this.content);
             chunks.add(Chunk.builder()
                     .passageId(this.passageId)
+                    .version(this.version)
                     .title(this.title)
                     .subTitle(this.subTitle)
                     .thirdTitle(this.thirdTitle)
                     .content(this.content)
                     .subContent(this.subContent)
-                    .tokenSize(this.tokenSize)
+                    .compactContent(compactContent)
+                    .tokenSize(compactContent.length())
                     .sysCreateDt(this.sysCreateDt)
                     .sysModifyDt(this.sysModifyDt)
                     .build());

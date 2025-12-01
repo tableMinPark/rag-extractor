@@ -1,5 +1,6 @@
 package com.document.extractor.adapter.out.entity;
 
+import com.document.extractor.domain.model.FileDetail;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -24,7 +25,7 @@ public class FileDetailEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WN_FILE_DETAIL_FILE_DETAIL_ID_SEQ")
-    @Column(name = "file_detail_id", nullable = false)
+    @Column(name = "file_detail_id", nullable = false, updatable = false)
     private Long fileDetailId;
 
     @Column(name = "file_id")
@@ -64,4 +65,50 @@ public class FileDetailEntity {
 
     @Column(name = "sys_modify_user")
     private String sysModifyUser;
+
+    public void update(FileDetail fileDetail) {
+        this.fileId = fileDetail.getFileId();
+        this.originFileName = fileDetail.getOriginFileName();
+        this.fileName = fileDetail.getFileName();
+        this.ip = fileDetail.getIp();
+        this.filePath = fileDetail.getFilePath();
+        this.fileSize = fileDetail.getFileSize();
+        this.ext = fileDetail.getExt();
+        this.url = fileDetail.getUrl();
+        this.sysCreateUser = fileDetail.getSysCreateUser();
+        this.sysModifyUser = fileDetail.getSysModifyUser();
+    }
+
+    public FileDetail toDomain() {
+        return FileDetail.builder()
+                .fileDetailId(fileDetailId)
+                .fileId(fileId)
+                .originFileName(originFileName)
+                .fileName(fileName)
+                .ip(ip)
+                .filePath(filePath)
+                .fileSize(fileSize)
+                .ext(ext)
+                .url(url)
+                .sysCreateDt(sysCreateDt)
+                .sysCreateUser(sysCreateUser)
+                .sysModifyDt(sysModifyDt)
+                .sysModifyUser(sysModifyUser)
+                .build();
+    }
+
+    public static FileDetailEntity fromDomain(Long fileId, FileDetail fileDetail) {
+        return FileDetailEntity.builder()
+                .fileId(fileId)
+                .originFileName(fileDetail.getOriginFileName())
+                .fileName(fileDetail.getFileName())
+                .ip(fileDetail.getIp())
+                .filePath(fileDetail.getFilePath())
+                .fileSize(fileDetail.getFileSize())
+                .ext(fileDetail.getExt())
+                .url(fileDetail.getUrl())
+                .sysCreateUser(fileDetail.getSysCreateUser())
+                .sysModifyUser(fileDetail.getSysModifyUser())
+                .build();
+    }
 }

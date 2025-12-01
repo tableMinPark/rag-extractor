@@ -1,7 +1,7 @@
 package com.document.extractor.application.port;
 
-import com.document.global.enums.ExtractType;
 import com.document.extractor.domain.model.Document;
+import com.document.global.enums.ExtractType;
 
 public interface DocumentReadPort {
 
@@ -13,4 +13,12 @@ public interface DocumentReadPort {
      * @param extractType 표 추출 타입
      */
     Document getRepoDocumentPort(String repoType, String repoId, ExtractType extractType);
+
+    /**
+     * 원격 문서 조회
+     *
+     * @param url    원격 문서 URL
+     * @param extractType 표 추출 타입
+     */
+    Document getRepoDocumentPort(String url, ExtractType extractType);
 }

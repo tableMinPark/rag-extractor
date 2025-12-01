@@ -5,7 +5,6 @@ import com.document.extractor.adapter.in.dto.request.CreateFileSourceRequestDto;
 import com.document.extractor.adapter.in.dto.request.CreateRepoSourceRequestDto;
 import com.document.extractor.adapter.in.dto.response.ResponseDto;
 import com.document.extractor.application.command.CreateSourceCommand;
-import com.document.extractor.application.enums.SelectType;
 import com.document.extractor.application.enums.SourceType;
 import com.document.extractor.application.usecase.SourceUseCase;
 import com.document.extractor.application.utils.FileUtil;
@@ -15,6 +14,7 @@ import com.document.extractor.domain.vo.PrefixVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -54,7 +54,7 @@ public class SourceController {
                 fileVo = fileUtil.uploadFile(multipartFile);
 
                 sourceUseCase.createSourcesUseCase(CreateSourceCommand.builder()
-                        .sourceType(SourceType.FILE)
+                        .sourceType(SourceType.FILE.name())
                         .categoryCode(createFileSourceRequestDto.getCategoryCode())
                         .collectionId(createFileSourceRequestDto.getCollectionId())
                         .maxTokenSize(createFileSourceRequestDto.getMaxTokenSize())
@@ -71,7 +71,7 @@ public class SourceController {
                                         .build())
                                 .toList())
                         .stopPatterns(createFileSourceRequestDto.getStopPatterns())
-                        .selectType(SelectType.valueOf(createFileSourceRequestDto.getSelectType().toUpperCase()))
+                        .selectType(createFileSourceRequestDto.getSelectType().toUpperCase())
                         .file(fileVo)
                         .build());
 
@@ -94,6 +94,7 @@ public class SourceController {
     @Operation(summary = "원격 대상 문서 등록")
     @PostMapping(path = "/repo")
     public ResponseEntity<ResponseDto<?>> createRepoSources(
+            @Valid
             @Parameter(name = "createRemoteSourceRequestDto", description = "원격 대상 문서 등록 정보", required = true)
             @RequestBody
             CreateRepoSourceRequestDto createRepoSourceRequestDto
@@ -124,7 +125,7 @@ public class SourceController {
                     .build();
 
             sourceUseCase.createSourcesUseCase(CreateSourceCommand.builder()
-                    .sourceType(SourceType.REPO)
+                    .sourceType(SourceType.REPO.name())
                     .categoryCode(createRepoSourceRequestDto.getCategoryCode())
                     .collectionId(createRepoSourceRequestDto.getCollectionId())
                     .maxTokenSize(createRepoSourceRequestDto.getMaxTokenSize())
@@ -141,7 +142,7 @@ public class SourceController {
                                     .build())
                             .toList())
                     .stopPatterns(createRepoSourceRequestDto.getStopPatterns())
-                    .selectType(SelectType.valueOf(createRepoSourceRequestDto.getSelectType().toUpperCase()))
+                    .selectType(createRepoSourceRequestDto.getSelectType().toUpperCase())
                     .file(fileVo)
                     .build());
         }

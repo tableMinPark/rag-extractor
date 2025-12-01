@@ -1,14 +1,13 @@
 package com.document.extractor.adapter.out;
 
 import com.document.extractor.adapter.propery.RepoProperty;
-import com.document.global.enums.ExtractType;
 import com.document.extractor.application.exception.NotFoundException;
 import com.document.extractor.application.port.DocumentReadPort;
 import com.document.extractor.domain.model.Document;
+import com.document.global.enums.ExtractType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -18,7 +17,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 /**
  * DB 기반 법령 정보 조회 어댑터
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DocumentReadAdapter implements DocumentReadPort {
@@ -39,6 +37,45 @@ public class DocumentReadAdapter implements DocumentReadPort {
     public Document getRepoDocumentPort(String repoType, String repoId, ExtractType extractType) {
 
         String uri = String.format(repoProperty.getUrl(), repoType, repoId, extractType.getCode());
+
+        ResponseEntity<String> responseEntity = webClient.get()
+                .uri(uri)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchangeToMono(response -> response
+                        .bodyToMono(String.class)
+                        .map(body -> new ResponseEntity<>(body, response.statusCode())))
+                .block();
+
+        // 응답 체크
+        if (responseEntity == null || !responseEntity.getStatusCode().is2xxSuccessful() || responseEntity.getBody() == null) {
+            throw new NotFoundException();
+        }
+
+        try {
+            // 역직렬화
+            Document responseBody = objectMapper.readValue(responseEntity.getBody(), Document.class);
+
+            // 응답 바디 체크
+            if (responseBody == null) {
+                throw new NotFoundException();
+            }
+
+            return responseBody;
+
+        } catch (JsonProcessingException e) {
+            throw new NotFoundException();
+        }
+    }
+
+    /**
+     * 원격 문서 조회
+     *
+     * @param uri         원격 문서 URI
+     * @param extractType 표 추출 타입
+     */
+    @Transactional
+    @Override
+    public Document getRepoDocumentPort(String uri, ExtractType extractType) {
 
         ResponseEntity<String> responseEntity = webClient.get()
                 .uri(uri)

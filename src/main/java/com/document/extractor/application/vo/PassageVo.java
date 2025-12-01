@@ -1,6 +1,5 @@
 package com.document.extractor.application.vo;
 
-import com.document.extractor.domain.model.Chunk;
 import com.document.extractor.domain.model.Passage;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
@@ -19,6 +18,8 @@ public class PassageVo {
 
     private Long sourceId;
 
+    private Long version;
+
     private String title;
 
     private String subTitle;
@@ -29,30 +30,28 @@ public class PassageVo {
 
     private String subContent;
 
-    private Integer tokenSize;
+    private Integer contentTokenSize;
+
+    private Integer subContentTokenSize;
 
     private LocalDateTime sysCreateDt;
 
     private LocalDateTime sysModifyDt;
 
-    @JsonIgnore
-    private final List<ChunkVo> chunkVos;
-
-    public static PassageVo of(Passage passage, List<Chunk> chunks) {
+    public static PassageVo of(Passage passage) {
         return PassageVo.builder()
                 .passageId(passage.getPassageId())
                 .sourceId(passage.getSourceId())
+                .version(passage.getVersion())
                 .title(passage.getTitle())
                 .subTitle(passage.getSubTitle())
                 .thirdTitle(passage.getThirdTitle())
                 .content(passage.getContent())
                 .subContent(passage.getSubContent())
-                .tokenSize(passage.getTokenSize())
+                .contentTokenSize(passage.getContent().length())
+                .subContentTokenSize(passage.getSubContent().length())
                 .sysCreateDt(passage.getSysCreateDt())
                 .sysModifyDt(passage.getSysModifyDt())
-                .chunkVos(chunks.stream()
-                        .map(ChunkVo::of)
-                        .toList())
                 .build();
     }
 }

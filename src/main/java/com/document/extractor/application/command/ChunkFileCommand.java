@@ -1,17 +1,29 @@
 package com.document.extractor.application.command;
 
-import com.document.extractor.application.vo.ChunkOptionVo;
 import com.document.extractor.application.vo.FileVo;
+import com.document.extractor.domain.vo.PatternVo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+
+import java.util.List;
 
 @Builder
 @Getter
 @AllArgsConstructor
 public class ChunkFileCommand {
 
-    private final ChunkOptionVo chunkOption;
+    private final String extractType;
+
+    private final String selectType;
+
+    private final List<PatternVo> patterns;
+
+    private final List<String> stopPatterns;
+
+    private final int maxTokenSize;
+
+    private final int overlapSize;
 
     private final FileVo file;
 }

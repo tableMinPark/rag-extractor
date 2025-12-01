@@ -6,18 +6,19 @@ import com.document.extractor.adapter.in.dto.request.ChunkRequestDto;
 import com.document.extractor.adapter.in.dto.response.ChunkResponseDto;
 import com.document.extractor.adapter.in.dto.response.ResponseDto;
 import com.document.extractor.adapter.propery.FileProperty;
+import com.document.extractor.application.command.ChunkBatchCommand;
 import com.document.extractor.application.command.ChunkFileCommand;
 import com.document.extractor.application.command.ChunkRepoCommand;
-import com.document.extractor.application.enums.SelectType;
 import com.document.extractor.application.usecase.ChunkUseCase;
 import com.document.extractor.application.utils.FileUtil;
-import com.document.extractor.application.vo.*;
-import com.document.global.enums.ExtractType;
+import com.document.extractor.application.vo.ChunkResultVo;
+import com.document.extractor.application.vo.FileVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -29,6 +30,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Validated
 @Tag(name = "ChunkController", description = "청킹 컨트롤러")
 @RequiredArgsConstructor
@@ -39,6 +41,55 @@ public class ChunkController {
     private final ChunkUseCase chunkUseCase;
     private final FileProperty fileProperty;
     private final FileUtil fileUtil;
+
+    @Operation(summary = "청킹 배치")
+    @PostMapping("/batch/{sourceId}")
+    public ResponseEntity<ResponseDto<ChunkResponseDto>> chunkBatch(
+            @Parameter(name = "sourceId", description = "대상 문서 ID", required = true)
+            @PathVariable(value = "sourceId")
+            Long sourceId
+    ) {
+        ChunkResultVo chunkResultVo = chunkUseCase.chunkBatchUseCase(ChunkBatchCommand.builder()
+                .sourceId(sourceId)
+                .build());
+
+        ChunkResponseDto chunkResponseDto = ChunkResponseDto.builder()
+                .source(chunkResultVo.getSource())
+                .passages(chunkResultVo.getPassages())
+                .chunks(chunkResultVo.getChunks())
+                .build();
+
+        return ResponseEntity.ok(ResponseDto.<ChunkResponseDto>builder()
+                .message("청킹 배치 성공")
+                .data(chunkResponseDto)
+                .build());
+    }
+
+    @Operation(summary = "청킹 일괄 배치")
+    @PostMapping("/batch")
+    public ResponseEntity<ResponseDto<List<ChunkResponseDto>>> chunkBatches() {
+
+        List<ChunkResponseDto> chunkResponseDtos = new ArrayList<>();
+
+        chunkUseCase.getActiveSourcesUseCase().forEach(sourceVo -> {
+            ChunkResultVo chunkResultVo = chunkUseCase.chunkBatchUseCase(ChunkBatchCommand.builder()
+                    .sourceId(sourceVo.getSourceId())
+                    .build());
+
+            chunkResponseDtos.add(ChunkResponseDto.builder()
+                    .source(chunkResultVo.getSource())
+                    .passages(chunkResultVo.getPassages())
+                    .chunks(chunkResultVo.getChunks())
+                    .build());
+
+            log.info("[{}] {} 전처리 완료", chunkResultVo.getSource().getSourceId(), chunkResultVo.getSource().getName());
+        });
+
+        return ResponseEntity.ok(ResponseDto.<List<ChunkResponseDto>>builder()
+                .message("청킹 다중 배치 성공")
+                .data(chunkResponseDtos)
+                .build());
+    }
 
     @Operation(summary = "파일 청킹")
     @PostMapping(path = "/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -51,23 +102,19 @@ public class ChunkController {
             @RequestPart("uploadFile")
             List<MultipartFile> multipartFiles
     ) {
-        ChunkOptionVo chunkOptionVo = ChunkOptionVo.builder()
-                .extractType(ExtractType.find(chunkRequestDto.getExtractType()))
-                .selectType(SelectType.valueOf(chunkRequestDto.getSelectType().toUpperCase()))
-                .patterns(PatternDto.toPatternVo(chunkRequestDto.getPatterns()))
-                .antiPatterns(chunkRequestDto.getStopPatterns())
-                .maxTokenSize(chunkRequestDto.getMaxTokenSize())
-                .overlapSize(chunkRequestDto.getOverlapSize())
-                .build();
-
-        List<SourceVo> sourceVos = new ArrayList<>();
+        List<ChunkResultVo> chunkResultVos = new ArrayList<>();
         for (MultipartFile multipartFile : multipartFiles) {
             FileVo fileVo = null;
 
             try {
                 fileVo = fileUtil.uploadFile(multipartFile, fileProperty.getTempDir());
-                sourceVos.add(chunkUseCase.chunkFileUseCase(ChunkFileCommand.builder()
-                        .chunkOption(chunkOptionVo)
+                chunkResultVos.add(chunkUseCase.chunkFileUseCase(ChunkFileCommand.builder()
+                        .extractType(chunkRequestDto.getExtractType())
+                        .selectType(chunkRequestDto.getSelectType())
+                        .patterns(PatternDto.toPatternVo(chunkRequestDto.getPatterns()))
+                        .stopPatterns(chunkRequestDto.getStopPatterns())
+                        .maxTokenSize(chunkRequestDto.getMaxTokenSize())
+                        .overlapSize(chunkRequestDto.getOverlapSize())
                         .file(fileVo)
                         .build()));
             } catch (IOException e) {
@@ -79,22 +126,12 @@ public class ChunkController {
             }
         }
 
-        List<ChunkResponseDto> chunkResponseDtos = sourceVos.stream()
-                .map(sourceVo -> {
-                    List<PassageVo> passageVos = sourceVo.getPassageVos();
-                    List<ChunkVo> chunkVos = new ArrayList<>();
-
-                    for (PassageVo passageVo : sourceVo.getPassageVos()) {
-                        chunkVos.addAll(passageVo.getChunkVos());
-                    }
-
-                    return ChunkResponseDto.builder()
-                            .source(sourceVo)
-                            .passages(passageVos)
-                            .chunks(chunkVos)
-                            .build();
-
-                })
+        List<ChunkResponseDto> chunkResponseDtos = chunkResultVos.stream()
+                .map(chunkResultVo -> ChunkResponseDto.builder()
+                        .source(chunkResultVo.getSource())
+                        .passages(chunkResultVo.getPassages())
+                        .chunks(chunkResultVo.getChunks())
+                        .build())
                 .toList();
 
         return ResponseEntity.ok(ResponseDto.<List<ChunkResponseDto>>builder()
@@ -107,43 +144,29 @@ public class ChunkController {
     @PostMapping(path = "/repo")
     public ResponseEntity<ResponseDto<List<ChunkResponseDto>>> chunkRepos(
             @Valid
-            @Parameter(name = "chunkLawsRequestDto", description = "원격 문서 청킹 정보", required = true)
+            @Parameter(name = "chunkReposRequestDto", description = "원격 문서 청킹 정보", required = true)
             @RequestBody
             ChunkReposRequestDto chunkReposRequestDto
     ) {
-        ChunkOptionVo chunkOptionVo = ChunkOptionVo.builder()
-                .extractType(ExtractType.find(chunkReposRequestDto.getExtractType()))
-                .selectType(SelectType.valueOf(chunkReposRequestDto.getSelectType().toUpperCase()))
-                .patterns(PatternDto.toPatternVo(chunkReposRequestDto.getPatterns()))
-                .antiPatterns(chunkReposRequestDto.getExcludeContentTypes())
-                .maxTokenSize(chunkReposRequestDto.getMaxTokenSize())
-                .overlapSize(chunkReposRequestDto.getOverlapSize())
-                .build();
-
-        List<SourceVo> sourceVos = chunkReposRequestDto.getRepoIds().stream()
-                .map(lawId -> chunkUseCase.chunkRepoUseCase(ChunkRepoCommand.builder()
+        List<ChunkResultVo> chunkResultVos = chunkReposRequestDto.getRepoIds().stream()
+                .map(repoId -> chunkUseCase.chunkRepoUseCase(ChunkRepoCommand.builder()
+                        .extractType(chunkReposRequestDto.getExtractType())
+                        .selectType(chunkReposRequestDto.getSelectType())
+                        .patterns(PatternDto.toPatternVo(chunkReposRequestDto.getPatterns()))
+                        .stopPatterns(chunkReposRequestDto.getStopPatterns())
+                        .maxTokenSize(chunkReposRequestDto.getMaxTokenSize())
+                        .overlapSize(chunkReposRequestDto.getOverlapSize())
                         .repoType(chunkReposRequestDto.getRepoType())
-                        .chunkOption(chunkOptionVo)
-                        .repoId(lawId)
+                        .repoId(repoId)
                         .build()))
                 .toList();
 
-        List<ChunkResponseDto> chunkResponseDtos = sourceVos.stream()
-                .map(sourceVo -> {
-                    List<PassageVo> passageVos = sourceVo.getPassageVos();
-                    List<ChunkVo> chunkVos = new ArrayList<>();
-
-                    for (PassageVo passageVo : sourceVo.getPassageVos()) {
-                        chunkVos.addAll(passageVo.getChunkVos());
-                    }
-
-                    return ChunkResponseDto.builder()
-                            .source(sourceVo)
-                            .passages(passageVos)
-                            .chunks(chunkVos)
-                            .build();
-
-                })
+        List<ChunkResponseDto> chunkResponseDtos = chunkResultVos.stream()
+                .map(chunkResultVo -> ChunkResponseDto.builder()
+                        .source(chunkResultVo.getSource())
+                        .passages(chunkResultVo.getPassages())
+                        .chunks(chunkResultVo.getChunks())
+                        .build())
                 .toList();
 
         return ResponseEntity.ok(ResponseDto.<List<ChunkResponseDto>>builder()

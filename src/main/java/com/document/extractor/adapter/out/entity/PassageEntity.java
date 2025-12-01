@@ -1,5 +1,6 @@
 package com.document.extractor.adapter.out.entity;
 
+import com.document.extractor.domain.model.Passage;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -24,11 +25,14 @@ public class PassageEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WN_PASSAGE_PASSAGE_ID_SEQ")
-    @Column(name = "passage_id", nullable = false)
+    @Column(name = "passage_id", nullable = false, updatable = false)
     private Long passageId;
 
     @Column(name = "source_id")
     private Long sourceId;
+
+    @Column(name = "version")
+    private Long version;
 
     @Column(name = "title")
     private String title;
@@ -55,4 +59,45 @@ public class PassageEntity {
     @LastModifiedDate
     @Column(name = "sys_modify_dt")
     private LocalDateTime sysModifyDt;
+
+    public void update(Passage passage) {
+        this.sourceId = passage.getSourceId();
+        this.version = passage.getVersion();
+        this.title = passage.getTitle();
+        this.subTitle = passage.getSubTitle();
+        this.thirdTitle = passage.getThirdTitle();
+        this.content = passage.getContent();
+        this.subContent = passage.getSubContent();
+        this.tokenSize = passage.getTokenSize();
+    }
+
+    public Passage toDomain() {
+        return Passage.builder()
+                .passageId(passageId)
+                .sourceId(sourceId)
+                .version(version)
+                .title(title)
+                .subTitle(subTitle)
+                .thirdTitle(thirdTitle)
+                .content(content)
+                .subContent(subContent)
+                .tokenSize(tokenSize)
+                .sysCreateDt(sysCreateDt)
+                .sysModifyDt(sysModifyDt)
+                .build();
+    }
+
+    public static PassageEntity fromDomain(Passage passage) {
+        return PassageEntity.builder()
+                .passageId(passage.getPassageId())
+                .sourceId(passage.getSourceId())
+                .version(passage.getVersion())
+                .title(passage.getTitle())
+                .subTitle(passage.getSubTitle())
+                .thirdTitle(passage.getThirdTitle())
+                .content(passage.getContent())
+                .subContent(passage.getSubContent())
+                .tokenSize(passage.getTokenSize())
+                .build();
+    }
 }

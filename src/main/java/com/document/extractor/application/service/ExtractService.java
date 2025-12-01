@@ -8,6 +8,7 @@ import com.document.extractor.application.vo.ExtractContentVo;
 import com.document.extractor.application.vo.FileVo;
 import com.document.extractor.domain.model.Document;
 import com.document.extractor.domain.model.FileDetail;
+import com.document.global.enums.ExtractType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +29,7 @@ public class ExtractService implements ExtractUseCase {
     public List<ExtractContentVo> extractFileUseCase(ExtractFileCommand command) {
 
         FileVo fileVo = command.getFile();
+        ExtractType extractType = ExtractType.find(command.getExtractType());
 
         Document document = extractPort.extractFilePort(FileDetail.builder()
                 .originFileName(fileVo.getOriginFileName())
@@ -37,7 +39,7 @@ public class ExtractService implements ExtractUseCase {
                 .fileSize(fileVo.getFileSize())
                 .ext(fileVo.getExt())
                 .url(fileVo.getUrl())
-                .build(), command.getExtractType());
+                .build(), extractType);
 
         return document.getDocumentContents().stream()
                 .map(documentContent -> ExtractContentVo.builder()

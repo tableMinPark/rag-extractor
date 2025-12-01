@@ -1,6 +1,7 @@
 package com.document.extractor.application.service;
 
 import com.document.extractor.application.command.CreateSourceCommand;
+import com.document.extractor.application.enums.SelectType;
 import com.document.extractor.application.enums.SourceType;
 import com.document.extractor.application.port.ExtractPort;
 import com.document.extractor.application.port.FilePersistencePort;
@@ -14,8 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
@@ -28,17 +29,22 @@ public class SourceService implements SourceUseCase {
     /**
      * 대상 문서 등록
      *
-     * @param createSourceCommand 대상 문서 등록 Command
+     * @param command 대상 문서 등록 Command
      */
     @Transactional
     @Override
-    public void createSourcesUseCase(CreateSourceCommand createSourceCommand) {
+    public void createSourcesUseCase(CreateSourceCommand command) {
+
+        // 대상 문서 타입
+        SourceType sourceType = SourceType.valueOf(command.getSourceType().toUpperCase());
+        // 전처리 타입
+        SelectType selectType = SelectType.valueOf(command.getSelectType().toUpperCase());
 
         // 파일 목록 생성
-        FileVo fileVo = createSourceCommand.getFile();
+        FileVo fileVo = command.getFile();
 
         // 파일 업로드
-        FileDetail fileDetail = filePersistencePort.createFileDetail(FileDetail.builder()
+        FileDetail fileDetail = filePersistencePort.saveFileDetailPort(FileDetail.builder()
                 .originFileName(fileVo.getOriginFileName())
                 .fileName(fileVo.getFileName())
                 .ip(fileVo.getIp())
@@ -46,59 +52,65 @@ public class SourceService implements SourceUseCase {
                 .fileSize(fileVo.getFileSize())
                 .ext(fileVo.getExt())
                 .url(fileVo.getUrl())
+                .sysCreateUser("SYSTEM")
+                .sysModifyUser("SYSTEM")
                 .build());
 
         String content = "";
 
-        if (SourceType.FILE.equals(createSourceCommand.getSourceType())) {
+        // 물리 파일인 경우 텍스트 추출
+        if (SourceType.FILE.equals(sourceType)) {
             content = extractPort.extractTextPort(fileDetail);
         }
 
-        // Source 생성 및 영속화
-        Source source = sourcePersistencePort.createSourcePort(Source.builder()
-                .sourceType(createSourceCommand.getSourceType().getCode())
-                .selectType(createSourceCommand.getSelectType())
-                .categoryCode(createSourceCommand.getCategoryCode())
+        // 전처리 패턴
+        List<SourcePattern> sourcePatterns = IntStream.range(0, command.getPatterns().size())
+                .mapToObj(depth -> {
+                    PatternVo patternVo = command.getPatterns().get(depth);
+                    List<SourcePrefix> sourcePrefixes = IntStream.range(0, patternVo.getPrefixes().size())
+                            .mapToObj(order -> {
+                                PrefixVo prefixVo = patternVo.getPrefixes().get(order);
+
+                                return SourcePrefix.builder()
+                                        .prefix(prefixVo.getPrefix())
+                                        .order(order)
+                                        .isTitle(prefixVo.getIsTitle())
+                                        .build();
+                            })
+                            .toList();
+
+                    return SourcePattern.builder()
+                            .tokenSize(patternVo.getTokenSize())
+                            .depth(depth)
+                            .sourcePrefixes(sourcePrefixes)
+                            .build();
+                })
+                .toList();
+
+        // 전처리 중단 및 제외 패턴
+        List<SourceStopPattern> sourceStopPatterns = command.getStopPatterns().stream()
+                .map(prefix -> SourceStopPattern.builder()
+                        .prefix(prefix)
+                        .build())
+                .toList();
+
+        // 대상 문서 생성
+        Source source = Source.builder()
+                .sourceType(sourceType)
+                .selectType(selectType)
+                .categoryCode(command.getCategoryCode())
                 .name(fileVo.getOriginFileName())
                 .content(content)
-                .collectionId(createSourceCommand.getCollectionId())
+                .collectionId(command.getCollectionId())
                 .fileDetailId(fileDetail.getFileDetailId())
-                .maxTokenSize(createSourceCommand.getMaxTokenSize())
-                .overlapSize(createSourceCommand.getOverlapSize())
+                .maxTokenSize(command.getMaxTokenSize())
+                .overlapSize(command.getOverlapSize())
                 .isActive(false)
-                .build());
+                .sourcePatterns(sourcePatterns)
+                .sourceStopPatterns(sourceStopPatterns)
+                .build();
 
-        List<SourcePattern> sourcePatterns = new ArrayList<>();
-
-        // SourcePattern 목록 생성 및 영속화
-        for (int depth = 1; depth <= createSourceCommand.getPatterns().size(); depth++) {
-            PatternVo patternVo = createSourceCommand.getPatterns().get(depth - 1);
-
-            List<SourcePrefix> sourcePrefixes = new ArrayList<>();
-            for (int order = 1; order <= patternVo.getPrefixes().size(); order++) {
-                PrefixVo prefixVo = patternVo.getPrefixes().get(order - 1);
-                sourcePrefixes.add(SourcePrefix.builder()
-                        .prefix(prefixVo.getPrefix())
-                        .order(order)
-                        .isTitle(prefixVo.getIsTitle())
-                        .build());
-            }
-
-            sourcePatterns.add(SourcePattern.builder()
-                    .sourceId(source.getSourceId())
-                    .tokenSize(patternVo.getTokenSize())
-                    .depth(depth)
-                    .sourcePrefixes(sourcePrefixes)
-                    .build());
-        }
-
-        List<SourceStopPattern> sourceStopPatterns = createSourceCommand.getStopPatterns().stream()
-                        .map(prefix -> SourceStopPattern.builder()
-                                .sourceId(source.getSourceId())
-                                .prefix(prefix)
-                                .build())
-                        .toList();
-
-        sourcePersistencePort.createSourcePatternPort(sourcePatterns, sourceStopPatterns);
+        // 영속화
+        sourcePersistencePort.saveSourcePort(source);
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Builder
@@ -23,8 +24,8 @@ import java.time.LocalDateTime;
 public class FileEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WN_FILE_DETAIL_FILE_DETAIL_ID_SEQ")
-    @Column(name = "file_id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WN_FILE_FILE_ID_SEQ")
+    @Column(name = "file_id", nullable = false, updatable = false)
     private Long fileId;
 
     @CreatedDate
@@ -40,4 +41,8 @@ public class FileEntity {
 
     @Column(name = "sys_modify_user")
     private String sysModifyUser;
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "file_id")
+    private List<FileDetailEntity> fileDetails;
 }

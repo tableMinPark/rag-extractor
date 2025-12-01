@@ -1,6 +1,5 @@
 package com.document.extractor.application.command;
 
-import com.document.extractor.application.vo.FileVo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -8,9 +7,7 @@ import lombok.Getter;
 @Builder
 @Getter
 @AllArgsConstructor
-public class ExtractFileCommand {
+public class ChunkBatchCommand {
 
-    private FileVo file;
-
-    private String extractType;
+    private final Long sourceId;
 }

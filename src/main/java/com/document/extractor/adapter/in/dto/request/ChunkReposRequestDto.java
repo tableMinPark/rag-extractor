@@ -19,33 +19,31 @@ public class ChunkReposRequestDto {
 
     @NotBlank
     @Pattern(regexp = "html|markdown", message = "markdown 과 html 만 지원")
-    @Schema(description = "표 추출 타입", example = "markdown", defaultValue = "markdown")
+    @Schema(description = "표 추출 타입", example = "html", defaultValue = "html", requiredMode =  Schema.RequiredMode.REQUIRED)
     private String extractType;
 
-    @NotNull
-    @Schema(description = "최대 토큰 수", example = "1200", defaultValue = "1200")
-    private Integer maxTokenSize;
+    @Schema(description = "최대 토큰 수", example = "1200", defaultValue = "1200", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private Integer maxTokenSize = 1200;
 
-    @NotNull
-    @Schema(description = "토큰 초과 시, 오버랩 사이즈", example = "0", defaultValue = "0")
-    private Integer overlapSize;
+    @Schema(description = "토큰 초과 시, 오버랩 사이즈", example = "0", defaultValue = "0", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private Integer overlapSize = 0;
 
-    @Schema(description = "전처리 패턴", example = "[{\"tokenSize\":0,\"prefixes\":[{\"prefix\":\"BUCHICK\",\"isTitle\":true },{\"prefix\":\"PYUN\",\"isTitle\":true },{\"prefix\":\"JANG\",\"isTitle\":true }]},{\"tokenSize\":0,\"prefixes\":[{\"prefix\":\"JUL\",\"isTitle\":true },{\"prefix\":\"GWAN\",\"isTitle\":true }]},{\"tokenSize\":0,\"prefixes\":[{\"prefix\":\"JO\",\"isTitle\":true }]}]", defaultValue = "[]")
+    @Schema(description = "전처리 패턴", example = "[{\"tokenSize\":0,\"prefixes\":[{\"prefix\":\"BUCHICK\",\"isTitle\":true },{\"prefix\":\"PYUN\",\"isTitle\":true },{\"prefix\":\"JANG\",\"isTitle\":true }]},{\"tokenSize\":0,\"prefixes\":[{\"prefix\":\"JUL\",\"isTitle\":true },{\"prefix\":\"GWAN\",\"isTitle\":true }]},{\"tokenSize\":0,\"prefixes\":[{\"prefix\":\"JO\",\"isTitle\":true }]}]", defaultValue = "[]", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private List<PatternDto> patterns = new ArrayList<>();
 
-    @Schema(description = "제외 패턴", example = "[\"NAME\",\"HISTORY\"]", defaultValue = "[]")
-    private List<String> excludeContentTypes = new ArrayList<>();
+    @Schema(description = "제외 패턴", example = "[\"NAME\",\"HISTORY\"]", defaultValue = "[]", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private List<String> stopPatterns = new ArrayList<>();
 
     @NotBlank
     @Pattern(regexp = "law|manual", message = "law 과 manual 만 지원")
-    @Schema(description = "원격 문서 타입", example = "manual", defaultValue = "manual")
+    @Schema(description = "원격 문서 타입", example = "manual", defaultValue = "manual", requiredMode = Schema.RequiredMode.REQUIRED)
     private String repoType;
 
     @NotNull
-    @Schema(description = "원격 문서 ID 목록", example = "[27]", defaultValue = "[]")
+    @Schema(description = "원격 문서 ID 목록", example = "[27]", defaultValue = "[]", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<String> repoIds;
 
     @Pattern(regexp = "regex|token|none", message = "regex 과 token 만 지원")
-    @Schema(description = "전처리 타입", example = "regex", defaultValue = "none")
+    @Schema(description = "전처리 타입", example = "regex", defaultValue = "none", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private String selectType = "none";
 }

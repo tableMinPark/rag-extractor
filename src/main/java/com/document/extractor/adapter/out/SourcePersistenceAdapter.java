@@ -1,27 +1,29 @@
 package com.document.extractor.adapter.out;
 
+import com.document.extractor.adapter.out.entity.ChunkEntity;
+import com.document.extractor.adapter.out.entity.PassageEntity;
 import com.document.extractor.adapter.out.entity.SourceEntity;
-import com.document.extractor.adapter.out.entity.SourcePatternEntity;
-import com.document.extractor.adapter.out.entity.SourcePrefixEntity;
-import com.document.extractor.adapter.out.entity.SourceStopPatternEntity;
-import com.document.extractor.adapter.out.repository.*;
-import com.document.extractor.application.enums.SelectType;
+import com.document.extractor.adapter.out.repository.ChunkRepository;
+import com.document.extractor.adapter.out.repository.PassageRepository;
+import com.document.extractor.adapter.out.repository.SourceRepository;
+import com.document.extractor.application.exception.NotFoundException;
 import com.document.extractor.application.port.SourcePersistencePort;
-import com.document.extractor.domain.model.*;
+import com.document.extractor.domain.model.Chunk;
+import com.document.extractor.domain.model.Passage;
+import com.document.extractor.domain.model.Source;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class SourcePersistenceAdapter implements SourcePersistencePort {
 
     private final SourceRepository sourceRepository;
-    private final SourcePatternRepository sourcePatternRepository;
-    private final SourceStopPatternRepository sourceStopPatternRepository;
     private final PassageRepository passageRepository;
     private final ChunkRepository chunkRepository;
 
@@ -33,73 +35,56 @@ public class SourcePersistenceAdapter implements SourcePersistencePort {
      */
     @Transactional
     @Override
-    public Source createSourcePort(Source source) {
+    public Source saveSourcePort(Source source) {
 
-        SourceEntity sourceEntity = sourceRepository.save(SourceEntity.builder()
-                .version(source.getVersion())
-                .sourceType(source.getSourceType())
-                .selectType(source.getSelectType().getCode())
-                .categoryCode(source.getCategoryCode())
-                .name(source.getName())
-                .content(source.getContent())
-                .collectionId(source.getCollectionId())
-                .fileDetailId(source.getFileDetailId())
-                .maxTokenSize(source.getMaxTokenSize())
-                .overlapSize(source.getOverlapSize())
-                .isActive(source.getIsActive())
-                .build());
+        SourceEntity sourceEntity;
 
-        return Source.builder()
-                .sourceId(sourceEntity.getSourceId())
-                .version(sourceEntity.getVersion())
-                .sourceType(sourceEntity.getSourceType())
-                .selectType(SelectType.find(sourceEntity.getSelectType()))
-                .categoryCode(sourceEntity.getCategoryCode())
-                .name(sourceEntity.getName())
-                .content(sourceEntity.getContent())
-                .collectionId(sourceEntity.getCollectionId())
-                .fileDetailId(sourceEntity.getFileDetailId())
-                .maxTokenSize(sourceEntity.getMaxTokenSize())
-                .overlapSize(sourceEntity.getOverlapSize())
-                .isActive(sourceEntity.getIsActive())
-                .sysCreateDt(sourceEntity.getSysCreateDt())
-                .sysModifyDt(sourceEntity.getSysModifyDt())
-                .sourcePatterns(Collections.emptyList())
-                .sourceStopPatterns(Collections.emptyList())
-                .build();
+        if (source.getSourceId() == null) {
+            sourceEntity = sourceRepository.save(SourceEntity.fromDomain(source));
+        } else {
+            sourceEntity = sourceRepository.findById(source.getSourceId()).orElseThrow(NotFoundException::new);
+            sourceEntity.update(source);
+            sourceEntity = sourceRepository.save(sourceEntity);
+        }
+
+        return sourceEntity.toDomain();
     }
 
     /**
-     * 대상 문서 패턴 등록
+     * 대상 문서 조회
      *
-     * @param sourcePatterns     대상 문서 패턴
-     * @param sourceStopPatterns 대상 문서 중단 패턴
+     * @param sourceId 대상 문서 ID
+     * @return 대상 문서
      */
     @Transactional
     @Override
-    public void createSourcePatternPort(List<SourcePattern> sourcePatterns, List<SourceStopPattern> sourceStopPatterns) {
+    public Optional<Source> getSourcePort(Long sourceId) {
+        return sourceRepository.findById(sourceId).map(SourceEntity::toDomain);
+    }
 
-        sourcePatternRepository.saveAll(sourcePatterns.stream()
-                .map(sourcePattern -> SourcePatternEntity.builder()
-                        .sourceId(sourcePattern.getSourceId())
-                        .tokenSize(sourcePattern.getTokenSize())
-                        .depth(sourcePattern.getDepth())
-                        .sourcePrefixes(sourcePattern.getSourcePrefixes().stream()
-                                .map(sourcePrefix -> SourcePrefixEntity.builder()
-                                        .prefix(sourcePrefix.getPrefix())
-                                        .order(sourcePrefix.getOrder())
-                                        .isTitle(sourcePrefix.getIsTitle())
-                                        .build())
-                                .toList())
-                        .build())
-                .toList());
+    /**
+     * 대상 문서 조회 (비관락)
+     *
+     * @param sourceId 대상 문서 ID
+     * @return 대상 문서
+     */
+    @Transactional
+    @Override
+    public Optional<Source> getSourcePortWithLock(Long sourceId) {
+        return sourceRepository.findBySourceId(sourceId).map(SourceEntity::toDomain);
+    }
 
-        sourceStopPatternRepository.saveAll(sourceStopPatterns.stream()
-                .map(sourceStopPattern -> SourceStopPatternEntity.builder()
-                        .sourceId(sourceStopPattern.getSourceId())
-                        .prefix(sourceStopPattern.getPrefix())
-                        .build())
-                .toList());
+    /**
+     * 배치 대상 문서 조회
+     *
+     * @return 대상 문서 목록
+     */
+    @Transactional
+    @Override
+    public List<Source> getActiveSourcesPort() {
+        return sourceRepository.findByIsActiveTrue().stream()
+                .map(SourceEntity::toDomain)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -110,8 +95,38 @@ public class SourcePersistenceAdapter implements SourcePersistencePort {
      */
     @Transactional
     @Override
-    public Passage createPassagePort(Passage passage) {
-        return null;
+    public Passage savePassagePort(Passage passage) {
+
+        PassageEntity passageEntity;
+
+        if (passage.getPassageId() == null) {
+            passageEntity = passageRepository.save(PassageEntity.fromDomain(passage));
+        } else {
+            passageEntity = passageRepository.findById(passage.getPassageId()).orElseThrow(NotFoundException::new);
+            passageEntity.update(passage);
+            passageEntity = passageRepository.save(passageEntity);
+        }
+
+        return passageEntity.toDomain();
+    }
+
+    /**
+     * 패시지 목록 저장
+     *
+     * @param passages 패시지 목록
+     * @return 패시지 목록
+     */
+    @Transactional
+    @Override
+    public List<Passage> savePassagesPort(List<Passage> passages) {
+
+        List<PassageEntity> passageEntities = passages.stream()
+                        .map(passage -> passage.getPassageId() == null
+                                ? PassageEntity.fromDomain(passage)
+                                : passageRepository.findById(passage.getPassageId()).orElseThrow(NotFoundException::new))
+                        .toList();
+
+        return passageRepository.saveAll(passageEntities).stream().map(PassageEntity::toDomain).toList();
     }
 
     /**
@@ -122,7 +137,37 @@ public class SourcePersistenceAdapter implements SourcePersistencePort {
      */
     @Transactional
     @Override
-    public Chunk createChunkPort(Chunk chunk) {
-        return null;
+    public Chunk saveChunkPort(Chunk chunk) {
+
+        ChunkEntity chunkEntity;
+
+        if (chunk.getChunkId() == null) {
+            chunkEntity = chunkRepository.save(ChunkEntity.fromDomain(chunk));
+        } else {
+            chunkEntity = chunkRepository.findById(chunk.getChunkId()).orElseThrow(NotFoundException::new);
+            chunkEntity.update(chunk);
+            chunkEntity = chunkRepository.save(chunkEntity);
+        }
+
+        return chunkEntity.toDomain();
+    }
+
+    /**
+     * 청크 목록 저장
+     *
+     * @param chunks 청크 목록
+     * @return 청크 목록
+     */
+    @Transactional
+    @Override
+    public List<Chunk> saveChunksPort(List<Chunk> chunks) {
+
+        List<ChunkEntity> chunkEntities = chunks.stream()
+                .map(chunk -> chunk.getChunkId() == null
+                        ? ChunkEntity.fromDomain(chunk)
+                        : chunkRepository.findById(chunk.getChunkId()).orElseThrow(NotFoundException::new))
+                .toList();
+
+        return chunkRepository.saveAll(chunkEntities).stream().map(ChunkEntity::toDomain).toList();
     }
 }
