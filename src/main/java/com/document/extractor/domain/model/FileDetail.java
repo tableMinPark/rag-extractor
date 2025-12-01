@@ -3,7 +3,6 @@ package com.document.extractor.domain.model;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 
@@ -16,7 +15,7 @@ public class FileDetail {
 
     private final Long fileId;
 
-    private final String originalFileName;
+    private final String originFileName;
 
     private final String fileName;
 

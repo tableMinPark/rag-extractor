@@ -47,6 +47,7 @@ public class ControllerAdvice {
 
     @ExceptionHandler(value = RuntimeException.class)
     public ResponseEntity<ResponseDto<?>> handleRuntimeException(RuntimeException e) {
+        e.printStackTrace();
         return ResponseEntity.internalServerError().body(ResponseDto.builder()
                 .message(e.getMessage())
                 .data(Collections.emptyMap())

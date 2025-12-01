@@ -53,7 +53,7 @@ public class ExtractAdapter implements ExtractPort {
         // 한글 제외 다른 확장자 파일 추출
         if (!fileDetail.getExt().contains("hwp") && !fileDetail.getExt().contains("hwpx")) {
             return PdfDocument.builder()
-                    .name(fileDetail.getOriginalFileName())
+                    .name(fileDetail.getOriginFileName())
                     .content(fileUtil.readFile(Paths.get(fileDetail.getUrl())).trim())
                     .build();
         }
@@ -73,7 +73,7 @@ public class ExtractAdapter implements ExtractPort {
             } catch (Exception e) {
                 // 변환 실패
                 return PdfDocument.builder()
-                        .name(fileDetail.getOriginalFileName())
+                        .name(fileDetail.getOriginFileName())
                         .content(fileUtil.readFile(Paths.get(fileDetail.getUrl())).trim())
                         .build();
             }
@@ -146,7 +146,7 @@ public class ExtractAdapter implements ExtractPort {
         fileUtil.deleteDirectory(unZipDirPath);
 
         return HwpxDocument.builder()
-                .name(fileDetail.getOriginalFileName())
+                .name(fileDetail.getOriginFileName())
                 .extractType(extractType)
                 .sections(sections)
                 .images(images)

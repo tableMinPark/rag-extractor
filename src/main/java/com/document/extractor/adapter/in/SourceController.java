@@ -4,14 +4,14 @@ import com.document.extractor.adapter.in.dto.etc.RepoResourceDto;
 import com.document.extractor.adapter.in.dto.request.CreateFileSourceRequestDto;
 import com.document.extractor.adapter.in.dto.request.CreateRepoSourceRequestDto;
 import com.document.extractor.adapter.in.dto.response.ResponseDto;
-import com.document.extractor.adapter.propery.FileProperty;
 import com.document.extractor.application.command.CreateSourceCommand;
+import com.document.extractor.application.enums.SelectType;
 import com.document.extractor.application.enums.SourceType;
 import com.document.extractor.application.usecase.SourceUseCase;
+import com.document.extractor.application.utils.FileUtil;
 import com.document.extractor.application.vo.FileVo;
 import com.document.extractor.domain.vo.PatternVo;
 import com.document.extractor.domain.vo.PrefixVo;
-import com.document.extractor.application.utils.FileUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,7 +35,6 @@ import java.util.List;
 public class SourceController {
 
     private final SourceUseCase sourceUseCase;
-    private final FileProperty fileProperty;
     private final FileUtil fileUtil;
 
     @Operation(summary = "파일 대상 문서 등록")
@@ -52,28 +51,37 @@ public class SourceController {
             FileVo fileVo = null;
 
             try {
-                fileVo = fileUtil.uploadFile(multipartFile, fileProperty.getTempDir());
+                fileVo = fileUtil.uploadFile(multipartFile);
 
                 sourceUseCase.createSourcesUseCase(CreateSourceCommand.builder()
-                        .sourceType(SourceType.FILE.getCode())
+                        .sourceType(SourceType.FILE)
                         .categoryCode(createFileSourceRequestDto.getCategoryCode())
                         .collectionId(createFileSourceRequestDto.getCollectionId())
                         .maxTokenSize(createFileSourceRequestDto.getMaxTokenSize())
                         .overlapSize(createFileSourceRequestDto.getOverlapSize())
                         .patterns(createFileSourceRequestDto.getPatterns().stream()
                                 .map(patternDto -> PatternVo.builder()
+                                        .tokenSize(patternDto.getTokenSize())
+                                        .prefixes(patternDto.getPrefixes().stream()
+                                                .map(prefixDto -> PrefixVo.builder()
+                                                        .prefix(prefixDto.getPrefix())
+                                                        .isTitle(prefixDto.getIsTitle())
+                                                        .build())
+                                                .toList())
                                         .build())
                                 .toList())
                         .stopPatterns(createFileSourceRequestDto.getStopPatterns())
+                        .selectType(SelectType.valueOf(createFileSourceRequestDto.getSelectType().toUpperCase()))
                         .file(fileVo)
                         .build());
 
             } catch (IOException e) {
                 throw new RuntimeException("파일 업로드 실패");
-            } finally {
-                if (fileVo != null) {
+            } catch (RuntimeException e) {
+                if (fileVo != null && fileVo.getUrl() != null) {
                     fileUtil.deleteFile(Paths.get(fileVo.getUrl()));
                 }
+                throw e;
             }
         }
 
@@ -92,19 +100,31 @@ public class SourceController {
     ) {
         String ip = createRepoSourceRequestDto.getHost() + ":" +  createRepoSourceRequestDto.getPort();
 
-        for (RepoResourceDto repoResourceDto : createRepoSourceRequestDto.getRemoteResources()) {
+        for (RepoResourceDto repoResourceDto : createRepoSourceRequestDto.getRepoResources()) {
+
+            String filePath = String.format("http://%s:%d/%s",
+                    createRepoSourceRequestDto.getHost(),
+                    createRepoSourceRequestDto.getPort(),
+                    repoResourceDto.getPath());
+
+            String url = String.format("http://%s:%d/%s/%s",
+                    createRepoSourceRequestDto.getHost(),
+                    createRepoSourceRequestDto.getPort(),
+                    repoResourceDto.getPath(),
+                    repoResourceDto.getUrn());
+
             FileVo fileVo = FileVo.builder()
                     .originFileName(repoResourceDto.getOriginFileName())
                     .fileName(repoResourceDto.getFileName())
                     .ip(ip)
-                    .filePath(createRepoSourceRequestDto.getPath())
+                    .filePath(filePath)
                     .fileSize(0)
                     .ext(repoResourceDto.getExt())
-                    .url(repoResourceDto.getUrl())
+                    .url(url)
                     .build();
 
             sourceUseCase.createSourcesUseCase(CreateSourceCommand.builder()
-                    .sourceType(SourceType.REPO.getCode())
+                    .sourceType(SourceType.REPO)
                     .categoryCode(createRepoSourceRequestDto.getCategoryCode())
                     .collectionId(createRepoSourceRequestDto.getCollectionId())
                     .maxTokenSize(createRepoSourceRequestDto.getMaxTokenSize())
@@ -121,6 +141,7 @@ public class SourceController {
                                     .build())
                             .toList())
                     .stopPatterns(createRepoSourceRequestDto.getStopPatterns())
+                    .selectType(SelectType.valueOf(createRepoSourceRequestDto.getSelectType().toUpperCase()))
                     .file(fileVo)
                     .build());
         }

@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -29,6 +30,18 @@ public class FileUtil {
      * 파일 저장
      *
      * @param multipartFile 업로드 파일
+     * @throws IOException 업로드 실패 예외
+     */
+    public FileVo uploadFile(MultipartFile multipartFile) throws IOException {
+        LocalDate date = LocalDate.now();
+        String filePath = String.format("%02d-%02d-%02d", date.getYear(), date.getMonthValue(), date.getDayOfMonth());
+        return uploadFile(multipartFile, filePath);
+    }
+
+    /**
+     * 파일 저장
+     *
+     * @param multipartFile 업로드 파일
      * @param filePath      파일 경로
      * @throws IOException 업로드 실패 예외
      */
@@ -37,9 +50,7 @@ public class FileUtil {
         String originFileName = "";
         String fileName = "";
         String ip = "127.0.0.1";
-        int fileSize = 0;
         String ext = "";
-        String url = "";
 
         // 원본 파일명
         originFileName = multipartFile.getOriginalFilename();
@@ -63,9 +74,6 @@ public class FileUtil {
             }
         }
 
-        // 파일 크기
-        fileSize = (int) multipartFile.getSize();
-
         // 파일 확장자
         String[] extSplit = multipartFile.getOriginalFilename().trim().split("\\.");
         ext = extSplit[extSplit.length - 1];
@@ -73,7 +81,6 @@ public class FileUtil {
         // 파일 저장 경로
         Path fullPath = Paths.get(fileProperty.getFileStorePath(), filePath);
         Path fullFilePath = Paths.get(fileProperty.getFileStorePath(), filePath, fileName);
-        url = fullFilePath.toString();
 
         // 저장 경로 디렉토리 생성
         if (!fullPath.toFile().exists()) {
@@ -93,10 +100,10 @@ public class FileUtil {
                 .originFileName(originFileName)
                 .fileName(fileName)
                 .ip(ip)
-                .filePath(filePath)
-                .fileSize(fileSize)
+                .filePath(fullPath.toFile().getAbsolutePath())
+                .fileSize((int) multipartFile.getSize())
                 .ext(ext)
-                .url(url)
+                .url(fullFilePath.toFile().getAbsolutePath())
                 .build();
     }
 

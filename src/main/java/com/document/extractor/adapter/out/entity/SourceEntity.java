@@ -1,8 +1,9 @@
 package com.document.extractor.adapter.out.entity;
 
-import com.document.extractor.application.enums.SelectType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -32,11 +33,11 @@ public class SourceEntity {
     @Column(name = "source_type")
     private String sourceType;
 
-    @Column(name = "category_code")
-    private String categoryCode;
-
     @Column(name = "select_type")
     private String selectType;
+
+    @Column(name = "category_code")
+    private String categoryCode;
 
     @Column(name = "name")
     private String name;
@@ -50,9 +51,20 @@ public class SourceEntity {
     @Column(name = "file_detail_id")
     private Long fileDetailId;
 
+    @Column(name = "max_token_size")
+    private Integer maxTokenSize;
+
+    @Column(name = "overlap_size")
+    private Integer overlapSize;
+
+    @Column(name = "is_active")
+    private Boolean isActive;
+
+    @CreatedDate
     @Column(name = "sys_create_dt")
     private LocalDateTime sysCreateDt;
 
+    @LastModifiedDate
     @Column(name = "sys_modify_dt")
     private LocalDateTime sysModifyDt;
 }
