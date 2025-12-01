@@ -2,6 +2,7 @@ package com.document.extractor.adapter.in.dto.request;
 
 import com.document.extractor.adapter.in.dto.etc.PatternDto;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -30,4 +31,8 @@ public class CreateFileSourceRequestDto {
 
     @Schema(description = "전처리 중단 패턴", example = "[\"^[\\\\[\\\\(][^\\\\]\\\\)]*(별지|별첨|서식)[^\\\\]\\\\)]*[\\\\]\\\\)]\"]", defaultValue = "[]")
     private List<String> stopPatterns;
+
+    @Pattern(regexp = "regex|token|none", message = "regex 과 token 만 지원")
+    @Schema(description = "전처리 타입", example = "regex", defaultValue = "token")
+    private String selectType = "none";
 }

@@ -382,7 +382,6 @@ public class HtmlUtil {
         return sb.toString().trim().replace("\n", NEW_LINE_PREFIX);
     }
 
-
     /**
      * HTML 태그 삭제 (표 HTML 보존)
      *

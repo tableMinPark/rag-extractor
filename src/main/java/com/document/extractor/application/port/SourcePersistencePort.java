@@ -1,9 +1,8 @@
 package com.document.extractor.application.port;
 
-import com.document.extractor.domain.model.Chunk;
-import com.document.extractor.domain.model.Source;
-import com.document.extractor.domain.model.Passage;
-import com.document.extractor.domain.model.SourcePattern;
+import com.document.extractor.domain.model.*;
+
+import java.util.List;
 
 public interface SourcePersistencePort {
 
@@ -18,10 +17,10 @@ public interface SourcePersistencePort {
     /**
      * 대상 문서 패턴 등록
      *
-     * @param sourcePattern 대상 문서 패턴
-     * @return 대상 문서 패턴
+     * @param sourcePatterns     대상 문서 패턴
+     * @param sourceStopPatterns 대상 문서 중단 패턴
      */
-    SourcePattern createSourcePatternPort(SourcePattern sourcePattern);
+    void createSourcePatternPort(List<SourcePattern> sourcePatterns, List<SourceStopPattern> sourceStopPatterns);
 
     /**
      * 패시지 저장

@@ -22,6 +22,10 @@ public class RepoResourceDto {
     private String ext;
 
     @Pattern(regexp = "^(?!/)(?!.*/$).+", message = "경로는 '/'로 시작하거나 끝날 수 없음")
-    @Schema(description = "리소스 전체 경로", example = "test?id=1")
-    private String url;
+    @Schema(description = "리소스 경로", example = "document/data")
+    private String path;
+
+    @Pattern(regexp = "^(?!/)(?!.*/$).+", message = "경로는 '/'로 시작하거나 끝날 수 없음")
+    @Schema(description = "리소스 식별자", example = "dataId?type=markdown")
+    private String urn;
 }

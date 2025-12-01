@@ -10,9 +10,9 @@ import com.document.extractor.application.command.ChunkFileCommand;
 import com.document.extractor.application.command.ChunkRepoCommand;
 import com.document.extractor.application.enums.SelectType;
 import com.document.extractor.application.usecase.ChunkUseCase;
+import com.document.extractor.application.utils.FileUtil;
 import com.document.extractor.application.vo.*;
 import com.document.global.enums.ExtractType;
-import com.document.extractor.application.utils.FileUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -53,7 +53,7 @@ public class ChunkController {
     ) {
         ChunkOptionVo chunkOptionVo = ChunkOptionVo.builder()
                 .extractType(ExtractType.find(chunkRequestDto.getExtractType()))
-                .selectType(SelectType.find(chunkRequestDto.getSelectType()))
+                .selectType(SelectType.valueOf(chunkRequestDto.getSelectType().toUpperCase()))
                 .patterns(PatternDto.toPatternVo(chunkRequestDto.getPatterns()))
                 .antiPatterns(chunkRequestDto.getStopPatterns())
                 .maxTokenSize(chunkRequestDto.getMaxTokenSize())
@@ -113,7 +113,7 @@ public class ChunkController {
     ) {
         ChunkOptionVo chunkOptionVo = ChunkOptionVo.builder()
                 .extractType(ExtractType.find(chunkReposRequestDto.getExtractType()))
-                .selectType(SelectType.find(chunkReposRequestDto.getSelectType()))
+                .selectType(SelectType.valueOf(chunkReposRequestDto.getSelectType().toUpperCase()))
                 .patterns(PatternDto.toPatternVo(chunkReposRequestDto.getPatterns()))
                 .antiPatterns(chunkReposRequestDto.getExcludeContentTypes())
                 .maxTokenSize(chunkReposRequestDto.getMaxTokenSize())

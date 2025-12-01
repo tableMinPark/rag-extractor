@@ -2,6 +2,8 @@ package com.document.extractor.adapter.out.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -46,9 +48,11 @@ public class ChunkEntity {
     @Column(name = "token_size")
     private Integer tokenSize;
 
+    @CreatedDate
     @Column(name = "sys_create_dt")
     private LocalDateTime sysCreateDt;
 
+    @LastModifiedDate
     @Column(name = "sys_modify_dt")
     private LocalDateTime sysModifyDt;
 }

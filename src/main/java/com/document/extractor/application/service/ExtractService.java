@@ -30,7 +30,7 @@ public class ExtractService implements ExtractUseCase {
         FileVo fileVo = command.getFile();
 
         Document document = extractPort.extractFilePort(FileDetail.builder()
-                .originalFileName(fileVo.getOriginFileName())
+                .originFileName(fileVo.getOriginFileName())
                 .fileName(fileVo.getFileName())
                 .url(fileVo.getUrl())
                 .filePath(fileVo.getFilePath())
@@ -58,7 +58,7 @@ public class ExtractService implements ExtractUseCase {
         FileVo fileVo = command.getFile();
 
         return extractPort.extractTextPort(FileDetail.builder()
-                .originalFileName(fileVo.getOriginFileName())
+                .originFileName(fileVo.getOriginFileName())
                 .fileName(fileVo.getFileName())
                 .url(fileVo.getUrl())
                 .filePath(fileVo.getFilePath())

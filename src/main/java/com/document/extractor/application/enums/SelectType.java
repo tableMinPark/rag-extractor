@@ -7,16 +7,16 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum SelectType {
 
-    NONE("none"),
-    REGEX("regex"),
-    TOKEN("token"),
+    NONE("SELECT-TYPE-NONE"),
+    REGEX("SELECT-TYPE-REGEX"),
+    TOKEN("SELECT-TYPE-TOKEN"),
     ;
 
     private final String code;
 
     public static SelectType find(String code) {
         for (SelectType selectType : SelectType.values()) {
-            if (code != null && code.equals(selectType.code)) {
+            if (code != null && code.equalsIgnoreCase(selectType.code)) {
                 return selectType;
             }
         }

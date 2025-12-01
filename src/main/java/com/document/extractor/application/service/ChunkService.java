@@ -41,7 +41,7 @@ public class ChunkService implements ChunkUseCase {
         ChunkOptionVo chunkOptionVo = command.getChunkOption();
 
         FileDetail fileDetail = FileDetail.builder()
-                .originalFileName(fileVo.getOriginFileName())
+                .originFileName(fileVo.getOriginFileName())
                 .fileName(fileVo.getFileName())
                 .url(fileVo.getUrl())
                 .filePath(fileVo.getFilePath())
@@ -62,7 +62,7 @@ public class ChunkService implements ChunkUseCase {
                 ? PassageFactory.passaging(document.getDocumentContents(), passageOptionVo, chunkOptionVo.getMaxTokenSize())
                 : PassageFactory.passaging(document.getDocumentContents(), passageOptionVo);
 
-        passages.forEach(passage -> passage.setTitle(fileDetail.getOriginalFileName()));
+        passages.forEach(passage -> passage.setTitle(fileDetail.getOriginFileName()));
 
         return SourceVo.builder()
                 .sourceType(SourceType.FILE.getCode())
