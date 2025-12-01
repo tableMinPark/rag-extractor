@@ -1,8 +1,11 @@
 package com.document.extractor.application.port;
 
-import com.document.extractor.domain.model.*;
+import com.document.extractor.domain.model.Chunk;
+import com.document.extractor.domain.model.Passage;
+import com.document.extractor.domain.model.Source;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface SourcePersistencePort {
 
@@ -12,15 +15,30 @@ public interface SourcePersistencePort {
      * @param source 대상 문서
      * @return 대상 문서
      */
-    Source createSourcePort(Source source);
+    Source saveSourcePort(Source source);
 
     /**
-     * 대상 문서 패턴 등록
+     * 대상 문서 조회
      *
-     * @param sourcePatterns     대상 문서 패턴
-     * @param sourceStopPatterns 대상 문서 중단 패턴
+     * @param sourceId 대상 문서 ID
+     * @return 대상 문서
      */
-    void createSourcePatternPort(List<SourcePattern> sourcePatterns, List<SourceStopPattern> sourceStopPatterns);
+    Optional<Source> getSourcePort(Long sourceId);
+
+    /**
+     * 대상 문서 조회 (비관락)
+     *
+     * @param sourceId 대상 문서 ID
+     * @return 대상 문서
+     */
+    Optional<Source> getSourcePortWithLock(Long sourceId);
+
+    /**
+     * 배치 대상 문서 조회
+     *
+     * @return 대상 문서 목록
+     */
+    List<Source> getActiveSourcesPort();
 
     /**
      * 패시지 저장
@@ -28,7 +46,15 @@ public interface SourcePersistencePort {
      * @param passage 패시지
      * @return 패시지
      */
-    Passage createPassagePort(Passage passage);
+    Passage savePassagePort(Passage passage);
+
+    /**
+     * 패시지 목록 저장
+     *
+     * @param passages 패시지 목록
+     * @return 패시지 목록
+     */
+    List<Passage> savePassagesPort(List<Passage> passages);
 
     /**
      * 청크 저장
@@ -36,5 +62,13 @@ public interface SourcePersistencePort {
      * @param chunk 청크
      * @return 청크
      */
-    Chunk createChunkPort(Chunk chunk);
+    Chunk saveChunkPort(Chunk chunk);
+
+    /**
+     * 청크 목록 저장
+     *
+     * @param chunks 청크 목록
+     * @return 청크 목록
+     */
+    List<Chunk> saveChunksPort(List<Chunk> chunks);
 }

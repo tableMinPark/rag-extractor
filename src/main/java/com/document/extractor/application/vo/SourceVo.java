@@ -1,5 +1,6 @@
 package com.document.extractor.application.vo;
 
+import com.document.extractor.domain.model.Source;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,7 +16,7 @@ public class SourceVo {
 
     private Long sourceId;
 
-    private String version;
+    private Long version;
 
     private String sourceType;
 
@@ -33,6 +34,18 @@ public class SourceVo {
 
     private LocalDateTime sysModifyDt;
 
-    @JsonIgnore
-    private final List<PassageVo> passageVos;
+    public static SourceVo of(Source source) {
+        return SourceVo.builder()
+                .sourceId(source.getSourceId())
+                .version(source.getVersion())
+                .sourceType(source.getSourceType().getCode())
+                .categoryCode(source.getCategoryCode())
+                .name(source.getName())
+                .content(source.getContent())
+                .collectionId(source.getCollectionId())
+                .fileDetailId(source.getFileDetailId())
+                .sysCreateDt(source.getSysCreateDt())
+                .sysModifyDt(source.getSysModifyDt())
+                .build();
+    }
 }

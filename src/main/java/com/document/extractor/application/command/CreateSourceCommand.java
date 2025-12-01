@@ -1,7 +1,5 @@
 package com.document.extractor.application.command;
 
-import com.document.extractor.application.enums.SelectType;
-import com.document.extractor.application.enums.SourceType;
 import com.document.extractor.application.vo.FileVo;
 import com.document.extractor.domain.vo.PatternVo;
 import lombok.AllArgsConstructor;
@@ -15,7 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 public class CreateSourceCommand {
 
-    private SourceType sourceType;
+    private String sourceType;
 
     private String categoryCode;
 
@@ -29,7 +27,7 @@ public class CreateSourceCommand {
 
     private List<String> stopPatterns;
 
-    private SelectType selectType;
+    private String selectType;
 
     private FileVo file;
 }

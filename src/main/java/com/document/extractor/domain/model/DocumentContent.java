@@ -52,7 +52,7 @@ public class DocumentContent {
     public void extractTitle(List<String> prefixes) {
         for (String prefix : prefixes) {
             Pattern pattern = Pattern.compile(prefix, Pattern.MULTILINE);
-            Matcher matcher = pattern.matcher(this.compareText);
+            Matcher matcher = pattern.matcher(this.context);
 
             if (matcher.find()) {
                 this.prefix = prefix;

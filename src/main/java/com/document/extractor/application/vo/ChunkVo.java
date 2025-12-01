@@ -16,6 +16,8 @@ public class ChunkVo {
 
     private Long passageId;
 
+    private Long version;
+
     private String title;
 
     private String subTitle;
@@ -24,9 +26,15 @@ public class ChunkVo {
 
     private String content;
 
+    private String compactContent;
+
     private String subContent;
 
-    private Integer tokenSize;
+    private Integer contentTokenSize;
+
+    private Integer compactContentTokenSize;
+
+    private Integer subContentTokenSize;
 
     private LocalDateTime sysCreateDt;
 
@@ -36,12 +44,16 @@ public class ChunkVo {
         return ChunkVo.builder()
                 .chunkId(chunk.getChunkId())
                 .passageId(chunk.getPassageId())
+                .version(chunk.getVersion())
                 .title(chunk.getTitle())
                 .subTitle(chunk.getSubTitle())
                 .thirdTitle(chunk.getThirdTitle())
                 .content(chunk.getContent())
+                .compactContent(chunk.getCompactContent())
                 .subContent(chunk.getSubContent())
-                .tokenSize(chunk.getTokenSize())
+                .contentTokenSize(chunk.getContent().length())
+                .compactContentTokenSize(chunk.getCompactContent().length())
+                .subContentTokenSize(chunk.getSubContent().length())
                 .sysCreateDt(chunk.getSysCreateDt())
                 .sysModifyDt(chunk.getSysModifyDt())
                 .build();

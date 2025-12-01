@@ -15,6 +15,8 @@ public class Chunk {
 
     private final Long passageId;
 
+    private final Long version;
+
     private final String title;
 
     private final String subTitle;
@@ -24,6 +26,8 @@ public class Chunk {
     private final String content;
 
     private final String subContent;
+
+    private final String compactContent;
 
     private final Integer tokenSize;
 

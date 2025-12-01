@@ -1,11 +1,11 @@
 package com.document.extractor.domain.factory;
 
+import com.document.extractor.application.enums.SelectType;
 import com.document.extractor.domain.model.DocumentContent;
 import com.document.extractor.domain.model.Passage;
+import com.document.extractor.domain.model.SourcePattern;
+import com.document.extractor.domain.model.SourcePrefix;
 import com.document.extractor.domain.vo.PassageOptionVo;
-import com.document.extractor.domain.vo.PatternVo;
-import com.document.extractor.domain.vo.PrefixVo;
-import com.document.extractor.application.enums.SelectType;
 import lombok.Builder;
 import lombok.ToString;
 
@@ -73,7 +73,7 @@ public class PassageFactory {
 
         // 타이틀 버퍼 초기화
         for (int depth = 0; depth < passageOptionVo.getDepthSize(); depth++) {
-            int prefixSize = passageOptionVo.getPatterns().get(depth).getPrefixes().size();
+            int prefixSize = passageOptionVo.getPatterns().get(depth).getSourcePrefixes().size();
             titleBuffer[depth] = new DocumentContent[prefixSize];
             Arrays.fill(titleBuffer[depth], null);
         }
@@ -90,17 +90,18 @@ public class PassageFactory {
 
         // 타이틀 버퍼 초기화
         for (int depth = 0; depth < passageOptionVo.getDepthSize(); depth++) {
-            int prefixSize = passageOptionVo.getPatterns().get(depth).getPrefixes().size();
+            int prefixSize = passageOptionVo.getPatterns().get(depth).getSourcePrefixes().size();
             titleBuffer[depth] = new DocumentContent[prefixSize];
             Arrays.fill(titleBuffer[depth], null);
         }
 
         // 본문 -> 타이틀 추출
-        if (passageOptionVo.isExtractTitle()) {
-            List<String> prefixes = new ArrayList<>();
-            passageOptionVo.getPatterns().forEach(patternVo -> prefixes.addAll(patternVo.getPrefixes().stream().map(PrefixVo::getPrefix).toList()));
-            documentContents.forEach(documentContent -> documentContent.extractTitle(prefixes));
-        }
+        List<String> prefixes = new ArrayList<>();
+        passageOptionVo.getPatterns().forEach(patternVo -> prefixes.addAll(patternVo.getSourcePrefixes().stream()
+                .filter(SourcePrefix::getIsTitle)
+                .map(SourcePrefix::getPrefix)
+                .toList()));
+        documentContents.forEach(documentContent -> documentContent.extractTitle(prefixes));
 
         return passaging(titleBuffer, PassageFactory.init(titleBuffer, documentContents), passageOptionVo);
     }
@@ -157,7 +158,7 @@ public class PassageFactory {
      */
     private static List<Passage> passaging(DocumentContent[][] titleBuffer, PassageFactory passageFactory, PassageOptionVo passageOptionVo) {
 
-        List<PatternVo> patternVos = passageOptionVo.getPatterns();
+        List<SourcePattern> patternVos = passageOptionVo.getPatterns();
         int nextDepth = passageFactory.depth + 1;
         int contentTokenSize = passageFactory.contentTokenSize;
         int depthMaxTokenSize = patternVos.size() > nextDepth ? patternVos.get(nextDepth).getTokenSize() : 0;
@@ -180,7 +181,7 @@ public class PassageFactory {
         }
         // 깊이 초과 (재귀 종료)
         else if (passageOptionVo.getDepthSize() <= nextDepth) {
-            if (SelectType.NONE.equals(passageOptionVo.getType())) {
+            if (SelectType.NONE.equals(passageOptionVo.getSelectType())) {
                 // 1개씩 content 1개씩 재귀 호출
                 for (DocumentContent documentContent : passageFactory.documentContents) {
                     passages.addAll(passaging(copyTitleBuffer(titleBuffer), PassageFactory.nextStep(nextDepth, titleBuffer, List.of(documentContent)), passageOptionVo));
@@ -208,13 +209,13 @@ public class PassageFactory {
         }
         else {
             int head = -1;
-            PatternVo patternVo = passageOptionVo.getPatterns().get(nextDepth);
+            SourcePattern patternVo = passageOptionVo.getPatterns().get(nextDepth);
 
             for (int contentIndex = 0; contentIndex < passageFactory.documentContents.size(); contentIndex++) {
                 DocumentContent documentContent = passageFactory.documentContents.get(contentIndex);
 
-                for (int prefixIndex = 0; prefixIndex < patternVo.getPrefixes().size(); prefixIndex++) {
-                    PrefixVo prefix = patternVo.getPrefixes().get(prefixIndex);
+                for (int prefixIndex = 0; prefixIndex < patternVo.getSourcePrefixes().size(); prefixIndex++) {
+                    SourcePrefix prefix = patternVo.getSourcePrefixes().get(prefixIndex);
 
                     // 조건 확인
                     Pattern pattern = Pattern.compile(prefix.getPrefix(), Pattern.MULTILINE);

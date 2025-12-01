@@ -1,6 +1,7 @@
 package com.document.extractor.domain.vo;
 
 import com.document.extractor.application.enums.SelectType;
+import com.document.extractor.domain.model.SourcePattern;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
@@ -14,17 +15,14 @@ public class PassageOptionVo {
 
     private final int depthSize;
 
-    private final List<PatternVo> patterns;
+    private final List<SourcePattern> patterns;
 
-    private final SelectType type;
-
-    private final boolean isExtractTitle;
+    private final SelectType selectType;
 
     @Builder
-    public PassageOptionVo(List<PatternVo> patterns, SelectType type, boolean isExtractTitle) {
+    public PassageOptionVo(List<SourcePattern> patterns, SelectType selectType) {
         this.patterns = patterns == null ? new ArrayList<>() : patterns;
         this.depthSize = this.patterns.size();
-        this.type = type;
-        this.isExtractTitle = isExtractTitle;
+        this.selectType = selectType;
     }
 }

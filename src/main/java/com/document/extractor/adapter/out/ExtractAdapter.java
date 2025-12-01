@@ -1,24 +1,23 @@
 package com.document.extractor.adapter.out;
 
 import com.document.extractor.adapter.propery.FileProperty;
-import com.document.global.enums.ExtractType;
 import com.document.extractor.application.port.ExtractPort;
+import com.document.extractor.application.utils.FileUtil;
+import com.document.extractor.application.utils.XmlUtil;
 import com.document.extractor.domain.model.Document;
 import com.document.extractor.domain.model.FileDetail;
 import com.document.extractor.domain.model.HwpxDocument;
 import com.document.extractor.domain.model.PdfDocument;
 import com.document.extractor.domain.vo.HwpxImageVo;
 import com.document.extractor.domain.vo.HwpxSectionVo;
-import com.document.extractor.application.utils.FileUtil;
+import com.document.global.enums.ExtractType;
 import com.document.global.utils.StringUtil;
-import com.document.extractor.application.utils.XmlUtil;
 import kr.dogfoot.hwp2hwpx.Hwp2Hwpx;
 import kr.dogfoot.hwplib.object.HWPFile;
 import kr.dogfoot.hwplib.reader.HWPReader;
 import kr.dogfoot.hwpxlib.object.HWPXFile;
 import kr.dogfoot.hwpxlib.writer.HWPXWriter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -32,7 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ExtractAdapter implements ExtractPort {

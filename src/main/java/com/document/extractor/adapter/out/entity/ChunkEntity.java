@@ -1,5 +1,6 @@
 package com.document.extractor.adapter.out.entity;
 
+import com.document.extractor.domain.model.Chunk;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -24,11 +25,14 @@ public class ChunkEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WN_CHUNK_CHUNK_ID_SEQ")
-    @Column(name = "chunk_id", nullable = false)
+    @Column(name = "chunk_id", nullable = false, updatable = false)
     private Long chunkId;
 
     @Column(name = "passage_id")
     private Long passageId;
+
+    @Column(name = "version")
+    private Long version;
 
     @Column(name = "title")
     private String title;
@@ -41,6 +45,9 @@ public class ChunkEntity {
 
     @Column(name = "content")
     private String content;
+
+    @Column(name = "compact_content")
+    private String compactContent;
 
     @Column(name = "sub_content")
     private String subContent;
@@ -55,4 +62,48 @@ public class ChunkEntity {
     @LastModifiedDate
     @Column(name = "sys_modify_dt")
     private LocalDateTime sysModifyDt;
+
+    public void update(Chunk chunk) {
+        this.passageId = chunk.getPassageId();
+        this.version = chunk.getVersion();
+        this.title = chunk.getTitle();
+        this.subTitle = chunk.getSubTitle();
+        this.thirdTitle = chunk.getThirdTitle();
+        this.content = chunk.getContent();
+        this.subContent = chunk.getSubContent();
+        this.compactContent = chunk.getCompactContent();
+        this.tokenSize = chunk.getTokenSize();
+    }
+
+    public Chunk toDomain() {
+        return Chunk.builder()
+                .chunkId(chunkId)
+                .passageId(passageId)
+                .version(version)
+                .title(title)
+                .subTitle(subTitle)
+                .thirdTitle(thirdTitle)
+                .content(content)
+                .subContent(subContent)
+                .compactContent(compactContent)
+                .tokenSize(tokenSize)
+                .sysCreateDt(sysCreateDt)
+                .sysModifyDt(sysModifyDt)
+                .build();
+    }
+
+    public static ChunkEntity fromDomain(Chunk chunk) {
+        return ChunkEntity.builder()
+                .chunkId(chunk.getChunkId())
+                .passageId(chunk.getPassageId())
+                .version(chunk.getVersion())
+                .title(chunk.getTitle())
+                .subTitle(chunk.getSubTitle())
+                .thirdTitle(chunk.getThirdTitle())
+                .content(chunk.getContent())
+                .subContent(chunk.getSubContent())
+                .compactContent(chunk.getCompactContent())
+                .tokenSize(chunk.getTokenSize())
+                .build();
+    }
 }

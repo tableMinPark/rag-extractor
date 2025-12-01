@@ -12,4 +12,14 @@ public enum SourceType {
     ;
 
     private final String code;
+
+    public static SourceType find(String code) {
+        for (SourceType sourceType : SourceType.values()) {
+            if (code != null && code.equalsIgnoreCase(sourceType.code)) {
+                return sourceType;
+            }
+        }
+
+        throw new IllegalArgumentException("No enum constant with value " + code);
+    }
 }

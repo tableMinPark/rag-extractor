@@ -54,7 +54,7 @@ public class ExtractController {
 
             List<ExtractContentVo> extractContentVos = extractUseCase.extractFileUseCase(ExtractFileCommand.builder()
                     .file(fileVo)
-                    .extractType(ExtractType.find(extractType))
+                    .extractType(extractType)
                     .build());
 
             return ResponseEntity.ok(ResponseDto.<ExtractResponseDto>builder()

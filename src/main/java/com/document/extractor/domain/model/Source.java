@@ -1,6 +1,7 @@
 package com.document.extractor.domain.model;
 
 import com.document.extractor.application.enums.SelectType;
+import com.document.extractor.application.enums.SourceType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,9 +16,9 @@ public class Source {
 
     private final Long sourceId;
 
-    private final String version;
+    private Long version;
 
-    private final String sourceType;
+    private final SourceType sourceType;
 
     private final SelectType selectType;
 
@@ -44,4 +45,15 @@ public class Source {
     private final List<SourcePattern> sourcePatterns;
 
     private final List<SourceStopPattern> sourceStopPatterns;
+
+    /**
+     * 대상 문서 버전 초기화
+     */
+    public void increaseVersion() {
+        if (this.version == null) {
+            this.version = 1L;
+        } else {
+            this.version = this.version + 1;
+        }
+    }
 }
