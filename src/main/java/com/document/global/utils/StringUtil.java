@@ -24,6 +24,27 @@ public class StringUtil {
     }
 
     /**
+     * 파일 확장자 제거
+     *
+     * @param originFilename 파일명
+     * @return 확장자 제거 이름
+     */
+    public static String removeExtension(String originFilename) {
+        if (originFilename == null || originFilename.isBlank()) {
+            return originFilename;
+        }
+
+        int lastDotIndex = originFilename.lastIndexOf('.');
+
+        // 점(.)이 없거나 맨 앞에만 있는 경우 (예: ".gitignore")
+        if (lastDotIndex <= 0) {
+            return originFilename;
+        }
+
+        return originFilename.substring(0, lastDotIndex);
+    }
+
+    /**
      * 문자열 숫자 여부 확인
      *
      * @param str 문자열

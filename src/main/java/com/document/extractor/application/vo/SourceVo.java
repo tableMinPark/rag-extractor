@@ -1,19 +1,19 @@
 package com.document.extractor.application.vo;
 
 import com.document.extractor.domain.model.Source;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Builder
 @Getter
 @AllArgsConstructor
 public class SourceVo {
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long sourceId;
 
     private Long version;
@@ -30,8 +30,10 @@ public class SourceVo {
 
     private Long fileDetailId;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private LocalDateTime sysCreateDt;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private LocalDateTime sysModifyDt;
 
     public static SourceVo of(Source source) {

@@ -3,6 +3,7 @@ package com.document.extractor.adapter.in.dto.response;
 import com.document.extractor.application.vo.ChunkVo;
 import com.document.extractor.application.vo.PassageVo;
 import com.document.extractor.application.vo.SourceVo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
@@ -15,6 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ChunkResponseDto {
 
+    @JsonIgnore
     @Schema(description = "대상 문서")
     private SourceVo source;
 

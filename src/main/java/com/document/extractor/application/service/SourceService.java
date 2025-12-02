@@ -11,6 +11,7 @@ import com.document.extractor.application.vo.FileVo;
 import com.document.extractor.domain.model.*;
 import com.document.extractor.domain.vo.PatternVo;
 import com.document.extractor.domain.vo.PrefixVo;
+import com.document.global.utils.StringUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -99,7 +100,7 @@ public class SourceService implements SourceUseCase {
                 .sourceType(sourceType)
                 .selectType(selectType)
                 .categoryCode(command.getCategoryCode())
-                .name(fileVo.getOriginFileName())
+                .name(StringUtil.removeExtension(fileDetail.getOriginFileName()))
                 .content(content)
                 .collectionId(command.getCollectionId())
                 .fileDetailId(fileDetail.getFileDetailId())

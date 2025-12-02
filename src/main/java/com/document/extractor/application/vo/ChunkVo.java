@@ -1,6 +1,7 @@
 package com.document.extractor.application.vo;
 
 import com.document.extractor.domain.model.Chunk;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,8 +13,10 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ChunkVo {
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long chunkId;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long passageId;
 
     private Long version;
@@ -36,8 +39,10 @@ public class ChunkVo {
 
     private Integer subContentTokenSize;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private LocalDateTime sysCreateDt;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private LocalDateTime sysModifyDt;
 
     public static ChunkVo of(Chunk chunk) {
