@@ -2,6 +2,7 @@ package com.document.extractor.application.vo;
 
 import com.document.extractor.domain.model.Passage;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,8 +15,10 @@ import java.util.List;
 @AllArgsConstructor
 public class PassageVo {
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long passageId;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long sourceId;
 
     private Long version;
@@ -34,8 +37,10 @@ public class PassageVo {
 
     private Integer subContentTokenSize;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private LocalDateTime sysCreateDt;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private LocalDateTime sysModifyDt;
 
     public static PassageVo of(Passage passage) {

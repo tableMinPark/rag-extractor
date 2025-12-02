@@ -19,6 +19,7 @@ import com.document.extractor.domain.vo.PassageOptionVo;
 import com.document.extractor.domain.vo.PatternVo;
 import com.document.extractor.domain.vo.PrefixVo;
 import com.document.global.enums.ExtractType;
+import com.document.global.utils.StringUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -106,7 +107,7 @@ public class ChunkService implements ChunkUseCase {
                 .sourceType(sourceType)
                 .selectType(selectType)
                 .categoryCode("TRAIN-TEST-FILE")
-                .name(fileVo.getOriginFileName())
+                .name(StringUtil.removeExtension(fileDetail.getOriginFileName()))
                 .content(document.getContent())
                 .collectionId("COLLECTION-TEST-FILE")
                 .fileDetailId(fileDetail.getFileDetailId())
@@ -187,7 +188,6 @@ public class ChunkService implements ChunkUseCase {
         SelectType selectType = SelectType.valueOf(command.getSelectType().toUpperCase());
         // 추출 타입
         ExtractType extractType = ExtractType.valueOf(command.getExtractType().toUpperCase());
-
 
         // 문서 추출
         Document document = documentReadPort.getRepoDocumentPort(command.getRepoType(), command.getRepoId(), extractType);

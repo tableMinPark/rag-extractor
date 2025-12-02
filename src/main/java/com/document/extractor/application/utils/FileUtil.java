@@ -75,7 +75,7 @@ public class FileUtil {
         }
 
         // 파일 확장자
-        String[] extSplit = multipartFile.getOriginalFilename().trim().split("\\.");
+        String[] extSplit = originFileName.trim().split("\\.");
         ext = extSplit[extSplit.length - 1];
 
         // 파일 저장 경로

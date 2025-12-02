@@ -144,7 +144,7 @@ public class ExtractAdapter implements ExtractPort {
         fileUtil.deleteDirectory(unZipDirPath);
 
         return HwpxDocument.builder()
-                .name(fileDetail.getOriginFileName())
+                .name(StringUtil.removeExtension(fileDetail.getOriginFileName()))
                 .extractType(extractType)
                 .sections(sections)
                 .images(images)
