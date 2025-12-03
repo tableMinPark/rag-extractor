@@ -1,10 +1,7 @@
 package com.document.extractor.domain.factory;
 
 import com.document.extractor.application.enums.SelectType;
-import com.document.extractor.domain.model.DocumentContent;
-import com.document.extractor.domain.model.Passage;
-import com.document.extractor.domain.model.SourcePattern;
-import com.document.extractor.domain.model.SourcePrefix;
+import com.document.extractor.domain.model.*;
 import com.document.extractor.domain.vo.PassageOptionVo;
 import lombok.Builder;
 import lombok.ToString;
@@ -101,9 +98,27 @@ public class PassageFactory {
                 .filter(SourcePrefix::getIsTitle)
                 .map(SourcePrefix::getPrefix)
                 .toList()));
-        documentContents.forEach(documentContent -> documentContent.extractTitle(prefixes));
 
-        return passaging(titleBuffer, PassageFactory.init(titleBuffer, documentContents), passageOptionVo);
+        List<DocumentContent> filterDocumentContents = new ArrayList<>();
+        for (DocumentContent documentContent : documentContents) {
+            boolean isStop = false;
+            for (SourceStopPattern stopPattern : passageOptionVo.getStopPatterns()) {
+                Pattern pattern = Pattern.compile(stopPattern.getPrefix(), Pattern.MULTILINE);
+                Matcher matcher = pattern.matcher(documentContent.getCompareText());
+
+                if (matcher.find()) {
+                    isStop = true;
+                    break;
+                }
+            }
+            if (isStop) break;
+            else {
+                documentContent.extractTitle(prefixes);
+                filterDocumentContents.add(documentContent);
+            }
+        }
+
+        return passaging(titleBuffer, PassageFactory.init(titleBuffer, filterDocumentContents), passageOptionVo);
     }
 
     /**
@@ -290,7 +305,7 @@ public class PassageFactory {
         String[] titles = this.getTitles();
 
         if (titles.length > 1) {
-            thirdTitle = String.join(" | ", Arrays.stream(titles)
+            thirdTitle = String.join("\n", Arrays.stream(titles)
                             .toList()
                             .subList(1, titles.length)
                             .stream()

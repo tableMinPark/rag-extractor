@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -73,6 +74,7 @@ public class SourcePatternEntity {
                 .depth(depth)
                 .sourcePrefixes(sourcePrefixes.stream()
                         .map(SourcePrefixEntity::toDomain)
+                        .sorted(Comparator.comparingInt(SourcePrefix::getOrder))
                         .toList())
                 .build();
     }

@@ -55,6 +55,9 @@ public class ChunkEntity {
     @Column(name = "token_size")
     private Integer tokenSize;
 
+    @Column(name = "compact_token_size")
+    private Integer compactTokenSize;
+
     @CreatedDate
     @Column(name = "sys_create_dt")
     private LocalDateTime sysCreateDt;
@@ -73,6 +76,7 @@ public class ChunkEntity {
         this.subContent = chunk.getSubContent();
         this.compactContent = chunk.getCompactContent();
         this.tokenSize = chunk.getTokenSize();
+        this.compactTokenSize = chunk.getCompactTokenSize();
     }
 
     public Chunk toDomain() {
@@ -87,6 +91,7 @@ public class ChunkEntity {
                 .subContent(subContent)
                 .compactContent(compactContent)
                 .tokenSize(tokenSize)
+                .compactTokenSize(compactTokenSize)
                 .sysCreateDt(sysCreateDt)
                 .sysModifyDt(sysModifyDt)
                 .build();
@@ -103,6 +108,7 @@ public class ChunkEntity {
                 .content(chunk.getContent())
                 .subContent(chunk.getSubContent())
                 .compactContent(chunk.getCompactContent())
+                .compactTokenSize(chunk.getCompactTokenSize())
                 .tokenSize(chunk.getTokenSize())
                 .build();
     }

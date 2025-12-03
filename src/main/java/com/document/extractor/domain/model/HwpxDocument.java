@@ -4,7 +4,7 @@ import com.document.global.enums.ExtractType;
 import com.document.extractor.domain.vo.HwpxImageVo;
 import com.document.extractor.domain.vo.HwpxSectionVo;
 import com.document.global.utils.HtmlUtil;
-import com.document.extractor.application.utils.XmlUtil;
+import com.document.global.utils.XmlUtil;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;

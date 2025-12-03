@@ -3,7 +3,7 @@ package com.document.extractor.adapter.out;
 import com.document.extractor.adapter.propery.FileProperty;
 import com.document.extractor.application.port.ExtractPort;
 import com.document.extractor.application.utils.FileUtil;
-import com.document.extractor.application.utils.XmlUtil;
+import com.document.global.utils.XmlUtil;
 import com.document.extractor.domain.model.Document;
 import com.document.extractor.domain.model.FileDetail;
 import com.document.extractor.domain.model.HwpxDocument;

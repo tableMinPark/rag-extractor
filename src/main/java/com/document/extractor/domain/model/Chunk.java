@@ -31,6 +31,8 @@ public class Chunk {
 
     private final Integer tokenSize;
 
+    private final Integer compactTokenSize;
+
     private final LocalDateTime sysCreateDt;
 
     private final LocalDateTime sysModifyDt;

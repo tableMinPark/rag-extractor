@@ -82,7 +82,7 @@ public class SourcePersistenceAdapter implements SourcePersistencePort {
     @Transactional
     @Override
     public List<Source> getActiveSourcesPort() {
-        return sourceRepository.findByIsActiveTrue().stream()
+        return sourceRepository.findByIsActiveTrueOrderBySourceId().stream()
                 .map(SourceEntity::toDomain)
                 .collect(Collectors.toList());
     }

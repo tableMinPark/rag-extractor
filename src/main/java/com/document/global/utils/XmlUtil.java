@@ -1,4 +1,4 @@
-package com.document.extractor.application.utils;
+package com.document.global.utils;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
