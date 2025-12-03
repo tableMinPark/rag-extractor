@@ -52,13 +52,15 @@ public class Passage {
 
         List<Chunk> chunks = new ArrayList<>();
 
-        if (0 < tokenSize && tokenSize < this.tokenSize) {
+        boolean isContainsTable = HtmlUtil.isContainsTable(this.content);
+
+        // 표가 없고 토큰 수 초과
+        if (!isContainsTable && (0 < tokenSize && tokenSize < this.content.length())){
             int step = tokenSize - overlapSize;
 
-            for (int start = 0; start < content.length(); start += step) {
-                int end = Math.min(content.length(), start + tokenSize);
+            for (int start = 0; start < this.content.length(); start += step) {
+                int end = Math.min(this.content.length(), start + tokenSize);
                 String content = this.content.substring(start, end);
-                String compactContent = HtmlUtil.convertTableHtmlToMarkDown(content);
 
                 chunks.add(Chunk.builder()
                         .passageId(this.passageId)
@@ -67,14 +69,16 @@ public class Passage {
                         .subTitle(this.subTitle)
                         .thirdTitle(this.thirdTitle)
                         .content(content)
+                        .compactContent(content)
+                        .tokenSize(content.length())
+                        .compactTokenSize(content.length())
                         .subContent(this.subContent)
-                        .compactContent(compactContent)
-                        .tokenSize(compactContent.length())
                         .sysCreateDt(this.sysCreateDt)
                         .sysModifyDt(this.sysModifyDt)
                         .build());
             }
         } else {
+            // 표 마크 다운 변환
             String compactContent = HtmlUtil.convertTableHtmlToMarkDown(this.content);
             chunks.add(Chunk.builder()
                     .passageId(this.passageId)
@@ -83,9 +87,10 @@ public class Passage {
                     .subTitle(this.subTitle)
                     .thirdTitle(this.thirdTitle)
                     .content(this.content)
-                    .subContent(this.subContent)
                     .compactContent(compactContent)
-                    .tokenSize(compactContent.length())
+                    .tokenSize(this.content.length())
+                    .compactTokenSize(compactContent.length())
+                    .subContent(this.subContent)
                     .sysCreateDt(this.sysCreateDt)
                     .sysModifyDt(this.sysModifyDt)
                     .build());

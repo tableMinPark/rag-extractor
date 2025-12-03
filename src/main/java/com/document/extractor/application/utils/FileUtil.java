@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
@@ -55,6 +56,9 @@ public class FileUtil {
         // 원본 파일명
         originFileName = multipartFile.getOriginalFilename();
         if (originFileName == null) originFileName = "Unknown";
+
+        // 파일명 인코딩
+        originFileName = Normalizer.normalize(originFileName, Normalizer.Form.NFC);
 
         // 파일명
         fileName = StringUtil.generateRandomId();

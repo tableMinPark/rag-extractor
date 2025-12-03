@@ -18,10 +18,9 @@ import java.util.List;
 @NoArgsConstructor
 public class ChunkRequestDto {
 
-    @NotBlank
     @Pattern(regexp = "html|markdown", message = "markdown 과 html 만 지원")
-    @Schema(description = "표 추출 타입", example = "html", defaultValue = "html", requiredMode = Schema.RequiredMode.REQUIRED)
-    private String extractType;
+    @Schema(description = "표 추출 타입", example = "html", defaultValue = "html", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private String extractType = "html";
 
     @Schema(description = "최대 토큰 수", example = "1200", defaultValue = "1200", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private Integer maxTokenSize = 1200;

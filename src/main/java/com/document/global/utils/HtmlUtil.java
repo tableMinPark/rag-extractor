@@ -21,6 +21,11 @@ public class HtmlUtil {
     private static final String NEW_LINE_PREFIX = "__NEW_LINE__";
     private static final String MARKDOWN_NEW_LINE_PREFIX = "__MARKDOWN_NEW_LINE__";
 
+    public static boolean isContainsTable(String html) {
+        Document doc = Jsoup.parse(html);
+        return !doc.body().getElementsByTag("table").isEmpty();
+    }
+
     /**
      * 마크 다운 표 데이터 HTML 변환
      *
@@ -227,14 +232,17 @@ public class HtmlUtil {
      */
     public static String convertTableHtmlToMarkDown(String html) {
         // 개형 변환
-        String convertNewLineHtml = html.replace("\n", NEW_LINE_PREFIX);
+        String convertNewLineHtml = html
+                .replace("\n", NEW_LINE_PREFIX);
 
         Document doc = Jsoup.parse(convertNewLineHtml);
         StringBuilder tableMarkdownBuilder = new StringBuilder();
 
         convertTableHtmlToMarkDown(doc.body(), tableMarkdownBuilder, -1);
 
-        String convertMarkdown = doc.body().html();
+        String convertMarkdown = doc.body().html()
+                .replace("&lt;", "<")
+                .replace("&gt;", ">");
 
         if (!tableMarkdownBuilder.toString().trim().isBlank()) {
             convertMarkdown += "\n---\n" + tableMarkdownBuilder.toString().trim();

@@ -121,6 +121,7 @@ public class ChunkService implements ChunkUseCase {
         // 패시징 옵션
         PassageOptionVo passageOptionVo = PassageOptionVo.builder()
                 .patterns(sourcePatterns)
+                .stopPatterns(sourceStopPatterns)
                 .selectType(selectType)
                 .build();
 
@@ -211,6 +212,7 @@ public class ChunkService implements ChunkUseCase {
         // 패시징 옵션
         PassageOptionVo passageOptionVo = PassageOptionVo.builder()
                 .patterns(sourcePatterns)
+                .stopPatterns(sourceStopPatterns)
                 .selectType(selectType)
                 .build();
 
@@ -269,6 +271,7 @@ public class ChunkService implements ChunkUseCase {
         // 패시징 옵션
         PassageOptionVo passageOptionVo = PassageOptionVo.builder()
                 .patterns(source.getSourcePatterns())
+                .stopPatterns(source.getSourceStopPatterns())
                 .selectType(selectType)
                 .build();
 

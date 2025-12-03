@@ -9,7 +9,6 @@ import com.document.extractor.application.usecase.ExtractUseCase;
 import com.document.extractor.application.utils.FileUtil;
 import com.document.extractor.application.vo.ExtractContentVo;
 import com.document.extractor.application.vo.FileVo;
-import com.document.global.enums.ExtractType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

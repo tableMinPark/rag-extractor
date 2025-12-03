@@ -52,13 +52,14 @@ public class DocumentContent {
     public void extractTitle(List<String> prefixes) {
         for (String prefix : prefixes) {
             Pattern pattern = Pattern.compile(prefix, Pattern.MULTILINE);
-            Matcher matcher = pattern.matcher(this.context);
+            Matcher matcher = pattern.matcher(this.context.trim());
 
             if (matcher.find()) {
                 this.prefix = prefix;
                 this.title = matcher.group().trim();
                 this.simpleTitle = matcher.group().trim();
                 this.context = this.context.replaceFirst(prefix, "").strip();
+                break;
             }
         }
     }
