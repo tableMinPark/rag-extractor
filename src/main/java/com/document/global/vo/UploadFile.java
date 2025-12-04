@@ -1,4 +1,4 @@
-package com.document.extractor.application.vo;
+package com.document.global.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,7 +7,7 @@ import lombok.Getter;
 @Builder
 @Getter
 @AllArgsConstructor
-public class FileVo {
+public class UploadFile {
 
     private final String ip;
 

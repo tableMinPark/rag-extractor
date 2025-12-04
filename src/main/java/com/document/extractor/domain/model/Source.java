@@ -36,7 +36,7 @@ public class Source {
 
     private final Integer overlapSize;
 
-    private final Boolean isActive;
+    private final Boolean isAuto;
 
     private final LocalDateTime sysCreateDt;
 

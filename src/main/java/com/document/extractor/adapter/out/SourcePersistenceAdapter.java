@@ -82,7 +82,7 @@ public class SourcePersistenceAdapter implements SourcePersistencePort {
     @Transactional
     @Override
     public List<Source> getActiveSourcesPort() {
-        return sourceRepository.findByIsActiveTrueOrderBySourceId().stream()
+        return sourceRepository.findByIsAutoTrueOrderBySourceId().stream()
                 .map(SourceEntity::toDomain)
                 .collect(Collectors.toList());
     }
@@ -121,10 +121,10 @@ public class SourcePersistenceAdapter implements SourcePersistencePort {
     public List<Passage> savePassagesPort(List<Passage> passages) {
 
         List<PassageEntity> passageEntities = passages.stream()
-                        .map(passage -> passage.getPassageId() == null
-                                ? PassageEntity.fromDomain(passage)
-                                : passageRepository.findById(passage.getPassageId()).orElseThrow(NotFoundException::new))
-                        .toList();
+                .map(passage -> passage.getPassageId() == null
+                        ? PassageEntity.fromDomain(passage)
+                        : passageRepository.findById(passage.getPassageId()).orElseThrow(NotFoundException::new))
+                .toList();
 
         return passageRepository.saveAll(passageEntities).stream().map(PassageEntity::toDomain).toList();
     }

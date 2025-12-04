@@ -1,4 +1,4 @@
-package com.document.global.enums;
+package com.document.extractor.application.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

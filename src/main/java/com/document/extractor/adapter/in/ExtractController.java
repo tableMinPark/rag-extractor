@@ -6,9 +6,9 @@ import com.document.extractor.adapter.propery.FileProperty;
 import com.document.extractor.application.command.ExtractFileCommand;
 import com.document.extractor.application.command.ExtractFileTextCommand;
 import com.document.extractor.application.usecase.ExtractUseCase;
-import com.document.extractor.application.utils.FileUtil;
 import com.document.extractor.application.vo.ExtractContentVo;
-import com.document.extractor.application.vo.FileVo;
+import com.document.global.utils.FileUtil;
+import com.document.global.vo.UploadFile;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,8 +20,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.List;
 
 @Validated
@@ -33,7 +31,6 @@ public class ExtractController {
 
     private final ExtractUseCase extractUseCase;
     private final FileProperty fileProperty;
-    private final FileUtil fileUtil;
 
     @Operation(summary = "파일 추출")
     @PostMapping(path = "/file/{extractType}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -46,30 +43,26 @@ public class ExtractController {
             @RequestPart("uploadFile")
             MultipartFile multipartFile
     ) {
-        FileVo fileVo = null;
+        UploadFile uploadFile = FileUtil.uploadFile(multipartFile, fileProperty.getFileStorePath(), fileProperty.getTempDir());
 
         try {
-            fileVo = fileUtil.uploadFile(multipartFile, fileProperty.getTempDir());
-
             List<ExtractContentVo> extractContentVos = extractUseCase.extractFileUseCase(ExtractFileCommand.builder()
-                    .file(fileVo)
+                    .file(uploadFile)
                     .extractType(extractType)
                     .build());
 
             return ResponseEntity.ok(ResponseDto.<ExtractResponseDto>builder()
                     .message("파일 추출 성공")
                     .data(ExtractResponseDto.builder()
-                            .name(fileVo.getOriginFileName())
-                            .ext(fileVo.getExt())
+                            .name(uploadFile.getOriginFileName())
+                            .ext(uploadFile.getExt())
                             .lines(extractContentVos)
                             .build())
                     .build());
 
-        } catch (IOException e) {
-            throw new RuntimeException("파일 업로드 실패");
         } finally {
-            if (fileVo != null) {
-                fileUtil.deleteFile(Paths.get(fileVo.getUrl()));
+            if (uploadFile != null) {
+                FileUtil.deleteFile(uploadFile.getUrl());
             }
         }
     }
@@ -81,20 +74,15 @@ public class ExtractController {
             @RequestPart("uploadFile")
             MultipartFile multipartFile
     ) {
-        FileVo fileVo = null;
+        UploadFile uploadFile = FileUtil.uploadFile(multipartFile, fileProperty.getFileStorePath(), fileProperty.getTempDir());
 
         try {
-            fileVo = fileUtil.uploadFile(multipartFile, fileProperty.getTempDir());
-
             return ResponseEntity.ok(extractUseCase.extractFileTextUseCase(ExtractFileTextCommand.builder()
-                    .file(fileVo)
+                    .file(uploadFile)
                     .build()));
-
-        } catch (IOException e) {
-            throw new RuntimeException("파일 업로드 실패");
         } finally {
-            if (fileVo != null) {
-                fileUtil.deleteFile(Paths.get(fileVo.getUrl()));
+            if (uploadFile != null) {
+                FileUtil.deleteFile(uploadFile.getUrl());
             }
         }
     }

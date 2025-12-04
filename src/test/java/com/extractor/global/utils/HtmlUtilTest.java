@@ -28,10 +28,10 @@ class HtmlUtilTest {
     @DisplayName("MARKDOWN 표를 HTML 형식의 표로 변환 한다.")
     @Test
     void convertMarkDownToHtml() {
-        String markdown = HtmlUtil.convertTableHtmlToMarkDown(HtmlUtilTestConst.tableHtml);
+        String markdown = HtmlUtil.convertTableHtmlToMarkdown(HtmlUtilTestConst.tableHtml);
         log.info("\n{}", markdown);
 
-        String html = HtmlUtil.convertMarkdownTableToHtml(markdown);
+        String html = HtmlUtil.convertTableMarkdownToHtml(markdown);
         log.info("\n{}", html);
 
         Assertions.assertEquals(HtmlUtilTestConst.tableHtml.trim(), html.trim());
@@ -40,7 +40,7 @@ class HtmlUtilTest {
     @DisplayName("HTML 표를 MARKDOWN 형식의 표로 변환 한다.")
     @Test
     void convertHtmlToMarkdown() {
-        String markdown = HtmlUtil.convertTableHtmlToMarkDown(HtmlUtilTestConst.innerTableHtml);
+        String markdown = HtmlUtil.convertTableHtmlToMarkdown(HtmlUtilTestConst.innerTableHtml);
         log.info("\n{}", markdown);
     }
 

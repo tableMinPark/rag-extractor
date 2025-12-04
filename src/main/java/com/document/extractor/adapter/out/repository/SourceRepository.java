@@ -13,5 +13,5 @@ public interface SourceRepository extends JpaRepository<SourceEntity, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<SourceEntity> findBySourceId(Long sourceId);
 
-    List<SourceEntity> findByIsActiveTrueOrderBySourceId();
+    List<SourceEntity> findByIsAutoTrueOrderBySourceId();
 }

@@ -52,7 +52,7 @@ public class Passage {
 
         List<Chunk> chunks = new ArrayList<>();
 
-        boolean isContainsTable = HtmlUtil.isContainsTable(this.content);
+        boolean isContainsTable = HtmlUtil.isContainsTableHtml(this.content);
 
         // 표가 없고 토큰 수 초과
         if (!isContainsTable && (0 < tokenSize && tokenSize < this.content.length())){
@@ -79,7 +79,7 @@ public class Passage {
             }
         } else {
             // 표 마크 다운 변환
-            String compactContent = HtmlUtil.convertTableHtmlToMarkDown(this.content);
+            String compactContent = HtmlUtil.convertTableHtmlToMarkdown(this.content);
             chunks.add(Chunk.builder()
                     .passageId(this.passageId)
                     .version(this.version)

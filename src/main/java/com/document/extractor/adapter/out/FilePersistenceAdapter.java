@@ -1,5 +1,6 @@
 package com.document.extractor.adapter.out;
 
+import com.document.extractor.adapter.out.constant.FileConst;
 import com.document.extractor.adapter.out.entity.FileDetailEntity;
 import com.document.extractor.adapter.out.entity.FileEntity;
 import com.document.extractor.adapter.out.repository.FileDetailRepository;
@@ -34,8 +35,8 @@ public class FilePersistenceAdapter implements FilePersistencePort {
 
         if (fileDetail.getFileDetailId() == null) {
             FileEntity fileEntity = fileRepository.save(FileEntity.builder()
-                    .sysCreateUser("SYSTEM")
-                    .sysModifyUser("SYSTEM")
+                    .sysCreateUser(FileConst.FILE_PERSIST_USER)
+                    .sysModifyUser(FileConst.FILE_PERSIST_USER)
                     .build());
 
             fileDetailEntity = fileDetailRepository.save(FileDetailEntity.fromDomain(fileEntity.getFileId(), fileDetail));
@@ -55,6 +56,7 @@ public class FilePersistenceAdapter implements FilePersistencePort {
      * @param fileDetailId 파일 메타 정보 ID
      * @return 파일 메타 정보
      */
+    @Transactional
     @Override
     public Optional<FileDetail> getFileDetailPort(Long fileDetailId) {
         return fileDetailRepository.findById(fileDetailId).map(FileDetailEntity::toDomain);

@@ -6,13 +6,12 @@ import com.document.extractor.adapter.in.dto.request.ChunkRequestDto;
 import com.document.extractor.adapter.in.dto.response.ChunkResponseDto;
 import com.document.extractor.adapter.in.dto.response.ResponseDto;
 import com.document.extractor.adapter.propery.FileProperty;
-import com.document.extractor.application.command.ChunkBatchCommand;
 import com.document.extractor.application.command.ChunkFileCommand;
 import com.document.extractor.application.command.ChunkRepoCommand;
 import com.document.extractor.application.usecase.ChunkUseCase;
-import com.document.extractor.application.utils.FileUtil;
 import com.document.extractor.application.vo.ChunkResultVo;
-import com.document.extractor.application.vo.FileVo;
+import com.document.global.utils.FileUtil;
+import com.document.global.vo.UploadFile;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,8 +24,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,56 +37,6 @@ public class ChunkController {
 
     private final ChunkUseCase chunkUseCase;
     private final FileProperty fileProperty;
-    private final FileUtil fileUtil;
-
-    @Operation(summary = "청킹 배치")
-    @PostMapping("/batch/{sourceId}")
-    public ResponseEntity<ResponseDto<ChunkResponseDto>> chunkBatch(
-            @Parameter(name = "sourceId", description = "대상 문서 ID", required = true)
-            @PathVariable(value = "sourceId")
-            Long sourceId
-    ) {
-        ChunkResultVo chunkResultVo = chunkUseCase.chunkBatchUseCase(ChunkBatchCommand.builder()
-                .sourceId(sourceId)
-                .build());
-
-        ChunkResponseDto chunkResponseDto = ChunkResponseDto.builder()
-                .source(chunkResultVo.getSource())
-                .passages(chunkResultVo.getPassages())
-                .chunks(chunkResultVo.getChunks())
-                .build();
-
-        return ResponseEntity.ok(ResponseDto.<ChunkResponseDto>builder()
-                .message("청킹 배치 성공")
-                .data(chunkResponseDto)
-                .build());
-    }
-
-    @Operation(summary = "청킹 일괄 배치")
-    @PostMapping("/batch")
-    public ResponseEntity<ResponseDto<List<ChunkResponseDto>>> chunkBatches() {
-
-        List<ChunkResponseDto> chunkResponseDtos = new ArrayList<>();
-
-        chunkUseCase.getActiveSourcesUseCase().forEach(sourceVo -> {
-            ChunkResultVo chunkResultVo = chunkUseCase.chunkBatchUseCase(ChunkBatchCommand.builder()
-                    .sourceId(sourceVo.getSourceId())
-                    .build());
-
-            chunkResponseDtos.add(ChunkResponseDto.builder()
-                    .source(chunkResultVo.getSource())
-                    .passages(chunkResultVo.getPassages())
-                    .chunks(chunkResultVo.getChunks())
-                    .build());
-
-            log.info("[{}] {} 전처리 완료", chunkResultVo.getSource().getSourceId(), chunkResultVo.getSource().getName());
-        });
-
-        return ResponseEntity.ok(ResponseDto.<List<ChunkResponseDto>>builder()
-                .message("청킹 다중 배치 성공")
-                .data(chunkResponseDtos)
-                .build());
-    }
 
     @Operation(summary = "파일 청킹")
     @PostMapping(path = "/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -104,10 +51,9 @@ public class ChunkController {
     ) {
         List<ChunkResultVo> chunkResultVos = new ArrayList<>();
         for (MultipartFile multipartFile : multipartFiles) {
-            FileVo fileVo = null;
+            UploadFile uploadFile = FileUtil.uploadFile(multipartFile, fileProperty.getFileStorePath(), fileProperty.getTempDir());
 
             try {
-                fileVo = fileUtil.uploadFile(multipartFile, fileProperty.getTempDir());
                 chunkResultVos.add(chunkUseCase.chunkFileUseCase(ChunkFileCommand.builder()
                         .extractType(chunkRequestDto.getExtractType())
                         .selectType(chunkRequestDto.getSelectType())
@@ -115,13 +61,11 @@ public class ChunkController {
                         .stopPatterns(chunkRequestDto.getStopPatterns())
                         .maxTokenSize(chunkRequestDto.getMaxTokenSize())
                         .overlapSize(chunkRequestDto.getOverlapSize())
-                        .file(fileVo)
+                        .file(uploadFile)
                         .build()));
-            } catch (IOException e) {
-                throw new RuntimeException("파일 업로드 실패");
             } finally {
-                if (fileVo != null) {
-                    fileUtil.deleteFile(Paths.get(fileVo.getUrl()));
+                if (uploadFile != null) {
+                    FileUtil.deleteFile(uploadFile.getUrl());
                 }
             }
         }

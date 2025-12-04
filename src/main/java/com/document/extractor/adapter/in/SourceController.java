@@ -4,13 +4,14 @@ import com.document.extractor.adapter.in.dto.etc.RepoResourceDto;
 import com.document.extractor.adapter.in.dto.request.CreateFileSourceRequestDto;
 import com.document.extractor.adapter.in.dto.request.CreateRepoSourceRequestDto;
 import com.document.extractor.adapter.in.dto.response.ResponseDto;
+import com.document.extractor.adapter.propery.FileProperty;
 import com.document.extractor.application.command.CreateSourceCommand;
 import com.document.extractor.application.enums.SourceType;
 import com.document.extractor.application.usecase.SourceUseCase;
-import com.document.extractor.application.utils.FileUtil;
-import com.document.extractor.application.vo.FileVo;
 import com.document.extractor.domain.vo.PatternVo;
 import com.document.extractor.domain.vo.PrefixVo;
+import com.document.global.utils.FileUtil;
+import com.document.global.vo.UploadFile;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,8 +23,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,7 +34,7 @@ import java.util.List;
 public class SourceController {
 
     private final SourceUseCase sourceUseCase;
-    private final FileUtil fileUtil;
+    private final FileProperty fileProperty;
 
     @Operation(summary = "파일 대상 문서 등록")
     @PostMapping(path = "/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -48,11 +47,9 @@ public class SourceController {
             List<MultipartFile> multipartFiles
     ) {
         for (MultipartFile multipartFile : multipartFiles) {
-            FileVo fileVo = null;
+            UploadFile uploadFile = FileUtil.uploadFile(multipartFile, fileProperty.getFileStorePath());
 
             try {
-                fileVo = fileUtil.uploadFile(multipartFile);
-
                 sourceUseCase.createSourcesUseCase(CreateSourceCommand.builder()
                         .sourceType(SourceType.FILE.name())
                         .categoryCode(createFileSourceRequestDto.getCategoryCode())
@@ -72,14 +69,12 @@ public class SourceController {
                                 .toList())
                         .stopPatterns(createFileSourceRequestDto.getStopPatterns())
                         .selectType(createFileSourceRequestDto.getSelectType().toUpperCase())
-                        .file(fileVo)
+                        .file(uploadFile)
                         .build());
 
-            } catch (IOException e) {
-                throw new RuntimeException("파일 업로드 실패");
             } catch (RuntimeException e) {
-                if (fileVo != null && fileVo.getUrl() != null) {
-                    fileUtil.deleteFile(Paths.get(fileVo.getUrl()));
+                if (uploadFile != null && uploadFile.getUrl() != null) {
+                    FileUtil.deleteFile(uploadFile.getUrl());
                 }
                 throw e;
             }
@@ -95,7 +90,7 @@ public class SourceController {
     @PostMapping(path = "/repo")
     public ResponseEntity<ResponseDto<?>> createRepoSources(
             @Valid
-            @Parameter(name = "createRemoteSourceRequestDto", description = "원격 대상 문서 등록 정보", required = true)
+            @Parameter(name = "createRepoSourceRequestDto", description = "원격 대상 문서 등록 정보", required = true)
             @RequestBody
             CreateRepoSourceRequestDto createRepoSourceRequestDto
     ) {
@@ -114,7 +109,7 @@ public class SourceController {
                     repoResourceDto.getPath(),
                     repoResourceDto.getUrn());
 
-            FileVo fileVo = FileVo.builder()
+            UploadFile uploadFile = UploadFile.builder()
                     .originFileName(repoResourceDto.getOriginFileName())
                     .fileName(repoResourceDto.getFileName())
                     .ip(ip)
@@ -143,7 +138,7 @@ public class SourceController {
                             .toList())
                     .stopPatterns(createRepoSourceRequestDto.getStopPatterns())
                     .selectType(createRepoSourceRequestDto.getSelectType().toUpperCase())
-                    .file(fileVo)
+                    .file(uploadFile)
                     .build());
         }
 

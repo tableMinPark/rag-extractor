@@ -41,7 +41,7 @@ out/
 
 ### file ###
 fileStore/
-filterTest/
+fileStoreTest/
 
 ### lib ###
 libs/snf/

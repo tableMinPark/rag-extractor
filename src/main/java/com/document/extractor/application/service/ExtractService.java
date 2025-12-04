@@ -5,10 +5,10 @@ import com.document.extractor.application.command.ExtractFileTextCommand;
 import com.document.extractor.application.port.ExtractPort;
 import com.document.extractor.application.usecase.ExtractUseCase;
 import com.document.extractor.application.vo.ExtractContentVo;
-import com.document.extractor.application.vo.FileVo;
+import com.document.global.vo.UploadFile;
 import com.document.extractor.domain.model.Document;
 import com.document.extractor.domain.model.FileDetail;
-import com.document.global.enums.ExtractType;
+import com.document.extractor.application.enums.ExtractType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,18 +28,18 @@ public class ExtractService implements ExtractUseCase {
     @Override
     public List<ExtractContentVo> extractFileUseCase(ExtractFileCommand command) {
 
-        FileVo fileVo = command.getFile();
+        UploadFile uploadFile = command.getFile();
         ExtractType extractType = ExtractType.find(command.getExtractType());
 
         Document document = extractPort.extractFilePort(FileDetail.builder()
-                .originFileName(fileVo.getOriginFileName())
-                .fileName(fileVo.getFileName())
-                .url(fileVo.getUrl())
-                .filePath(fileVo.getFilePath())
-                .fileSize(fileVo.getFileSize())
-                .ext(fileVo.getExt())
-                .url(fileVo.getUrl())
-                .build(), extractType);
+                .originFileName(uploadFile.getOriginFileName())
+                .fileName(uploadFile.getFileName())
+                .url(uploadFile.getUrl())
+                .filePath(uploadFile.getFilePath())
+                .fileSize(uploadFile.getFileSize())
+                .ext(uploadFile.getExt())
+                .url(uploadFile.getUrl())
+                .build(), extractType.getCode());
 
         return document.getDocumentContents().stream()
                 .map(documentContent -> ExtractContentVo.builder()
@@ -57,16 +57,16 @@ public class ExtractService implements ExtractUseCase {
     @Override
     public String extractFileTextUseCase(ExtractFileTextCommand command) {
 
-        FileVo fileVo = command.getFile();
+        UploadFile uploadFile = command.getFile();
 
         return extractPort.extractTextPort(FileDetail.builder()
-                .originFileName(fileVo.getOriginFileName())
-                .fileName(fileVo.getFileName())
-                .url(fileVo.getUrl())
-                .filePath(fileVo.getFilePath())
-                .fileSize(fileVo.getFileSize())
-                .ext(fileVo.getExt())
-                .url(fileVo.getUrl())
+                .originFileName(uploadFile.getOriginFileName())
+                .fileName(uploadFile.getFileName())
+                .url(uploadFile.getUrl())
+                .filePath(uploadFile.getFilePath())
+                .fileSize(uploadFile.getFileSize())
+                .ext(uploadFile.getExt())
+                .url(uploadFile.getUrl())
                 .build());
     }
 }
