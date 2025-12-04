@@ -1,6 +1,6 @@
 package com.document.extractor.application.command;
 
-import com.document.extractor.application.vo.FileVo;
+import com.document.global.vo.UploadFile;
 import com.document.extractor.domain.vo.PatternVo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,5 +29,5 @@ public class CreateSourceCommand {
 
     private String selectType;
 
-    private FileVo file;
+    private UploadFile file;
 }

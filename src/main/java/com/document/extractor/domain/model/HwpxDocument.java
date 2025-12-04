@@ -1,6 +1,6 @@
 package com.document.extractor.domain.model;
 
-import com.document.global.enums.ExtractType;
+import com.document.extractor.application.enums.ExtractType;
 import com.document.extractor.domain.vo.HwpxImageVo;
 import com.document.extractor.domain.vo.HwpxSectionVo;
 import com.document.global.utils.HtmlUtil;
@@ -24,11 +24,11 @@ public class HwpxDocument extends Document {
     private final Map<String, HwpxImageVo> images;
 
     @Builder
-    public HwpxDocument(String name, ExtractType extractType, List<HwpxSectionVo> sections, Map<String, HwpxImageVo> images) {
+    public HwpxDocument(String name, String extractTypeCode, List<HwpxSectionVo> sections, Map<String, HwpxImageVo> images) {
         super(name);
         this.sections = sections;
         this.images = images;
-        this.extract(extractType);
+        this.extract(ExtractType.find(extractTypeCode));
     }
 
     /**
@@ -57,7 +57,7 @@ public class HwpxDocument extends Document {
 
                                 // 마크 다운 타입인 경우 표 변환
                                 if (ExtractType.MARK_DOWN.equals(extractType)) {
-                                    tableContent = HtmlUtil.convertTableHtmlToMarkDown(tableContent);
+                                    tableContent = HtmlUtil.convertTableHtmlToMarkdown(tableContent);
                                 }
 
                                 super.addTableContent(tableContent);

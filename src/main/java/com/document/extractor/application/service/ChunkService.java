@@ -2,8 +2,10 @@ package com.document.extractor.application.service;
 
 import com.document.extractor.adapter.out.SourcePersistenceAdapter;
 import com.document.extractor.application.command.ChunkBatchCommand;
+import com.document.extractor.application.command.ChunkCommand;
 import com.document.extractor.application.command.ChunkFileCommand;
 import com.document.extractor.application.command.ChunkRepoCommand;
+import com.document.extractor.application.enums.ExtractType;
 import com.document.extractor.application.enums.SelectType;
 import com.document.extractor.application.enums.SourceType;
 import com.document.extractor.application.exception.NotFoundException;
@@ -12,14 +14,17 @@ import com.document.extractor.application.port.ExtractPort;
 import com.document.extractor.application.port.FilePersistencePort;
 import com.document.extractor.application.port.SourcePersistencePort;
 import com.document.extractor.application.usecase.ChunkUseCase;
-import com.document.extractor.application.vo.*;
+import com.document.extractor.application.vo.ChunkResultVo;
+import com.document.extractor.application.vo.ChunkVo;
+import com.document.extractor.application.vo.PassageVo;
+import com.document.extractor.application.vo.SourceVo;
 import com.document.extractor.domain.factory.PassageFactory;
 import com.document.extractor.domain.model.*;
 import com.document.extractor.domain.vo.PassageOptionVo;
 import com.document.extractor.domain.vo.PatternVo;
 import com.document.extractor.domain.vo.PrefixVo;
-import com.document.global.enums.ExtractType;
 import com.document.global.utils.StringUtil;
+import com.document.global.vo.UploadFile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -84,22 +89,22 @@ public class ChunkService implements ChunkUseCase {
         ExtractType extractType = ExtractType.valueOf(command.getExtractType().toUpperCase());
 
         // 파일 목록 생성
-        FileVo fileVo = command.getFile();
+        UploadFile uploadFile = command.getFile();
         // 파일 생성
         FileDetail fileDetail = FileDetail.builder()
-                .originFileName(fileVo.getOriginFileName())
-                .fileName(fileVo.getFileName())
+                .originFileName(uploadFile.getOriginFileName())
+                .fileName(uploadFile.getFileName())
                 .ip("127.0.0.1")
-                .filePath(fileVo.getFilePath())
-                .fileSize(fileVo.getFileSize())
-                .ext(fileVo.getExt())
-                .url(fileVo.getUrl())
+                .filePath(uploadFile.getFilePath())
+                .fileSize(uploadFile.getFileSize())
+                .ext(uploadFile.getExt())
+                .url(uploadFile.getUrl())
                 .sysCreateUser("SYSTEM")
                 .sysModifyUser("SYSTEM")
                 .build();
 
         // 문서 추출
-        Document document = extractPort.extractFilePort(fileDetail, extractType);
+        Document document = extractPort.extractFilePort(fileDetail, extractType.getCode());
 
         // 대상 문서 생성
         Source source = Source.builder()
@@ -113,7 +118,7 @@ public class ChunkService implements ChunkUseCase {
                 .fileDetailId(fileDetail.getFileDetailId())
                 .maxTokenSize(command.getMaxTokenSize())
                 .overlapSize(command.getOverlapSize())
-                .isActive(false)
+                .isAuto(false)
                 .sourcePatterns(sourcePatterns)
                 .sourceStopPatterns(sourceStopPatterns)
                 .build();
@@ -191,7 +196,7 @@ public class ChunkService implements ChunkUseCase {
         ExtractType extractType = ExtractType.valueOf(command.getExtractType().toUpperCase());
 
         // 문서 추출
-        Document document = documentReadPort.getRepoDocumentPort(command.getRepoType(), command.getRepoId(), extractType);
+        Document document = documentReadPort.getRepoDocumentPort(command.getRepoType(), command.getRepoId(), extractType.getCode());
 
         // 대상 문서 생성
         Source source = Source.builder()
@@ -204,7 +209,7 @@ public class ChunkService implements ChunkUseCase {
                 .collectionId("COLLECTION-REPO")
                 .maxTokenSize(command.getMaxTokenSize())
                 .overlapSize(command.getOverlapSize())
-                .isActive(false)
+                .isAuto(false)
                 .sourcePatterns(sourcePatterns)
                 .sourceStopPatterns(sourceStopPatterns)
                 .build();
@@ -236,6 +241,17 @@ public class ChunkService implements ChunkUseCase {
     }
 
     /**
+     * TODO: 청킹
+     *
+     * @param command 청킹 Command
+     * @return 청킹 결과
+     */
+    @Override
+    public ChunkResultVo chunkUseCase(ChunkCommand command) {
+        return null;
+    }
+
+    /**
      * 청킹 배치
      *
      * @param command 청킹 배치 Command
@@ -263,9 +279,9 @@ public class ChunkService implements ChunkUseCase {
         // 대상 문서 추출
         Document document;
         if (SourceType.FILE.equals(source.getSourceType())) {
-            document = extractPort.extractFilePort(fileDetail, extractType);
+            document = extractPort.extractFilePort(fileDetail, extractType.getCode());
         } else if (SourceType.REPO.equals(source.getSourceType())) {
-            document = documentReadPort.getRepoDocumentPort(fileDetail.getUrl(), extractType);
+            document = documentReadPort.getRepoDocumentPort(fileDetail.getUrl());
         } else throw new NotFoundException();
 
         // 패시징 옵션
@@ -283,7 +299,7 @@ public class ChunkService implements ChunkUseCase {
         // 패시지 타이틀 지정
         for (Passage passage : passages) passage.update(source.getSourceId(), source.getVersion(), source.getName());
 
-        // 패시징 영속화
+        // 패시지 영속화
         passages = sourcePersistenceAdapter.savePassagesPort(passages);
 
         // 청킹
@@ -303,18 +319,5 @@ public class ChunkService implements ChunkUseCase {
                 .passages(passages.stream().map(PassageVo::of).toList())
                 .chunks(chunks.stream().map(ChunkVo::of).toList())
                 .build();
-    }
-
-    /**
-     * 배치 대상 문서 목록 조회
-     *
-     * @return 배치 대상 문서 목록
-     */
-    @Transactional
-    @Override
-    public List<SourceVo> getActiveSourcesUseCase() {
-        return sourcePersistencePort.getActiveSourcesPort().stream()
-                .map(SourceVo::of)
-                .toList();
     }
 }

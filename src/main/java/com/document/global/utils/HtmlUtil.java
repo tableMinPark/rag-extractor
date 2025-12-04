@@ -1,6 +1,5 @@
 package com.document.global.utils;
 
-import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.*;
 import org.jsoup.select.Elements;
@@ -12,16 +11,21 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-@Slf4j
 public class HtmlUtil {
 
     private static final Set<String> SINGLE_TAGS = Set.of("br");
     private static final Set<String> TABLE_CHILD_TAGS = Set.of("tr", "td", "thead", "tbody", "th", "br");
-    private static final Set<String> NEW_LINE_TAGS = Set.of("div", "p", "section", "article", "header", "footer", "aside", "nav", "main", "li", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "hr" );
+    private static final Set<String> NEW_LINE_TAGS = Set.of("div", "p", "section", "article", "header", "footer", "aside", "nav", "main", "li", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "hr");
     private static final String NEW_LINE_PREFIX = "__NEW_LINE__";
     private static final String MARKDOWN_NEW_LINE_PREFIX = "__MARKDOWN_NEW_LINE__";
 
-    public static boolean isContainsTable(String html) {
+    /**
+     * 테이블 태그 존재 여부 확인
+     *
+     * @param html HTML 문자열
+     * @return 존재 여부
+     */
+    public static boolean isContainsTableHtml(String html) {
         Document doc = Jsoup.parse(html);
         return !doc.body().getElementsByTag("table").isEmpty();
     }
@@ -32,7 +36,7 @@ public class HtmlUtil {
      * @param markdown 마크 다운 문자열
      * @return 표 HTML 변환 된, 마크 다운 문자열
      */
-    public static String convertMarkdownTableToHtml(String markdown) {
+    public static String convertTableMarkdownToHtml(String markdown) {
         if (markdown == null) return "";
 
         String[] lines = markdown.split("\\r?\\n");
@@ -50,7 +54,7 @@ public class HtmlUtil {
                 // 표 종료
                 if (inTable && !tableBlock.isEmpty()) {
                     String tableMarkdown = String.join("\n", tableBlock);
-                    String tableHtml = convertMarkdownTableToHtml(tableMarkdown, false);
+                    String tableHtml = convertTableMarkdownToHtml(tableMarkdown, false);
                     result.append(tableHtml).append("\n");
                     tableBlock.clear();
                 }
@@ -63,7 +67,7 @@ public class HtmlUtil {
         // 마지막 표 블록 처리
         if (!tableBlock.isEmpty()) {
             String tableMarkdown = String.join("\n", tableBlock);
-            String tableHtml = convertMarkdownTableToHtml(tableMarkdown, false);
+            String tableHtml = convertTableMarkdownToHtml(tableMarkdown, false);
             result.append(tableHtml).append("\n");
         }
 
@@ -77,7 +81,7 @@ public class HtmlUtil {
      * @param addAttribute 텍스트 정렬 속성 포함 여부
      * @return 표 HTML 변환 된, 마크 다운 문자열
      */
-    public static String convertMarkdownTableToHtml(String markdown, boolean addAttribute) {
+    private static String convertTableMarkdownToHtml(String markdown, boolean addAttribute) {
         if (markdown == null) return "";
 
         // 1) 이스케이프된 파이프(\|)를 임시 토큰으로 치환
@@ -230,7 +234,7 @@ public class HtmlUtil {
      * @param html HTML 문자열
      * @return 표 Markdown 변환 된, HTML 문자열
      */
-    public static String convertTableHtmlToMarkDown(String html) {
+    public static String convertTableHtmlToMarkdown(String html) {
         // 개형 변환
         String convertNewLineHtml = html
                 .replace("\n", NEW_LINE_PREFIX);
@@ -238,7 +242,7 @@ public class HtmlUtil {
         Document doc = Jsoup.parse(convertNewLineHtml);
         StringBuilder tableMarkdownBuilder = new StringBuilder();
 
-        convertTableHtmlToMarkDown(doc.body(), tableMarkdownBuilder, -1);
+        convertTableHtmlToMarkdown(doc.body(), tableMarkdownBuilder, -1);
 
         String convertMarkdown = doc.body().html()
                 .replace("&lt;", "<")
@@ -258,16 +262,16 @@ public class HtmlUtil {
     /**
      * HTML 표 데이터 마크 다운 변환 재귀 함수
      */
-    private static void convertTableHtmlToMarkDown(Node node, StringBuilder tableMarkdownBuilder, int depth) {
+    private static void convertTableHtmlToMarkdown(Node node, StringBuilder tableMarkdownBuilder, int depth) {
         // 표안의 표 처리
         for (Node child : node.childNodes()) {
             if (child instanceof Element el) {
                 String tag = el.tagName();
 
                 if ("table".equals(tag)) {
-                    convertTableHtmlToMarkDown(child, tableMarkdownBuilder, depth + 1);
+                    convertTableHtmlToMarkdown(child, tableMarkdownBuilder, depth + 1);
                 } else {
-                    convertTableHtmlToMarkDown(child, tableMarkdownBuilder, depth);
+                    convertTableHtmlToMarkdown(child, tableMarkdownBuilder, depth);
                 }
             }
         }
@@ -276,7 +280,7 @@ public class HtmlUtil {
             String tag = el.tagName();
 
             if ("table".equals(tag)) {
-                String html = node.toString() .replace(NEW_LINE_PREFIX, "\n");
+                String html = node.toString().replace(NEW_LINE_PREFIX, "\n");
 
                 if (depth == 0) {
                     node.replaceWith(new TextNode(convertTableHtmlToMarkdownOneDepth(html)));
@@ -296,7 +300,7 @@ public class HtmlUtil {
     /**
      * 표 데이터 HTML 마크 다운 1Depth 변환 재귀 함수
      *
-     * @param html             HTML 문자열
+     * @param html HTML 문자열
      * @return 마크 다운 문자열
      */
     private static String convertTableHtmlToMarkdownOneDepth(String html) {
@@ -488,6 +492,12 @@ public class HtmlUtil {
         }
     }
 
+    /**
+     * HTML 태그 치환
+     *
+     * @param s 원본 문자열
+     * @return HTML 태그 치환 문자열
+     */
     private static String escapeHtml(String s) {
         if (s == null || s.isEmpty()) return "";
         return s.replace("&", "&amp;")

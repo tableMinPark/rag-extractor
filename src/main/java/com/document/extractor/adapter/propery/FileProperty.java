@@ -1,8 +1,7 @@
 package com.document.extractor.adapter.propery;
 
-import lombok.AllArgsConstructor;
+import com.document.global.vo.FileReadBinary;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -17,15 +16,5 @@ public class FileProperty {
 
     private String tempDir;
 
-    private SnfPath snfPath;
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class SnfPath {
-        private String mac;
-        private String windows;
-        private String linux;
-    }
+    private FileReadBinary readBinary;
 }

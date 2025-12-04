@@ -1,6 +1,6 @@
 package com.document.extractor.application.command;
 
-import com.document.extractor.application.vo.FileVo;
+import com.document.global.vo.UploadFile;
 import com.document.extractor.domain.vo.PatternVo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,5 +25,5 @@ public class ChunkFileCommand {
 
     private final int overlapSize;
 
-    private final FileVo file;
+    private final UploadFile file;
 }

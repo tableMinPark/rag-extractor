@@ -1,6 +1,5 @@
 package com.document.global.utils;
 
-import java.util.List;
 import java.util.UUID;
 
 public class StringUtil {
@@ -83,23 +82,5 @@ public class StringUtil {
         }
 
         return String.valueOf(c);
-    }
-
-    /**
-     * 문자열 개행 기준 병합
-     */
-    public static String concat(List<String> strs) {
-
-        if (strs == null || strs.isEmpty()) {
-            return "";
-        }
-
-        StringBuilder strBuilder = new StringBuilder();
-
-        for (String str : strs) {
-            strBuilder.append(str).append("\n");
-        }
-
-        return strBuilder.toString().trim();
     }
 }

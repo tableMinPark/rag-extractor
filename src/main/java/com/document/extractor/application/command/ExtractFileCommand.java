@@ -1,6 +1,6 @@
 package com.document.extractor.application.command;
 
-import com.document.extractor.application.vo.FileVo;
+import com.document.global.vo.UploadFile;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,7 +10,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class ExtractFileCommand {
 
-    private FileVo file;
+    private UploadFile file;
 
     private String extractType;
 }

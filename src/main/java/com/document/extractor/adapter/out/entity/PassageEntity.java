@@ -3,6 +3,7 @@ package com.document.extractor.adapter.out.entity;
 import com.document.extractor.domain.model.Passage;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Comment;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -15,49 +16,63 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "WN_PASSAGE")
+@Comment("패시지")
 @EntityListeners(AuditingEntityListener.class)
 @SequenceGenerator(
-        name = "WN_PASSAGE_PASSAGE_ID_SEQ",
-        sequenceName = "WN_PASSAGE_PASSAGE_ID_SEQ",
+        name = "WN_PASSAGE_ID_SEQ",
+        sequenceName = "WN_PASSAGE_ID_SEQ",
         allocationSize = 1
 )
 public class PassageEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WN_PASSAGE_PASSAGE_ID_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WN_PASSAGE_ID_SEQ")
     @Column(name = "passage_id", nullable = false, updatable = false)
+    @Comment("패시지 ID")
     private Long passageId;
 
     @Column(name = "source_id")
+    @Comment("대상 문서 ID")
     private Long sourceId;
 
     @Column(name = "version")
+    @Comment("버전 코드")
     private Long version;
 
-    @Column(name = "title")
+    @Column(name = "title", length = 4000)
+    @Comment("제목")
     private String title;
 
-    @Column(name = "sub_title")
+    @Column(name = "sub_title", length = 4000)
+    @Comment("중제목")
     private String subTitle;
 
-    @Column(name = "third_title")
+    @Column(name = "third_title", length = 4000)
+    @Comment("소제목")
     private String thirdTitle;
 
+    @Lob
     @Column(name = "content")
+    @Comment("본문")
     private String content;
 
+    @Lob
     @Column(name = "sub_content")
+    @Comment("부가 본문")
     private String subContent;
 
     @Column(name = "token_size")
+    @Comment("본문 토큰 크기")
     private Integer tokenSize;
 
     @CreatedDate
     @Column(name = "sys_create_dt")
+    @Comment("생성 일자")
     private LocalDateTime sysCreateDt;
 
     @LastModifiedDate
     @Column(name = "sys_modify_dt")
+    @Comment("수정 일자")
     private LocalDateTime sysModifyDt;
 
     public void update(Passage passage) {

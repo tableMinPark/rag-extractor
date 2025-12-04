@@ -2,16 +2,15 @@ package com.document.extractor.adapter.out;
 
 import com.document.extractor.adapter.propery.FileProperty;
 import com.document.extractor.application.port.ExtractPort;
-import com.document.extractor.application.utils.FileUtil;
-import com.document.global.utils.XmlUtil;
 import com.document.extractor.domain.model.Document;
 import com.document.extractor.domain.model.FileDetail;
 import com.document.extractor.domain.model.HwpxDocument;
 import com.document.extractor.domain.model.PdfDocument;
 import com.document.extractor.domain.vo.HwpxImageVo;
 import com.document.extractor.domain.vo.HwpxSectionVo;
-import com.document.global.enums.ExtractType;
+import com.document.global.utils.FileUtil;
 import com.document.global.utils.StringUtil;
+import com.document.global.utils.XmlUtil;
 import kr.dogfoot.hwp2hwpx.Hwp2Hwpx;
 import kr.dogfoot.hwplib.object.HWPFile;
 import kr.dogfoot.hwplib.reader.HWPReader;
@@ -36,23 +35,22 @@ import java.util.Map;
 public class ExtractAdapter implements ExtractPort {
 
     private final FileProperty fileProperty;
-    private final FileUtil fileUtil;
 
     /**
      * 문서 추출
      *
      * @param fileDetail  원본 문서 정보
-     * @param extractType 표 추출 타입
+     * @param extractTypeCode 표 추출 타입 코드
      * @return 문서
      */
     @Override
-    public Document extractFilePort(FileDetail fileDetail, ExtractType extractType) {
+    public Document extractFilePort(FileDetail fileDetail, String extractTypeCode) {
 
         // 한글 제외 다른 확장자 파일 추출
         if (!fileDetail.getExt().contains("hwp") && !fileDetail.getExt().contains("hwpx")) {
             return PdfDocument.builder()
                     .name(fileDetail.getOriginFileName())
-                    .content(fileUtil.readFile(Paths.get(fileDetail.getUrl())).trim())
+                    .content(FileUtil.readFile(fileProperty.getReadBinary(), fileDetail.getUrl()).trim())
                     .build();
         }
 
@@ -72,13 +70,13 @@ public class ExtractAdapter implements ExtractPort {
                 // 변환 실패
                 return PdfDocument.builder()
                         .name(fileDetail.getOriginFileName())
-                        .content(fileUtil.readFile(Paths.get(fileDetail.getUrl())).trim())
+                        .content(FileUtil.readFile(fileProperty.getReadBinary(), fileDetail.getUrl()).trim())
                         .build();
             }
         }
         // 원본 문서 복사
         else {
-            fileUtil.copyFile(fullFilePath, zipFilePath);
+            FileUtil.copyFile(fullFilePath.toString(), zipFilePath.toString());
         }
 
         // 압축 파일 존재 여부 확인
@@ -87,10 +85,11 @@ public class ExtractAdapter implements ExtractPort {
         }
 
         // 압축 해제
-        fileUtil.decompression(zipFilePath.toFile(), unZipDirPath.toFile());
+        FileUtil.decompression(zipFilePath.toString(), unZipDirPath.toString());
 
         // metadata 추출
-        String metaData = fileUtil.read(unZipDirPath.resolve("Contents").resolve("content.hpf"));
+        Path metaDataPath = unZipDirPath.resolve("Contents").resolve("content.hpf");
+        String metaData = FileUtil.read(metaDataPath.toString());
 
         // XML DOM 파싱
         Element root = XmlUtil.parseXml(metaData).getDocumentElement();
@@ -111,7 +110,7 @@ public class ExtractAdapter implements ExtractPort {
                 File xmlFile = unZipDirPath.resolve(resourceFilePath).toFile();
 
                 if (xmlFile.exists()) {
-                    String content = fileUtil.read(xmlFile.toPath())
+                    String content = FileUtil.read(xmlFile.toPath().toString())
                             .replaceAll("<hp:lineBreak/>", "\n")                        // 개행 태그 개행 문자로 치환
                             .replaceAll("\\s[a-zA-Z_-]+=\"[^\"]*[<>][^\"]*\"", "");     // XML 속성 내에 "<", ">" 가 있는 경우 속성 제거
 
@@ -138,14 +137,14 @@ public class ExtractAdapter implements ExtractPort {
         }
 
         // 압축 파일 삭제
-        fileUtil.deleteFile(zipFilePath);
+        FileUtil.deleteFile(zipFilePath.toString());
 
         // 압축 해제 디렉토리 삭제
-        fileUtil.deleteDirectory(unZipDirPath);
+        FileUtil.deleteDirectory(unZipDirPath.toString());
 
         return HwpxDocument.builder()
                 .name(StringUtil.removeExtension(fileDetail.getOriginFileName()))
-                .extractType(extractType)
+                .extractTypeCode(extractTypeCode)
                 .sections(sections)
                 .images(images)
                 .build();
@@ -158,6 +157,6 @@ public class ExtractAdapter implements ExtractPort {
      */
     @Override
     public String extractTextPort(FileDetail fileDetail) {
-        return fileUtil.readFile(Paths.get(fileDetail.getUrl())).trim();
+        return FileUtil.readFile(fileProperty.getReadBinary(), fileDetail.getUrl()).trim();
     }
 }
