@@ -1,7 +1,5 @@
 package com.document.extractor.application.port;
 
-import com.document.extractor.domain.model.Chunk;
-import com.document.extractor.domain.model.Passage;
 import com.document.extractor.domain.model.Source;
 
 import java.util.List;
@@ -40,35 +38,4 @@ public interface SourcePersistencePort {
      */
     List<Source> getActiveSourcesPort();
 
-    /**
-     * 패시지 저장
-     *
-     * @param passage 패시지
-     * @return 패시지
-     */
-    Passage savePassagePort(Passage passage);
-
-    /**
-     * 패시지 목록 저장
-     *
-     * @param passages 패시지 목록
-     * @return 패시지 목록
-     */
-    List<Passage> savePassagesPort(List<Passage> passages);
-
-    /**
-     * 청크 저장
-     *
-     * @param chunk 청크
-     * @return 청크
-     */
-    Chunk saveChunkPort(Chunk chunk);
-
-    /**
-     * 청크 목록 저장
-     *
-     * @param chunks 청크 목록
-     * @return 청크 목록
-     */
-    List<Chunk> saveChunksPort(List<Chunk> chunks);
 }

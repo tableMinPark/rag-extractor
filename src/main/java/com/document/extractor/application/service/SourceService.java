@@ -102,6 +102,7 @@ public class SourceService implements SourceUseCase {
         Source source = Source.builder()
                 .sourceType(sourceType)
                 .selectType(selectType)
+                .version(0L)
                 .categoryCode(command.getCategoryCode())
                 .name(StringUtil.removeExtension(fileDetail.getOriginFileName()))
                 .content(content)

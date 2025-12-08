@@ -57,8 +57,8 @@ public class SourceEntity {
     @Comment("대상 문서명")
     private String name;
 
-    @Lob
-    @Column(name = "content")
+//    @Lob
+    @Column(name = "content", columnDefinition = "TEXT")
     @Comment("대상 문서 본문")
     private String content;
 

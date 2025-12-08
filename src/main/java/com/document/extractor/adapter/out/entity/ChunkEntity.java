@@ -51,18 +51,18 @@ public class ChunkEntity {
     @Comment("소제목")
     private String thirdTitle;
 
-    @Lob
-    @Column(name = "content")
+//    @Lob
+    @Column(name = "content", columnDefinition = "TEXT")
     @Comment("본문")
     private String content;
 
-    @Lob
-    @Column(name = "compact_content")
+//    @Lob
+    @Column(name = "compact_content", columnDefinition = "TEXT")
     @Comment("색인 대상 본문")
     private String compactContent;
 
-    @Lob
-    @Column(name = "sub_content")
+//    @Lob
+    @Column(name = "sub_content", columnDefinition = "TEXT")
     @Comment("부가 본문")
     private String subContent;
 
@@ -84,17 +84,18 @@ public class ChunkEntity {
     @Comment("수정 일자")
     private LocalDateTime sysModifyDt;
 
-    public void update(Chunk chunk) {
+    public ChunkEntity update(Chunk chunk) {
         this.passageId = chunk.getPassageId();
         this.version = chunk.getVersion();
         this.title = chunk.getTitle();
         this.subTitle = chunk.getSubTitle();
         this.thirdTitle = chunk.getThirdTitle();
         this.content = chunk.getContent();
-        this.subContent = chunk.getSubContent();
         this.compactContent = chunk.getCompactContent();
+        this.subContent = chunk.getSubContent();
         this.tokenSize = chunk.getTokenSize();
         this.compactTokenSize = chunk.getCompactTokenSize();
+        return this;
     }
 
     public Chunk toDomain() {
@@ -124,10 +125,10 @@ public class ChunkEntity {
                 .subTitle(chunk.getSubTitle())
                 .thirdTitle(chunk.getThirdTitle())
                 .content(chunk.getContent())
-                .subContent(chunk.getSubContent())
                 .compactContent(chunk.getCompactContent())
-                .compactTokenSize(chunk.getCompactTokenSize())
+                .subContent(chunk.getSubContent())
                 .tokenSize(chunk.getTokenSize())
+                .compactTokenSize(chunk.getCompactTokenSize())
                 .build();
     }
 }

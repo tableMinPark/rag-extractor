@@ -3,6 +3,7 @@ package com.document.extractor.domain.model;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
@@ -13,9 +14,11 @@ public class Chunk {
 
     private final Long chunkId;
 
-    private final Long passageId;
+    @Setter
+    private Long passageId;
 
-    private final Long version;
+    @Setter
+    private Long version;
 
     private final String title;
 
