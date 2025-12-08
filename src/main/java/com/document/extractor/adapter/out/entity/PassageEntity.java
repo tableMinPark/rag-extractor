@@ -1,5 +1,6 @@
 package com.document.extractor.adapter.out.entity;
 
+import com.document.extractor.application.enums.UpdateState;
 import com.document.extractor.domain.model.Passage;
 import jakarta.persistence.*;
 import lombok.*;
@@ -39,6 +40,9 @@ public class PassageEntity {
     @Comment("버전 코드")
     private Long version;
 
+    @Column(name = "sort_order")
+    private Integer sortOrder;
+
     @Column(name = "title", length = 4000)
     @Comment("제목")
     private String title;
@@ -51,19 +55,27 @@ public class PassageEntity {
     @Comment("소제목")
     private String thirdTitle;
 
-    @Lob
-    @Column(name = "content")
+//    @Lob
+    @Column(name = "content", columnDefinition = "TEXT")
     @Comment("본문")
     private String content;
 
-    @Lob
-    @Column(name = "sub_content")
+//    @Lob
+    @Column(name = "sub_content", columnDefinition = "TEXT")
     @Comment("부가 본문")
     private String subContent;
 
     @Column(name = "token_size")
     @Comment("본문 토큰 크기")
     private Integer tokenSize;
+
+    @Column(name = "update_state")
+    @Comment("변경 이력 코드")
+    private String updateStateCode;
+
+    @Column(name = "parent_sort_order")
+    @Comment("부모 정렬 필드")
+    private Integer parentSortOrder;
 
     @CreatedDate
     @Column(name = "sys_create_dt")
@@ -75,15 +87,19 @@ public class PassageEntity {
     @Comment("수정 일자")
     private LocalDateTime sysModifyDt;
 
-    public void update(Passage passage) {
+    public PassageEntity update(Passage passage) {
         this.sourceId = passage.getSourceId();
         this.version = passage.getVersion();
+        this.sortOrder = passage.getSortOrder();
+        this.parentSortOrder = passage.getParentSortOrder();
         this.title = passage.getTitle();
         this.subTitle = passage.getSubTitle();
         this.thirdTitle = passage.getThirdTitle();
         this.content = passage.getContent();
         this.subContent = passage.getSubContent();
         this.tokenSize = passage.getTokenSize();
+        this.updateStateCode = passage.getUpdateState().getCode();
+        return this;
     }
 
     public Passage toDomain() {
@@ -91,12 +107,15 @@ public class PassageEntity {
                 .passageId(passageId)
                 .sourceId(sourceId)
                 .version(version)
+                .sortOrder(sortOrder)
+                .parentSortOrder(parentSortOrder)
                 .title(title)
                 .subTitle(subTitle)
                 .thirdTitle(thirdTitle)
                 .content(content)
                 .subContent(subContent)
                 .tokenSize(tokenSize)
+                .updateState(UpdateState.find(updateStateCode))
                 .sysCreateDt(sysCreateDt)
                 .sysModifyDt(sysModifyDt)
                 .build();
@@ -107,12 +126,15 @@ public class PassageEntity {
                 .passageId(passage.getPassageId())
                 .sourceId(passage.getSourceId())
                 .version(passage.getVersion())
+                .sortOrder(passage.getSortOrder())
+                .parentSortOrder(passage.getParentSortOrder())
                 .title(passage.getTitle())
                 .subTitle(passage.getSubTitle())
                 .thirdTitle(passage.getThirdTitle())
                 .content(passage.getContent())
                 .subContent(passage.getSubContent())
                 .tokenSize(passage.getTokenSize())
+                .updateStateCode(passage.getUpdateState().getCode())
                 .build();
     }
 }

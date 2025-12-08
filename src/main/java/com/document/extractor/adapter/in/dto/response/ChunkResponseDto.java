@@ -4,6 +4,7 @@ import com.document.extractor.application.vo.ChunkVo;
 import com.document.extractor.application.vo.PassageVo;
 import com.document.extractor.application.vo.SourceVo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,6 +22,8 @@ public class ChunkResponseDto {
 
     private Long version;
 
+    private Integer totalCount;
+
     @JsonIgnore
     @Schema(description = "대상 문서")
     private SourceVo source;
@@ -29,6 +32,7 @@ public class ChunkResponseDto {
     @Schema(description = "패시지")
     private List<PassageVo> passages;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @Schema(description = "청크")
     private List<ChunkVo> chunks;
 
@@ -36,6 +40,7 @@ public class ChunkResponseDto {
     public ChunkResponseDto(SourceVo source, List<PassageVo> passages, List<ChunkVo> chunks) {
         this.fileName = source.getName();
         this.version = source.getVersion();
+        this.totalCount = passages == null ? 0 : passages.size();
         this.source = source;
         this.passages = passages;
         this.chunks = chunks;

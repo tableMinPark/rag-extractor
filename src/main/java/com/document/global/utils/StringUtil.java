@@ -1,6 +1,6 @@
 package com.document.global.utils;
 
-import java.util.UUID;
+import java.util.*;
 
 public class StringUtil {
 
@@ -82,5 +82,50 @@ public class StringUtil {
         }
 
         return String.valueOf(c);
+    }
+
+    /**
+     * 두 문장의 코사인 유사도 반환 (Bag-of-Words, TF 기반)
+     */
+    public static double cosineSimilarity(String s1, String s2) {
+        if (s1 == null || s2 == null || s1.isEmpty() || s2.isEmpty()) return 0.0;
+
+        // 단어 단위 분리 (원하면 tokenizer 교체 가능)
+        String[] words1 = s1.split("\\s+");
+        String[] words2 = s2.split("\\s+");
+
+        // 단어 빈도 저장
+        Map<String, Integer> freq1 = new HashMap<>();
+        Map<String, Integer> freq2 = new HashMap<>();
+
+        for (String w : words1) {
+            freq1.put(w, freq1.getOrDefault(w, 0) + 1);
+        }
+        for (String w : words2) {
+            freq2.put(w, freq2.getOrDefault(w, 0) + 1);
+        }
+
+        // 전체 단어 집합 생성
+        Set<String> allWords = new HashSet<>();
+        allWords.addAll(freq1.keySet());
+        allWords.addAll(freq2.keySet());
+
+        // 벡터 생성
+        double dot = 0.0;
+        double normA = 0.0;
+        double normB = 0.0;
+
+        for (String word : allWords) {
+            int a = freq1.getOrDefault(word, 0);
+            int b = freq2.getOrDefault(word, 0);
+
+            dot += a * b;
+            normA += a * a;
+            normB += b * b;
+        }
+
+        if (normA == 0 || normB == 0) return 0.0;
+
+        return dot / (Math.sqrt(normA) * Math.sqrt(normB));
     }
 }
