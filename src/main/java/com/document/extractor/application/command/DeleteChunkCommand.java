@@ -7,7 +7,7 @@ import lombok.Getter;
 @Builder
 @Getter
 @AllArgsConstructor
-public class GetSourceCommand {
+public class DeleteChunkCommand {
 
-    private final long sourceId;
+    private Long chunkId;
 }

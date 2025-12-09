@@ -1,5 +1,6 @@
 package com.document.extractor.domain.model;
 
+import com.document.global.utils.HtmlUtil;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
@@ -56,9 +57,11 @@ public class DocumentContent {
 
             if (matcher.find()) {
                 this.prefix = prefix;
-                this.title = matcher.group().trim();
-                this.simpleTitle = matcher.group().trim();
-                this.context = this.context.replaceFirst(prefix, "").strip();
+                this.title = HtmlUtil.removeHtml(matcher.group().trim());
+                this.simpleTitle = HtmlUtil.removeHtml(matcher.group().trim());
+                if (prefix.startsWith("^")) {
+                    this.context = this.context.replaceFirst(prefix, "").strip();
+                }
                 break;
             }
         }

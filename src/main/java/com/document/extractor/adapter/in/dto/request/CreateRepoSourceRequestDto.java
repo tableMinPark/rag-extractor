@@ -53,4 +53,7 @@ public class CreateRepoSourceRequestDto {
     @NotNull
     @Schema(description = "리소스 정보", example = "[{\"originFileName\":\"테스트 문서\",\"remoteId\":\"1\"}]", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<RepoResourceDto> repoResources;
+
+    @Schema(description = "자동화 처리 여부 ", example = "false", defaultValue = "false", requiredMode = Schema.RequiredMode.REQUIRED)
+    private Boolean isAuto;
 }

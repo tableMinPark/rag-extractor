@@ -17,32 +17,46 @@ public class Source {
     private final Long sourceId;
 
     private Long version;
+
     @Getter
     private final SourceType sourceType;
+
     @Getter
     private final SelectType selectType;
+
     @Getter
     private final String categoryCode;
+
     @Getter
     private final String name;
+
     @Getter
     private final String content;
+
     @Getter
     private final String collectionId;
+
     @Getter
     private final Long fileDetailId;
+
     @Getter
     private final Integer maxTokenSize;
+
     @Getter
     private final Integer overlapSize;
+
     @Getter
     private final Boolean isAuto;
+
     @Getter
     private final LocalDateTime sysCreateDt;
+
     @Getter
     private final LocalDateTime sysModifyDt;
+
     @Getter
     private final List<SourcePattern> sourcePatterns;
+
     @Getter
     private final List<SourceStopPattern> sourceStopPatterns;
 
@@ -71,7 +85,7 @@ public class Source {
      * @return 첫번째 버전 여부
      */
     public boolean isFirstVersion() {
-        return this.version == 1;
+        return this.getVersion() == 1L;
     }
 
     /**

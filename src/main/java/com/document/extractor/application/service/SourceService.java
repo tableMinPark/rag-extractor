@@ -1,5 +1,6 @@
 package com.document.extractor.application.service;
 
+import com.document.extractor.adapter.out.constant.FileConst;
 import com.document.extractor.application.command.CreateSourceCommand;
 import com.document.extractor.application.command.GetSourceCommand;
 import com.document.extractor.application.command.GetSourcesCommand;
@@ -9,12 +10,13 @@ import com.document.extractor.application.port.ExtractPort;
 import com.document.extractor.application.port.FilePersistencePort;
 import com.document.extractor.application.port.SourcePersistencePort;
 import com.document.extractor.application.usecase.SourceUseCase;
-import com.document.global.vo.UploadFile;
 import com.document.extractor.application.vo.SourceVo;
+import com.document.extractor.application.wrapper.PageWrapper;
 import com.document.extractor.domain.model.*;
 import com.document.extractor.domain.vo.PatternVo;
 import com.document.extractor.domain.vo.PrefixVo;
 import com.document.global.utils.StringUtil;
+import com.document.global.vo.UploadFile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,7 +49,7 @@ public class SourceService implements SourceUseCase {
         // 파일 목록 생성
         UploadFile uploadFile = command.getFile();
 
-        // 파일 업로드
+        // 파일 정보 등록
         FileDetail fileDetail = filePersistencePort.saveFileDetailPort(FileDetail.builder()
                 .originFileName(uploadFile.getOriginFileName())
                 .fileName(uploadFile.getFileName())
@@ -56,8 +58,8 @@ public class SourceService implements SourceUseCase {
                 .fileSize(uploadFile.getFileSize())
                 .ext(uploadFile.getExt())
                 .url(uploadFile.getUrl())
-                .sysCreateUser("SYSTEM")
-                .sysModifyUser("SYSTEM")
+                .sysCreateUser(FileConst.FILE_PERSIST_USER)
+                .sysModifyUser(FileConst.FILE_PERSIST_USER)
                 .build());
 
         String content = "";
@@ -110,7 +112,7 @@ public class SourceService implements SourceUseCase {
                 .fileDetailId(fileDetail.getFileDetailId())
                 .maxTokenSize(command.getMaxTokenSize())
                 .overlapSize(command.getOverlapSize())
-                .isAuto(false)
+                .isAuto(command.getIsAuto())
                 .sourcePatterns(sourcePatterns)
                 .sourceStopPatterns(sourceStopPatterns)
                 .build();
@@ -120,37 +122,50 @@ public class SourceService implements SourceUseCase {
     }
 
     /**
-     * TODO: 대상 문서 조회
-     *
-     * @param command 대상 문서 조회 Command
-     * @return 대상 문서
-     */
-    @Override
-    public SourceVo getSourceUseCase(GetSourceCommand command) {
-        return null;
-    }
-
-    /**
-     * TODO: 대상 문서 목록 조회
-     *
-     * @param command 대상 문서 목록 조회 Command
-     * @return 대상 문서 목록
-     */
-    @Override
-    public List<SourceVo> getSourcesUseCase(GetSourcesCommand command) {
-        return List.of();
-    }
-
-    /**
      * 배치 대상 문서 목록 조회
      *
      * @return 배치 대상 문서 목록
      */
-    @Transactional
+    @Transactional(readOnly = true)
     @Override
     public List<SourceVo> getActiveSourcesUseCase() {
         return sourcePersistencePort.getActiveSourcesPort().stream()
                 .map(SourceVo::of)
                 .toList();
+    }
+
+    /**
+     * 대상 문서 조회
+     *
+     * @param command 대상 문서 조회 Command
+     * @return 대상 문서
+     */
+    @Transactional(readOnly = true)
+    @Override
+    public SourceVo getSourceUseCase(GetSourceCommand command) {
+        return SourceVo.of(sourcePersistencePort.getSourcePort(command.getSourceId()));
+    }
+
+    /**
+     * 대상 문서 목록 조회
+     *
+     * @param command 대상 문서 목록 조회 Command
+     * @return 대상 문서 목록
+     */
+    @Transactional(readOnly = true)
+    @Override
+    public PageWrapper<SourceVo> getSourcesUseCase(GetSourcesCommand command) {
+
+        PageWrapper<Source> sourcePageWrapper = sourcePersistencePort.getSourcesPort(
+                command.getPage(), command.getSize(), command.getOrderBy(), command.getOrder(), command.getKeyword(), command.isAuto());
+
+        return PageWrapper.<SourceVo>builder()
+                .data(sourcePageWrapper.getData().stream().map(SourceVo::of).toList())
+                .isLast(sourcePageWrapper.isLast())
+                .page(sourcePageWrapper.getPage())
+                .size(sourcePageWrapper.getSize())
+                .totalCount(sourcePageWrapper.getTotalCount())
+                .totalPages(sourcePageWrapper.getTotalPages())
+                .build();
     }
 }

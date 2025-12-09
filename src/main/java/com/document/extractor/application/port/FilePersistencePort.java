@@ -20,5 +20,5 @@ public interface FilePersistencePort {
      * @param fileDetailId 파일 메타 정보 ID
      * @return 파일 메타 정보
      */
-    Optional<FileDetail> getFileDetailPort(Long fileDetailId);
+    FileDetail getFileDetailPort(Long fileDetailId);
 }

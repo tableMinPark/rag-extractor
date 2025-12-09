@@ -7,7 +7,7 @@ import lombok.Getter;
 @Builder
 @Getter
 @AllArgsConstructor
-public class GetSourceCommand {
+public class GetPassageCommand {
 
-    private final long sourceId;
+    private final long passageId;
 }

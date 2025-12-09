@@ -15,13 +15,16 @@ public class Document {
 
     private final List<DocumentContent> documentContents;
 
-    public Document(String name) {
-        this(name, new ArrayList<>());
+    private final Boolean convertError;
+
+    public Document(String name, boolean convertError) {
+        this(name, new ArrayList<>(), convertError);
     }
 
-    public Document(String name, List<DocumentContent> documentContents) {
+    public Document(String name, List<DocumentContent> documentContents, boolean convertError) {
         this.name = name;
         this.documentContents = documentContents;
+        this.convertError = convertError;
     }
 
     /**

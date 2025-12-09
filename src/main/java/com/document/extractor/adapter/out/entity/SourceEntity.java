@@ -25,14 +25,14 @@ import java.util.Optional;
 @Comment("대상 문서")
 @EntityListeners(AuditingEntityListener.class)
 @SequenceGenerator(
-        name = "WN_SOURCE_SOURCE_ID_SEQ",
-        sequenceName = "WN_SOURCE_SOURCE_ID_SEQ",
+        name = "WN_SOURCE_ID_SEQ",
+        sequenceName = "WN_SOURCE_ID_SEQ",
         allocationSize = 1
 )
 public class SourceEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WN_SOURCE_SOURCE_ID_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WN_SOURCE_ID_SEQ")
     @Column(name = "source_id", nullable = false, updatable = false)
     @Comment("대상 문서 ID")
     private Long sourceId;

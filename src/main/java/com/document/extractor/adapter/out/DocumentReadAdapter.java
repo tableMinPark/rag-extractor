@@ -1,7 +1,7 @@
 package com.document.extractor.adapter.out;
 
 import com.document.extractor.adapter.propery.RepoProperty;
-import com.document.extractor.application.exception.NotFoundException;
+import com.document.extractor.application.exception.InvalidConnectionException;
 import com.document.extractor.application.port.DocumentReadPort;
 import com.document.extractor.domain.model.Document;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
 /**
@@ -31,7 +30,6 @@ public class DocumentReadAdapter implements DocumentReadPort {
      * @param repoId          원격 문서 ID
      * @param extractTypeCode 표 추출 타입 코드
      */
-    @Transactional
     @Override
     public Document getRepoDocumentPort(String repoType, String repoId, String extractTypeCode) {
 
@@ -47,7 +45,7 @@ public class DocumentReadAdapter implements DocumentReadPort {
 
         // 응답 체크
         if (responseEntity == null || !responseEntity.getStatusCode().is2xxSuccessful() || responseEntity.getBody() == null) {
-            throw new NotFoundException();
+            throw new InvalidConnectionException("원격 문서 조회 서버");
         }
 
         try {
@@ -56,13 +54,13 @@ public class DocumentReadAdapter implements DocumentReadPort {
 
             // 응답 바디 체크
             if (responseBody == null) {
-                throw new NotFoundException();
+                throw new InvalidConnectionException("원격 문서 조회 서버");
             }
 
             return responseBody;
 
         } catch (JsonProcessingException e) {
-            throw new NotFoundException();
+            throw new InvalidConnectionException("원격 문서 조회 서버");
         }
     }
 
@@ -71,7 +69,6 @@ public class DocumentReadAdapter implements DocumentReadPort {
      *
      * @param uri 원격 문서 URI
      */
-    @Transactional
     @Override
     public Document getRepoDocumentPort(String uri) {
 
@@ -85,7 +82,7 @@ public class DocumentReadAdapter implements DocumentReadPort {
 
         // 응답 체크
         if (responseEntity == null || !responseEntity.getStatusCode().is2xxSuccessful() || responseEntity.getBody() == null) {
-            throw new NotFoundException();
+            throw new InvalidConnectionException("원격 문서 조회 서버");
         }
 
         try {
@@ -94,13 +91,13 @@ public class DocumentReadAdapter implements DocumentReadPort {
 
             // 응답 바디 체크
             if (responseBody == null) {
-                throw new NotFoundException();
+                throw new InvalidConnectionException("원격 문서 조회 서버");
             }
 
             return responseBody;
 
         } catch (JsonProcessingException e) {
-            throw new NotFoundException();
+            throw new InvalidConnectionException("원격 문서 조회 서버");
         }
     }
 }

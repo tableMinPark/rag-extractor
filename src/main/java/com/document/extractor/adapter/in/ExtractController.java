@@ -2,6 +2,7 @@ package com.document.extractor.adapter.in;
 
 import com.document.extractor.adapter.in.dto.response.ExtractResponseDto;
 import com.document.extractor.adapter.in.dto.response.ResponseDto;
+import com.document.extractor.adapter.in.enums.Response;
 import com.document.extractor.adapter.propery.FileProperty;
 import com.document.extractor.application.command.ExtractFileCommand;
 import com.document.extractor.application.command.ExtractFileTextCommand;
@@ -51,15 +52,11 @@ public class ExtractController {
                     .extractType(extractType)
                     .build());
 
-            return ResponseEntity.ok(ResponseDto.<ExtractResponseDto>builder()
-                    .message("파일 추출 성공")
-                    .data(ExtractResponseDto.builder()
-                            .name(uploadFile.getOriginFileName())
-                            .ext(uploadFile.getExt())
-                            .lines(extractContentVos)
-                            .build())
-                    .build());
-
+            return ResponseEntity.ok(Response.EXTRACT_FILE_SUCCESS.toResponseDto(ExtractResponseDto.builder()
+                    .name(uploadFile.getOriginFileName())
+                    .ext(uploadFile.getExt())
+                    .lines(extractContentVos)
+                    .build()));
         } finally {
             if (uploadFile != null) {
                 FileUtil.deleteFile(uploadFile.getUrl());
@@ -69,7 +66,7 @@ public class ExtractController {
 
     @Operation(summary = "파일 텍스트 추출")
     @PostMapping(path = "/text", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> extractToText(
+    public ResponseEntity<ResponseDto<String>> extractToText(
             @Parameter(name = "multipartFile", description = "업로드 파일", required = true)
             @RequestPart("uploadFile")
             MultipartFile multipartFile
@@ -77,9 +74,9 @@ public class ExtractController {
         UploadFile uploadFile = FileUtil.uploadFile(multipartFile, fileProperty.getFileStorePath(), fileProperty.getTempDir());
 
         try {
-            return ResponseEntity.ok(extractUseCase.extractFileTextUseCase(ExtractFileTextCommand.builder()
+            return ResponseEntity.ok(Response.EXTRACT_TEXT_SUCCESS.toResponseDto(extractUseCase.extractFileTextUseCase(ExtractFileTextCommand.builder()
                     .file(uploadFile)
-                    .build()));
+                    .build())));
         } finally {
             if (uploadFile != null) {
                 FileUtil.deleteFile(uploadFile.getUrl());
