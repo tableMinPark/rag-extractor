@@ -23,6 +23,12 @@ public class Document {
         this(name, new ArrayList<>(), convertError);
     }
 
+    public Document(String name, List<DocumentContent> documentContents) {
+        this.name = name;
+        this.documentContents = documentContents;
+        this.convertError = false;
+    }
+
     public Document(String name, List<DocumentContent> documentContents, boolean convertError) {
         this.name = name;
         this.documentContents = documentContents;

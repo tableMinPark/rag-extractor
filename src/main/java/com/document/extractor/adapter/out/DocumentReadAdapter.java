@@ -49,8 +49,10 @@ public class DocumentReadAdapter implements DocumentReadPort {
         }
 
         try {
+            String body = responseEntity.getBody();
+
             // 역직렬화
-            Document responseBody = objectMapper.readValue(responseEntity.getBody(), Document.class);
+            Document responseBody = objectMapper.readValue(body, Document.class);
 
             // 응답 바디 체크
             if (responseBody == null) {
@@ -86,8 +88,10 @@ public class DocumentReadAdapter implements DocumentReadPort {
         }
 
         try {
+            String body = responseEntity.getBody();
+
             // 역직렬화
-            Document responseBody = objectMapper.readValue(responseEntity.getBody(), Document.class);
+            Document responseBody = objectMapper.readValue(body, Document.class);
 
             // 응답 바디 체크
             if (responseBody == null) {
