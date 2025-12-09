@@ -25,7 +25,7 @@ public class HwpxDocument extends Document {
 
     @Builder
     public HwpxDocument(String name, String extractTypeCode, List<HwpxSectionVo> sections, Map<String, HwpxImageVo> images) {
-        super(name);
+        super(name, false);
         this.sections = sections;
         this.images = images;
         this.extract(ExtractType.find(extractTypeCode));

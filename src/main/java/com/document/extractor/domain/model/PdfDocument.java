@@ -13,8 +13,8 @@ public class PdfDocument extends Document {
     private final String content;
 
     @Builder
-    public PdfDocument(String name, String content) {
-        super(name);
+    public PdfDocument(String name, String content, boolean convertError) {
+        super(name, convertError);
         this.content = content;
         this.extract();
     }

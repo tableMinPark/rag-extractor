@@ -39,4 +39,7 @@ public class CreateFileSourceRequestDto {
     @Pattern(regexp = "regex|token|none", message = "regex 과 token 만 지원")
     @Schema(description = "전처리 타입", example = "regex", defaultValue = "token", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private String selectType = "none";
+
+    @Schema(description = "자동화 처리 여부 ", example = "false", defaultValue = "false", requiredMode = Schema.RequiredMode.REQUIRED)
+    private Boolean isAuto;
 }

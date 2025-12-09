@@ -51,7 +51,7 @@ public class PassagePersistenceAdapter implements PassagePersistencePort {
         if (passage.getPassageId() == null) {
             passageEntity = passageRepository.save(PassageEntity.fromDomain(passage));
         } else {
-            passageEntity = passageRepository.findById(passage.getPassageId()).orElseThrow(NotFoundException::new);
+            passageEntity = passageRepository.findById(passage.getPassageId()).orElseThrow(() -> new NotFoundException("패시지"));
             passageEntity.update(passage);
             passageEntity = passageRepository.save(passageEntity);
         }
@@ -72,7 +72,7 @@ public class PassagePersistenceAdapter implements PassagePersistencePort {
         List<PassageEntity> passageEntities = passages.stream()
                 .map(passage -> passage.getPassageId() == null
                         ? PassageEntity.fromDomain(passage)
-                        : passageRepository.findById(passage.getPassageId()).orElseThrow(NotFoundException::new).update(passage))
+                        : passageRepository.findById(passage.getPassageId()).orElseThrow(() -> new NotFoundException("패시지")).update(passage))
                 .toList();
 
         return passageRepository.saveAll(passageEntities).stream().map(PassageEntity::toDomain).toList();
@@ -90,7 +90,7 @@ public class PassagePersistenceAdapter implements PassagePersistencePort {
     public List<Chunk> getChunkBySortOrderAndVersion(int sortOrder, long version) {
 
         PassageEntity passageEntity = passageRepository.findBySortOrderAndVersion(sortOrder, version)
-                .orElseThrow(NotFoundException::new);
+                .orElseThrow(() -> new NotFoundException("패시지"));
 
         return chunkRepository.findByPassageId(passageEntity.getPassageId()).stream()
                 .map(ChunkEntity::toDomain)
@@ -112,7 +112,7 @@ public class PassagePersistenceAdapter implements PassagePersistencePort {
         if (chunk.getChunkId() == null) {
             chunkEntity = chunkRepository.save(ChunkEntity.fromDomain(chunk));
         } else {
-            chunkEntity = chunkRepository.findById(chunk.getChunkId()).orElseThrow(NotFoundException::new);
+            chunkEntity = chunkRepository.findById(chunk.getChunkId()).orElseThrow(() -> new NotFoundException("청크"));
             chunkEntity.update(chunk);
             chunkEntity = chunkRepository.save(chunkEntity);
         }
@@ -133,7 +133,7 @@ public class PassagePersistenceAdapter implements PassagePersistencePort {
         List<ChunkEntity> chunkEntities = chunks.stream()
                 .map(chunk -> chunk.getChunkId() == null
                         ? ChunkEntity.fromDomain(chunk)
-                        : chunkRepository.findById(chunk.getChunkId()).orElseThrow(NotFoundException::new).update(chunk))
+                        : chunkRepository.findById(chunk.getChunkId()).orElseThrow(() -> new NotFoundException("청크")).update(chunk))
                 .toList();
 
         return chunkRepository.saveAll(chunkEntities).stream().map(ChunkEntity::toDomain).toList();

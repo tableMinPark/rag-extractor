@@ -1,18 +1,19 @@
-package com.document.extractor.application.vo;
+package com.document.extractor.adapter.in.dto.response;
 
-import com.document.extractor.domain.model.Passage;
+import com.document.extractor.application.vo.PassageVo;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Builder
 @Getter
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
-public class PassageVo {
+public class GetPassageResponseDto {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long passageId;
@@ -52,23 +53,24 @@ public class PassageVo {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer parentSortOrder;
 
-    public static PassageVo of(Passage passage) {
-        return PassageVo.builder()
-                .passageId(passage.getPassageId())
-                .sourceId(passage.getSourceId())
-                .version(passage.getVersion())
-                .title(passage.getTitle())
-                .subTitle(passage.getSubTitle())
-                .thirdTitle(passage.getThirdTitle())
-                .content(passage.getContent())
-                .subContent(passage.getSubContent())
-                .contentTokenSize(passage.getContent().length())
-                .subContentTokenSize(passage.getSubContent().length())
-                .sysCreateDt(passage.getSysCreateDt())
-                .sysModifyDt(passage.getSysModifyDt())
-                .updateState(passage.getUpdateState().getCode())
-                .sortOrder(passage.getSortOrder())
-                .parentSortOrder(passage.getParentSortOrder())
+    public static GetPassageResponseDto of(PassageVo passageVo) {
+        return GetPassageResponseDto.builder()
+                .passageId(passageVo.getPassageId())
+                .sourceId(passageVo.getSourceId())
+                .version(passageVo.getVersion())
+                .title(passageVo.getTitle())
+                .subTitle(passageVo.getSubTitle())
+                .thirdTitle(passageVo.getThirdTitle())
+                .content(passageVo.getContent())
+                .subContent(passageVo.getSubContent())
+                .contentTokenSize(passageVo.getContentTokenSize())
+                .subContentTokenSize(passageVo.getSubContentTokenSize())
                 .build();
+    }
+
+    public static List<GetPassageResponseDto> toList(List<PassageVo> passageVos) {
+        return passageVos.stream()
+                .map(GetPassageResponseDto::of)
+                .toList();
     }
 }

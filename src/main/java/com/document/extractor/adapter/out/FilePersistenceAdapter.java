@@ -12,8 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class FilePersistenceAdapter implements FilePersistencePort {
@@ -42,7 +40,7 @@ public class FilePersistenceAdapter implements FilePersistencePort {
             fileDetailEntity = fileDetailRepository.save(FileDetailEntity.fromDomain(fileEntity.getFileId(), fileDetail));
 
         } else {
-            fileDetailEntity = fileDetailRepository.findById(fileDetail.getFileDetailId()).orElseThrow(NotFoundException::new);
+            fileDetailEntity = fileDetailRepository.findById(fileDetail.getFileDetailId()).orElseThrow(() -> new NotFoundException("파일 메타 정보"));
             fileDetailEntity.update(fileDetail);
             fileDetailEntity = fileDetailRepository.save(fileDetailEntity);
         }
@@ -58,7 +56,9 @@ public class FilePersistenceAdapter implements FilePersistencePort {
      */
     @Transactional
     @Override
-    public Optional<FileDetail> getFileDetailPort(Long fileDetailId) {
-        return fileDetailRepository.findById(fileDetailId).map(FileDetailEntity::toDomain);
+    public FileDetail getFileDetailPort(Long fileDetailId) {
+        return fileDetailRepository.findById(fileDetailId)
+                .orElseThrow(() -> new NotFoundException("파일 메타 정보"))
+                .toDomain();
     }
 }

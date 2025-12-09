@@ -1,11 +1,15 @@
 package com.document.extractor.application.command;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
+@Builder
 @Getter
 @AllArgsConstructor
-public class ChunkCommand {
+public class CreateChunkCommand {
 
-    private final long sourceId;
+    private final Long passageId;
+
+    private final String content;
 }

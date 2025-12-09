@@ -2,21 +2,18 @@ package com.document.extractor.adapter.in.dto.request;
 
 import com.document.extractor.adapter.in.dto.etc.PatternDto;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Getter
 @Setter
 @NoArgsConstructor
-public class ChunkRequestDto {
+public class ChunkFilesRequestDto {
 
     @Pattern(regexp = "html|markdown", message = "markdown 과 html 만 지원")
     @Schema(description = "표 추출 타입", example = "html", defaultValue = "html", requiredMode = Schema.RequiredMode.NOT_REQUIRED)

@@ -1,7 +1,8 @@
 package com.document.extractor.adapter.in;
 
-import com.document.extractor.adapter.in.dto.response.ChunkResponseDto;
+import com.document.extractor.adapter.in.dto.response.ChunkBatchResponseDto;
 import com.document.extractor.adapter.in.dto.response.ResponseDto;
+import com.document.extractor.adapter.in.enums.Response;
 import com.document.extractor.application.command.ChunkBatchCommand;
 import com.document.extractor.application.usecase.ChunkUseCase;
 import com.document.extractor.application.usecase.SourceUseCase;
@@ -23,7 +24,7 @@ import java.util.List;
 
 @Slf4j
 @Validated
-@Tag(name = "ChunkBatchController", description = "청킹 배치 컨트롤러")
+@Tag(name = "ChunkBatchController", description = "대상 문서 청킹 배치 컨트롤러")
 @RequiredArgsConstructor
 @RequestMapping("/chunk/batch")
 @RestController
@@ -32,9 +33,9 @@ public class ChunkBatchController {
     private final SourceUseCase sourceUseCase;
     private final ChunkUseCase chunkUseCase;
 
-    @Operation(summary = "청킹 배치")
+    @Operation(summary = "대상 문서 청킹 배치")
     @PostMapping("/{sourceId}")
-    public ResponseEntity<ResponseDto<ChunkResponseDto>> chunkBatch(
+    public ResponseEntity<ResponseDto<ChunkBatchResponseDto>> chunkBatch(
             @Parameter(name = "sourceId", description = "대상 문서 ID", required = true)
             @PathVariable(value = "sourceId")
             Long sourceId
@@ -43,41 +44,37 @@ public class ChunkBatchController {
                 .sourceId(sourceId)
                 .build());
 
-        ChunkResponseDto chunkResponseDto = ChunkResponseDto.builder()
-                .source(chunkResultVo.getSource())
-                .passages(chunkResultVo.getPassages())
-                .chunks(chunkResultVo.getChunks())
+        ChunkBatchResponseDto chunkBatchResponseDto = ChunkBatchResponseDto.builder()
+                .isConvertError(chunkResultVo.getIsConvertError())
+                .fileName(chunkResultVo.getSource().getName())
+                .version(chunkResultVo.getSource().getVersion())
+                .totalCount(chunkResultVo.getPreviousPassages().size())
                 .build();
 
-        return ResponseEntity.ok(ResponseDto.<ChunkResponseDto>builder()
-                .message("청킹 배치 성공")
-                .data(chunkResponseDto)
-                .build());
+        return ResponseEntity.ok(Response.CHUNK_BATCH_SUCCESS.toResponseDto(chunkBatchResponseDto));
     }
 
-    @Operation(summary = "청킹 일괄 배치")
+    @Operation(summary = "대상 문서 청킹 일괄 배치")
     @PostMapping
-    public ResponseEntity<ResponseDto<List<ChunkResponseDto>>> chunkBatches() {
+    public ResponseEntity<ResponseDto<List<ChunkBatchResponseDto>>> chunkBatches() {
 
-        List<ChunkResponseDto> chunkResponseDtos = new ArrayList<>();
+        List<ChunkBatchResponseDto> chunkBatchResponseDtos = new ArrayList<>();
 
         sourceUseCase.getActiveSourcesUseCase().forEach(sourceVo -> {
             ChunkResultVo chunkResultVo = chunkUseCase.chunkBatchUseCase(ChunkBatchCommand.builder()
                     .sourceId(sourceVo.getSourceId())
                     .build());
 
-            chunkResponseDtos.add(ChunkResponseDto.builder()
-                    .source(chunkResultVo.getSource())
-                    .passages(chunkResultVo.getPassages())
-                    .chunks(chunkResultVo.getChunks())
+            chunkBatchResponseDtos.add(ChunkBatchResponseDto.builder()
+                    .isConvertError(chunkResultVo.getIsConvertError())
+                    .fileName(chunkResultVo.getSource().getName())
+                    .version(chunkResultVo.getSource().getVersion())
+                    .totalCount(chunkResultVo.getCurrentPassages().size())
                     .build());
 
             log.info("[{}] {} 전처리 완료", chunkResultVo.getSource().getSourceId(), chunkResultVo.getSource().getName());
         });
 
-        return ResponseEntity.ok(ResponseDto.<List<ChunkResponseDto>>builder()
-                .message("청킹 다중 배치 성공")
-                .data(chunkResponseDtos)
-                .build());
+        return ResponseEntity.ok(Response.CHUNK_BATCHES_SUCCESS.toResponseDto(chunkBatchResponseDtos));
     }
 }

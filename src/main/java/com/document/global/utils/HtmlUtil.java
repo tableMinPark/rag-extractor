@@ -395,6 +395,50 @@ public class HtmlUtil {
     }
 
     /**
+     * HTML 태그 삭제
+     *
+     * @param html            HTML 문자열
+     * @return HTML 태그 삭제 문자열
+     */
+    public static String removeHtml(String html) {
+        // 개형 변환
+        String convertNewLineHtml = html.replace("\n", NEW_LINE_PREFIX);
+
+        // table 태그 표 마크 다운 문자열 변환
+        Document doc = Jsoup.parse(convertNewLineHtml);
+
+        StringBuilder stringBuilder = new StringBuilder();
+        // HTML 태그 삭제
+        removeHtml(doc.body(), stringBuilder);
+
+        // 표 마크 다운 셀 내부 개행 처리
+        return StringUtil.normalize(stringBuilder.toString().replace(NEW_LINE_PREFIX, "\n"));
+    }
+
+    /**
+     * HTML 태그 삭제 재귀 함수
+     */
+    private static void removeHtml(Node node, StringBuilder stringBuilder) {
+        for (Node child : node.childNodes()) {
+            // 텍스트 노드의 경우
+            if (child instanceof TextNode textNode) {
+                // 개행만 있는 경우
+                if (NEW_LINE_PREFIX.equals(textNode.text().trim())) continue;
+
+                stringBuilder.append(" ").append(textNode.text().trim());
+            }
+            // 텍스트 노드 외
+            else if (child instanceof Element el) {
+                String tag = el.tagName().toLowerCase();
+                removeHtml(el, stringBuilder);
+                if (NEW_LINE_TAGS.contains(tag)) {
+                    stringBuilder.append(NEW_LINE_PREFIX);
+                }
+            }
+        }
+    }
+
+    /**
      * HTML 태그 삭제 (표 HTML 보존)
      *
      * @param html HTML 문자열

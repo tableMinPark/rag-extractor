@@ -30,4 +30,6 @@ public class CreateSourceCommand {
     private String selectType;
 
     private UploadFile file;
+
+    private Boolean isAuto;
 }

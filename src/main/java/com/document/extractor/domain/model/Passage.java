@@ -3,13 +3,19 @@ package com.document.extractor.domain.model;
 import com.document.extractor.application.enums.UpdateState;
 import com.document.global.utils.HtmlUtil;
 import com.document.global.utils.StringUtil;
+import com.github.difflib.DiffUtils;
+import com.github.difflib.patch.AbstractDelta;
+import com.github.difflib.patch.Patch;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @ToString
 @Builder
 @Getter
@@ -38,11 +44,9 @@ public class Passage {
 
     private final LocalDateTime sysModifyDt;
 
-    @Setter
     @Builder.Default
     private UpdateState updateState = UpdateState.STAY;
 
-    @Setter
     private Integer sortOrder;
 
     @Setter
@@ -60,12 +64,14 @@ public class Passage {
     }
 
     /**
-     * 버전 업데이트
+     * 버전 및 정렬 필드 업데이트
      *
      * @param version 버전
+     * @param sortOrder 정렬 필드
      */
-    public void updateVersion(Long version) {
+    public void update(Long version, Integer sortOrder) {
         this.version = version;
+        this.sortOrder = sortOrder;
     }
 
     /**
@@ -151,5 +157,70 @@ public class Passage {
     @Override
     public int hashCode() {
         return Objects.hashCode(content);
+    }
+
+    /**
+     * 패시지 DIFF 비교
+     * @param previousPassages 이전 버전 패시지 목록
+     * @param currentPassages  현재 버전 패시지 목록
+     */
+    public static void compareDiff(List<Passage> previousPassages, List<Passage> currentPassages) {
+        // 이전 버전 패시지 변경 감지
+        Patch<Passage> patches = DiffUtils.diff(previousPassages, currentPassages);
+
+        // 변경 사항이 있는 경우
+        if (!patches.getDeltas().isEmpty()) {
+            for (AbstractDelta<Passage> delta : patches.getDeltas()) {
+                List<Passage> sourcePassages = delta.getSource().getLines();
+                List<Passage> targetPassages = delta.getTarget().getLines();
+
+                switch (delta.getType()) {
+                    case INSERT -> targetPassages.forEach(passage -> passage.updateState = UpdateState.INSERT);
+                    case CHANGE -> {
+                        // 원본 패시지 Iterator
+                        Iterator<Passage> sourcePassagesIterator = sourcePassages.iterator();
+                        // 코사인 유사도 판별 후, 최적의 패시지 매핑
+                        while (sourcePassagesIterator.hasNext()) {
+                            Passage sourcePassage = sourcePassagesIterator.next();
+                            // 코사인 유사도 임계값 0.6
+                            double maxScore = 0.6D;
+                            Passage mappingPassage = null;
+
+                            for (Passage targetPassage : targetPassages) {
+                                double  score = sourcePassage.cosineSimilarity(targetPassage);
+                                // 최적의 패시지 확인
+                                if (maxScore <= score) {
+                                    mappingPassage = targetPassage;
+                                    maxScore = score;
+                                }
+                            }
+
+                            // 매핑 된 경우
+                            if (mappingPassage != null) {
+                                // 수정 상태로 변경
+                                mappingPassage.updateState = UpdateState.CHANGE;
+                                // 부모 패시지 ID 지정
+                                mappingPassage.setParentSortOrder(sourcePassage.getSortOrder());
+                                // 목록 삭제
+                                targetPassages.remove(mappingPassage);
+                                // 수정 상태로 변경
+                                sourcePassage.updateState = UpdateState.CHANGE;
+                                sourcePassagesIterator.remove();
+                            }
+                        }
+
+                        // 남은 sourcePassages 처리 (삭제)
+                        for (Passage sourcePassage : sourcePassages) {
+                            sourcePassage.updateState = UpdateState.DELETE;
+                        }
+                        // 남은 targetPassages 처리 (추가)
+                        for (Passage targetPassage : targetPassages) {
+                            targetPassage.updateState = UpdateState.INSERT;
+                        }
+                    }
+                    case DELETE -> sourcePassages.forEach(passage -> passage.updateState = UpdateState.DELETE);
+                }
+            }
+        }
     }
 }

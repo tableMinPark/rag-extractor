@@ -1,9 +1,9 @@
 package com.document.extractor.application.port;
 
+import com.document.extractor.application.wrapper.PageWrapper;
 import com.document.extractor.domain.model.Source;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface SourcePersistencePort {
 
@@ -21,7 +21,7 @@ public interface SourcePersistencePort {
      * @param sourceId 대상 문서 ID
      * @return 대상 문서
      */
-    Optional<Source> getSourcePort(Long sourceId);
+    Source getSourcePort(Long sourceId);
 
     /**
      * 대상 문서 조회 (비관락)
@@ -29,10 +29,23 @@ public interface SourcePersistencePort {
      * @param sourceId 대상 문서 ID
      * @return 대상 문서
      */
-    Optional<Source> getSourcePortWithLock(Long sourceId);
+    Source getSourceWithLockPort(Long sourceId);
 
     /**
-     * 배치 대상 문서 조회
+     * 대상 문서 목록 조회
+     *
+     * @param page    페이지
+     * @param size    사이즈
+     * @param orderBy 정렬 필드
+     * @param order   정렬 방향 ( asc | desc )
+     * @param keyword 키워드
+     * @param isAuto  자동화 여부
+     * @return 대상 문서 목록
+     */
+    PageWrapper<Source> getSourcesPort(int page, int size, String orderBy, String order, String keyword, boolean isAuto);
+
+    /**
+     * 배치 대상 문서 목록 조회
      *
      * @return 대상 문서 목록
      */

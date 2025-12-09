@@ -17,6 +17,7 @@ import kr.dogfoot.hwplib.reader.HWPReader;
 import kr.dogfoot.hwpxlib.object.HWPXFile;
 import kr.dogfoot.hwpxlib.writer.HWPXWriter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -30,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ExtractAdapter implements ExtractPort {
@@ -71,6 +73,7 @@ public class ExtractAdapter implements ExtractPort {
                 return PdfDocument.builder()
                         .name(fileDetail.getOriginFileName())
                         .content(FileUtil.readFile(fileProperty.getReadBinary(), fileDetail.getUrl()).trim())
+                        .convertError(true)
                         .build();
             }
         }
