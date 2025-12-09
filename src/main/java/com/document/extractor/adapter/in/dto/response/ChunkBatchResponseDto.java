@@ -20,5 +20,8 @@ public class ChunkBatchResponseDto {
     private Long version;
 
     @Schema(description = "총 패시지 수")
-    private Integer totalCount;
+    private Integer totalPassageCount;
+
+    @Schema(description = "총 청크 수")
+    private Integer totalChunkCount;
 }
