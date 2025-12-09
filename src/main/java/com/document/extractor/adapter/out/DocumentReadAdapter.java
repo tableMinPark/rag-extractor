@@ -69,10 +69,12 @@ public class DocumentReadAdapter implements DocumentReadPort {
     /**
      * 원격 문서 조회
      *
-     * @param uri 원격 문서 URI
+     * @param repoType        원격 문서 타입
+     * @param uri             원격 문서 URI
+     * @param extractTypeCode 표 추출 타입 코드
      */
     @Override
-    public Document getRepoDocumentPort(String uri) {
+    public Document getRepoDocumentByUriPort(String repoType, String uri, String extractTypeCode) {
 
         ResponseEntity<String> responseEntity = webClient.get()
                 .uri(uri)
