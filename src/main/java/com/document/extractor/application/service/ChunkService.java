@@ -277,7 +277,7 @@ public class ChunkService implements ChunkUseCase {
         if (SourceType.FILE.equals(source.getSourceType())) {
             document = extractPort.extractFilePort(fileDetail, ExtractType.HTML.getCode());
         } else if (SourceType.REPO.equals(source.getSourceType())) {
-            document = documentReadPort.getRepoDocumentPort(fileDetail.getUrl());
+            document = documentReadPort.getRepoDocumentByUriPort(source.getSourceType().getCode(), fileDetail.getUrl(), ExtractType.HTML.getCode());
         } else throw new InvalidSourceTypeException();
 
         // 패시징 옵션
@@ -371,7 +371,7 @@ public class ChunkService implements ChunkUseCase {
         if (SourceType.FILE.equals(source.getSourceType())) {
             document = extractPort.extractFilePort(fileDetail, ExtractType.HTML.getCode());
         } else if (SourceType.REPO.equals(source.getSourceType())) {
-            document = documentReadPort.getRepoDocumentPort(fileDetail.getUrl());
+            document = documentReadPort.getRepoDocumentByUriPort(source.getSourceType().getCode(), fileDetail.getUrl(), ExtractType.HTML.getCode());
         } else throw new InvalidSourceTypeException();
 
         // 패시징 옵션
