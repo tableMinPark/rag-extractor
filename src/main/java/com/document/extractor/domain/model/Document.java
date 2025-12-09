@@ -1,6 +1,7 @@
 package com.document.extractor.domain.model;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.util.ArrayList;
@@ -9,13 +10,14 @@ import java.util.List;
 
 @ToString
 @Getter
+@NoArgsConstructor
 public class Document {
 
-    private final String name;
+    private String name;
 
-    private final List<DocumentContent> documentContents;
+    private List<DocumentContent> documentContents;
 
-    private final Boolean convertError;
+    private Boolean convertError = false;
 
     public Document(String name, boolean convertError) {
         this(name, new ArrayList<>(), convertError);

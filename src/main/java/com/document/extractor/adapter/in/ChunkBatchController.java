@@ -48,8 +48,11 @@ public class ChunkBatchController {
                 .isConvertError(chunkResultVo.getIsConvertError())
                 .fileName(chunkResultVo.getSource().getName())
                 .version(chunkResultVo.getSource().getVersion())
-                .totalCount(chunkResultVo.getPreviousPassages().size())
+                .totalPassageCount(chunkResultVo.getCurrentPassages().size())
+                .totalChunkCount(chunkResultVo.getChunks().size())
                 .build();
+
+        log.info("[전처리 완료] {} : {}", chunkResultVo.getSource().getSourceId(), chunkResultVo.getSource().getName());
 
         return ResponseEntity.ok(Response.CHUNK_BATCH_SUCCESS.toResponseDto(chunkBatchResponseDto));
     }
@@ -69,10 +72,11 @@ public class ChunkBatchController {
                     .isConvertError(chunkResultVo.getIsConvertError())
                     .fileName(chunkResultVo.getSource().getName())
                     .version(chunkResultVo.getSource().getVersion())
-                    .totalCount(chunkResultVo.getCurrentPassages().size())
+                    .totalPassageCount(chunkResultVo.getCurrentPassages().size())
+                    .totalChunkCount(chunkResultVo.getChunks().size())
                     .build());
 
-            log.info("[{}] {} 전처리 완료", chunkResultVo.getSource().getSourceId(), chunkResultVo.getSource().getName());
+            log.info("[다중 전처리 완료] {} : {}", chunkResultVo.getSource().getSourceId(), chunkResultVo.getSource().getName());
         });
 
         return ResponseEntity.ok(Response.CHUNK_BATCHES_SUCCESS.toResponseDto(chunkBatchResponseDtos));
