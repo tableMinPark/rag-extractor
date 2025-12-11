@@ -52,8 +52,14 @@ public class ExtractAdapter implements ExtractPort {
     @Value("${env.custom.law-history}")
     private String lawHistoryUri;
 
+    @Value("${env.custom.law-quotation}")
+    private String lawQuotationUri;
+
     @Value("${env.custom.law-content}")
     private String lawContentUri;
+
+    @Value("${env.custom.law-quotation-content}")
+    private String lawQuotationContentUri;
 
     @Value("${env.custom.manual}")
     private String manualUri;
@@ -284,7 +290,25 @@ public class ExtractAdapter implements ExtractPort {
      */
     @Override
     public ExtractDocument extractLawContentPort(String lawId, String lawHistory, String lawContentId) {
-        return null;
+        try {
+            ResponseEntity<String> responseEntity = webClient.get()
+                    .uri(String.format(lawQuotationContentUri, lawId, lawHistory, lawContentId))
+                    .accept(MediaType.APPLICATION_JSON)
+                    .exchangeToMono(response -> response
+                            .bodyToMono(String.class)
+                            .map(b -> new ResponseEntity<>(b, response.statusCode())))
+                    .block();
+
+            // 응답 체크
+            if (responseEntity == null || !responseEntity.getStatusCode().is2xxSuccessful() || responseEntity.getBody() == null) {
+                throw new InvalidConnectionException("원격 법령 문서 조회 서버");
+            }
+
+            return objectMapper.readValue(responseEntity.getBody(), new TypeReference<ExtractDocument>() {
+            });
+        } catch (JsonProcessingException e) {
+            throw new NotFoundException("원격 법령 문서");
+        }
     }
 
     /**
@@ -292,12 +316,29 @@ public class ExtractAdapter implements ExtractPort {
      *
      * @param lawId        법령 ID
      * @param lawHistory   법령 이력 코드
-     * @param lawContentId 본문 ID
      * @return 추출 결과
      */
     @Override
-    public ExtractDocument extractLawQuotationPort(String lawId, String lawHistory, String lawContentId) {
-        return null;
+    public ExtractDocument extractLawQuotationPort(String lawId, String lawHistory) {
+        try {
+            ResponseEntity<String> responseEntity = webClient.get()
+                    .uri(String.format(lawQuotationUri, lawId, lawHistory))
+                    .accept(MediaType.APPLICATION_JSON)
+                    .exchangeToMono(response -> response
+                            .bodyToMono(String.class)
+                            .map(b -> new ResponseEntity<>(b, response.statusCode())))
+                    .block();
+
+            // 응답 체크
+            if (responseEntity == null || !responseEntity.getStatusCode().is2xxSuccessful() || responseEntity.getBody() == null) {
+                throw new InvalidConnectionException("원격 법령 문서 조회 서버");
+            }
+
+            return objectMapper.readValue(responseEntity.getBody(), new TypeReference<ExtractDocument>() {
+            });
+        } catch (JsonProcessingException e) {
+            throw new NotFoundException("원격 법령 문서");
+        }
     }
 
     /**

@@ -146,6 +146,7 @@ public class SourceController {
                     .stopPatterns(createRepoSourceRequestDto.getStopPatterns())
                     .selectType(createRepoSourceRequestDto.getSelectType().toUpperCase())
                     .file(uploadFile)
+                    .isAuto(createRepoSourceRequestDto.getIsAuto())
                     .build());
         }
 

@@ -100,7 +100,39 @@ public class ExtractService implements ExtractUseCase {
         String lawId = lawResponse.getResult().getRows().getFirst().getFields().get("SEQ");
         String lawHistory = extractPort.extractLawHistoryPort(lawId).getResult().getRows().getFirst().getFields().get("SEQ_HISTORY");
 
-        // TODO: 법령 연결 정보 목록 조회 및 연결 본문 MAP 생성
+        // 법령 연결 정보 목록 조회 및 연결 본문 MAP 생성
+        Map<String, List<Map<String, String>>> subDocumentContentIdsMap = new HashMap<>();
+        extractPort.extractLawQuotationPort(lawId, lawHistory).getResult().getRows().stream()
+                .sorted((o1, o2) -> Math.toIntExact(Long.parseLong(o1.getFields().get("SEQ_CONTENTS")) - Long.parseLong(o2.getFields().get("SEQ_CONTENTS"))))
+                .forEach(row -> {
+                    List<Map<String, String>> now = subDocumentContentIdsMap.getOrDefault(row.getFields().get("SEQ_CONTENTS"), new ArrayList<>());
+                    now.add(row.getFields());
+                    subDocumentContentIdsMap.put(row.getFields().get("SEQ_CONTENTS"), now);
+                });
+
+        Map<String, List<DocumentContent>> subDocumentContentsMap = new HashMap<>();
+        for (String seqContent : subDocumentContentIdsMap.keySet()) {
+            List<DocumentContent> subDocumentContents = new ArrayList<>();
+            for (Map<String, String> result : subDocumentContentIdsMap.get(seqContent)) {
+                String quoSeq = result.get("QUO_SEQ");
+                String quoSeqContent = result.get("QUO_SEQ_CONTENTS");
+                String quoSeqHistory = result.get("QUO_SEQ_HISTORY");
+
+                extractPort.extractLawContentPort(quoSeq, quoSeqHistory, quoSeqContent).getResult().getRows().stream()
+                        .sorted((o1, o2) -> Math.toIntExact(Long.parseLong(o1.getFields().get("ARRANGE")) - Long.parseLong(o2.getFields().get("ARRANGE"))))
+                        .forEach(row -> subDocumentContents.add(DocumentContent.builder()
+                                .contentId(String.valueOf(subDocumentContents.size()))
+                                .compareText(row.getFields().get("GUBUN"))
+                                .title(row.getFields().get("TITLE"))
+                                .simpleTitle(row.getFields().get("TITLE"))
+                                .context(HtmlUtil.removeHtml(row.getFields().get("CONTENTS")))
+                                .subDocumentContents(Collections.emptyList())
+                                .type(DocumentContent.LineType.TEXT)
+                                .build()));
+            }
+
+            subDocumentContentsMap.put(seqContent, subDocumentContents);
+        }
 
         // 법령 본문 목록 조회
         extractPort.extractLawContentPort(lawId, lawHistory).getResult().getRows().stream()
@@ -111,7 +143,7 @@ public class ExtractService implements ExtractUseCase {
                         .title(row.getFields().get("TITLE"))
                         .simpleTitle(row.getFields().get("TITLE"))
                         .context(HtmlUtil.removeHtml(row.getFields().get("CONTENTS")))
-                        .subDocumentContents(Collections.emptyList())
+                        .subDocumentContents(subDocumentContentsMap.get(row.getFields().get("SEQ_CONTENTS")))
                         .type(DocumentContent.LineType.TEXT)
                         .build()));
 

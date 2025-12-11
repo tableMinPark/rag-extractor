@@ -61,12 +61,11 @@ public interface ExtractPort {
     /**
      * 법령 연결 정보 추출
      *
-     * @param lawId        법령 ID
-     * @param lawHistory   법령 이력 코드
-     * @param lawContentId 본문 ID
+     * @param lawId      법령 ID
+     * @param lawHistory 법령 이력 코드
      * @return 추출 결과
      */
-    ExtractDocument extractLawQuotationPort(String lawId, String lawHistory, String lawContentId);
+    ExtractDocument extractLawQuotationPort(String lawId, String lawHistory);
 
     /**
      * 메뉴얼 문서 추출
