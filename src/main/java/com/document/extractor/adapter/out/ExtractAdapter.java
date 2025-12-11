@@ -275,6 +275,32 @@ public class ExtractAdapter implements ExtractPort {
     }
 
     /**
+     * 법령 본문 추출
+     *
+     * @param lawId        법령 ID
+     * @param lawHistory   법령 이력 코드
+     * @param lawContentId 본문 ID
+     * @return 추출 결과
+     */
+    @Override
+    public ExtractDocument extractLawContentPort(String lawId, String lawHistory, String lawContentId) {
+        return null;
+    }
+
+    /**
+     * 법령 연결 정보 추출
+     *
+     * @param lawId        법령 ID
+     * @param lawHistory   법령 이력 코드
+     * @param lawContentId 본문 ID
+     * @return 추출 결과
+     */
+    @Override
+    public ExtractDocument extractLawQuotationPort(String lawId, String lawHistory, String lawContentId) {
+        return null;
+    }
+
+    /**
      * 메뉴얼 문서 추출
      *
      * @param manualId 메뉴얼 ID

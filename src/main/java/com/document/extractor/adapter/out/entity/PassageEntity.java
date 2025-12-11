@@ -55,13 +55,13 @@ public class PassageEntity {
     @Comment("소제목")
     private String thirdTitle;
 
-//    @Lob
-    @Column(name = "content", columnDefinition = "TEXT")
+    @Lob
+    @Column(name = "content")
     @Comment("본문")
     private String content;
 
-//    @Lob
-    @Column(name = "sub_content", columnDefinition = "TEXT")
+    @Lob
+    @Column(name = "sub_content")
     @Comment("부가 본문")
     private String subContent;
 

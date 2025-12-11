@@ -22,10 +22,7 @@ import com.document.global.vo.UploadFile;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -194,7 +191,6 @@ public class ExtractService implements ExtractUseCase {
             return DocumentVo.of(new Document(title, documentContents));
 
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
             throw new NotFoundException("원격 메뉴얼 문서");
         }
     }
