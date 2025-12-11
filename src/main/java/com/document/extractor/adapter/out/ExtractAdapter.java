@@ -1,16 +1,18 @@
 package com.document.extractor.adapter.out;
 
 import com.document.extractor.adapter.propery.FileProperty;
+import com.document.extractor.application.exception.InvalidConnectionException;
+import com.document.extractor.application.exception.NotFoundException;
 import com.document.extractor.application.port.ExtractPort;
-import com.document.extractor.domain.model.Document;
-import com.document.extractor.domain.model.FileDetail;
-import com.document.extractor.domain.model.HwpxDocument;
-import com.document.extractor.domain.model.PdfDocument;
+import com.document.extractor.domain.model.*;
 import com.document.extractor.domain.vo.HwpxImageVo;
 import com.document.extractor.domain.vo.HwpxSectionVo;
 import com.document.global.utils.FileUtil;
 import com.document.global.utils.StringUtil;
 import com.document.global.utils.XmlUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.dogfoot.hwp2hwpx.Hwp2Hwpx;
 import kr.dogfoot.hwplib.object.HWPFile;
 import kr.dogfoot.hwplib.reader.HWPReader;
@@ -18,7 +20,11 @@ import kr.dogfoot.hwpxlib.object.HWPXFile;
 import kr.dogfoot.hwpxlib.writer.HWPXWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -36,7 +42,21 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ExtractAdapter implements ExtractPort {
 
+    private final WebClient webClient;
+    private final ObjectMapper objectMapper;
     private final FileProperty fileProperty;
+
+    @Value("${env.custom.law}")
+    private String lawUri;
+
+    @Value("${env.custom.law-history}")
+    private String lawHistoryUri;
+
+    @Value("${env.custom.law-content}")
+    private String lawContentUri;
+
+    @Value("${env.custom.manual}")
+    private String manualUri;
 
     /**
      * 문서 추출
@@ -161,5 +181,127 @@ public class ExtractAdapter implements ExtractPort {
     @Override
     public String extractTextPort(FileDetail fileDetail) {
         return FileUtil.readFile(fileProperty.getReadBinary(), fileDetail.getUrl()).trim();
+    }
+
+    /**
+     * 법령 문서 추출
+     *
+     * @param lawId 법령 ID
+     * @return 추출 결과
+     */
+    @Override
+    public ExtractDocument extractLawPort(String lawId) {
+        try {
+            String uri = String.format(lawUri, lawId);
+            ResponseEntity<String> responseEntity = webClient.get()
+                    .uri(uri)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .exchangeToMono(response -> response
+                            .bodyToMono(String.class)
+                            .map(body -> new ResponseEntity<>(body, response.statusCode())))
+                    .block();
+
+            // 응답 체크
+            if (responseEntity == null || !responseEntity.getStatusCode().is2xxSuccessful() || responseEntity.getBody() == null) {
+                throw new InvalidConnectionException("원격 법령 문서 조회 서버");
+            }
+
+            return objectMapper.readValue(responseEntity.getBody(), new TypeReference<ExtractDocument>() {
+            });
+
+        } catch (JsonProcessingException e) {
+            throw new NotFoundException("원격 법령 문서");
+        }
+    }
+
+    /**
+     * 법령 이력 추출
+     *
+     * @param lawId 법령 ID
+     * @return 추출 결과
+     */
+    @Override
+    public ExtractDocument extractLawHistoryPort(String lawId) {
+        try {
+            ResponseEntity<String> responseEntity = webClient.get()
+                    .uri(String.format(lawHistoryUri, lawId))
+                    .accept(MediaType.APPLICATION_JSON)
+                    .exchangeToMono(response -> response
+                            .bodyToMono(String.class)
+                            .map(b -> new ResponseEntity<>(b, response.statusCode())))
+                    .block();
+
+            // 응답 체크
+            if (responseEntity == null || !responseEntity.getStatusCode().is2xxSuccessful() || responseEntity.getBody() == null) {
+                throw new InvalidConnectionException("원격 문서 조회 서버");
+            }
+
+            return objectMapper.readValue(responseEntity.getBody(), new TypeReference<ExtractDocument>() {
+            });
+
+        } catch (JsonProcessingException e) {
+            throw new NotFoundException("원격 법령 문서");
+        }
+    }
+
+    /**
+     * 법령 본문 추출
+     *
+     * @param lawId      법령 ID
+     * @param lawHistory 법령 이력 코드
+     * @return 추출 결과
+     */
+    @Override
+    public ExtractDocument extractLawContentPort(String lawId, String lawHistory) {
+        try {
+            ResponseEntity<String> responseEntity = webClient.get()
+                    .uri(String.format(lawContentUri, lawId, lawHistory))
+                    .accept(MediaType.APPLICATION_JSON)
+                    .exchangeToMono(response -> response
+                            .bodyToMono(String.class)
+                            .map(b -> new ResponseEntity<>(b, response.statusCode())))
+                    .block();
+
+            // 응답 체크
+            if (responseEntity == null || !responseEntity.getStatusCode().is2xxSuccessful() || responseEntity.getBody() == null) {
+                throw new InvalidConnectionException("원격 법령 문서 조회 서버");
+            }
+
+            return objectMapper.readValue(responseEntity.getBody(), new TypeReference<ExtractDocument>() {
+            });
+        } catch (JsonProcessingException e) {
+            throw new NotFoundException("원격 법령 문서");
+        }
+    }
+
+    /**
+     * 메뉴얼 문서 추출
+     *
+     * @param manualId 메뉴얼 ID
+     * @return 추출 결과
+     */
+    @Override
+    public ExtractDocument extractManualPort(String manualId) {
+        try {
+            String uri = String.format(manualUri, manualId);
+            ResponseEntity<String> responseEntity = webClient.get()
+                    .uri(uri)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .exchangeToMono(response -> response
+                            .bodyToMono(String.class)
+                            .map(body -> new ResponseEntity<>(body, response.statusCode())))
+                    .block();
+
+            // 응답 체크
+            if (responseEntity == null || !responseEntity.getStatusCode().is2xxSuccessful() || responseEntity.getBody() == null) {
+                throw new InvalidConnectionException("원격 메뉴얼 문서 조회 서버");
+            }
+
+            return objectMapper.readValue(responseEntity.getBody(), new TypeReference<ExtractDocument>() {
+            });
+
+        } catch (JsonProcessingException e) {
+            throw new NotFoundException("원격 메뉴얼 문서");
+        }
     }
 }

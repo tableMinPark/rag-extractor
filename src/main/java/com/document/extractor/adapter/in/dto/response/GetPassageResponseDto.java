@@ -15,10 +15,8 @@ import java.util.List;
 @AllArgsConstructor
 public class GetPassageResponseDto {
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long passageId;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long sourceId;
 
     private Long version;
@@ -37,20 +35,16 @@ public class GetPassageResponseDto {
 
     private Integer subContentTokenSize;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime sysCreateDt;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime sysModifyDt;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String updateState;
 
     private Integer sortOrder;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer parentSortOrder;
 
     public static GetPassageResponseDto of(PassageVo passageVo) {

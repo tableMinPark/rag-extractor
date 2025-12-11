@@ -95,6 +95,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = RuntimeException.class)
     public ResponseEntity<ResponseDto<?>> handleRuntimeException(RuntimeException e) {
+        e.printStackTrace();
         return ResponseEntity.status(Response.INTERNAL_SERVER_ERROR.getStatusCode())
                 .body(Response.INTERNAL_SERVER_ERROR.toResponseDto(e.getMessage()));
     }

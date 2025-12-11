@@ -20,6 +20,7 @@ public class PassageVo {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long sourceId;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long version;
 
     private String title;

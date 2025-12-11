@@ -1,7 +1,6 @@
 package com.document.extractor.application.command;
 
 import com.document.extractor.domain.vo.PatternVo;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -25,7 +24,5 @@ public class ChunkRepoCommand {
 
     private final int overlapSize;
 
-    private final String repoType;
-
-    private final String repoId;
+    private final String uri;
 }

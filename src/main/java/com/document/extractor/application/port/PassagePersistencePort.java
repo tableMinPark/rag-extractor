@@ -39,7 +39,7 @@ public interface PassagePersistencePort {
      * @param version   버전 코드
      * @return 청크 목록
      */
-    List<Chunk> getChunkBySortOrderAndVersion(int sortOrder, long version);
+    List<Chunk> getChunkBySortOrderAndVersion(Long sourceId, Integer sortOrder, Long version);
 
     /**
      * 청크 저장

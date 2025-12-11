@@ -10,5 +10,5 @@ public interface PassageRepository extends JpaRepository<PassageEntity, Long> {
 
     List<PassageEntity> findBySourceIdAndVersionOrderBySortOrderAsc(Long sourceId, Long version);
 
-    Optional<PassageEntity> findBySortOrderAndVersion(Integer sortOrder, Long version);
+    Optional<PassageEntity> findBySourceIdAndSortOrderAndVersion(Long sourceId, Integer sortOrder, Long version);
 }

@@ -73,7 +73,6 @@ public class ChunkController {
         List<ChunkResponseDto> chunkResponseDtos = chunkResultVos.stream()
                 .map(chunkResultVo -> ChunkResponseDto.builder()
                         .isConvertError(chunkResultVo.getIsConvertError())
-                        .source(chunkResultVo.getSource())
                         .previousPassages(chunkResultVo.getPreviousPassages())
                         .currentPassages(chunkResultVo.getCurrentPassages())
                         .chunks(chunkResultVo.getChunks())
@@ -91,22 +90,20 @@ public class ChunkController {
             @RequestBody
             ChunkReposRequestDto chunkReposRequestDto
     ) {
-        List<ChunkResultVo> chunkResultVos = chunkReposRequestDto.getRepoIds().stream()
-                .map(repoId -> chunkUseCase.chunkRepoUseCase(ChunkRepoCommand.builder()
+        List<ChunkResultVo> chunkResultVos = chunkReposRequestDto.getUris().stream()
+                .map(uri -> chunkUseCase.chunkRepoUseCase(ChunkRepoCommand.builder()
                         .extractType(chunkReposRequestDto.getExtractType())
                         .selectType(chunkReposRequestDto.getSelectType())
                         .patterns(PatternDto.toPatternVo(chunkReposRequestDto.getPatterns()))
                         .stopPatterns(chunkReposRequestDto.getStopPatterns())
                         .maxTokenSize(chunkReposRequestDto.getMaxTokenSize())
                         .overlapSize(chunkReposRequestDto.getOverlapSize())
-                        .repoType(chunkReposRequestDto.getRepoType())
-                        .repoId(repoId)
+                        .uri(uri)
                         .build()))
                 .toList();
 
         List<ChunkResponseDto> chunkResponseDtos = chunkResultVos.stream()
                 .map(chunkResultVo -> ChunkResponseDto.builder()
-                        .source(chunkResultVo.getSource())
                         .previousPassages(chunkResultVo.getPreviousPassages())
                         .currentPassages(chunkResultVo.getCurrentPassages())
                         .chunks(chunkResultVo.getChunks())
@@ -133,7 +130,6 @@ public class ChunkController {
         List<ChunkResponseDto> chunkResponseDtos = chunkResultVos.stream()
                 .map(chunkResultVo -> ChunkResponseDto.builder()
                         .isConvertError(chunkResultVo.getIsConvertError())
-                        .source(chunkResultVo.getSource())
                         .previousPassages(chunkResultVo.getPreviousPassages())
                         .currentPassages(chunkResultVo.getCurrentPassages())
                         .chunks(chunkResultVo.getChunks())

@@ -2,8 +2,7 @@ package com.document.extractor.adapter.in.dto.request;
 
 import com.document.extractor.adapter.in.dto.etc.PatternDto;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,14 +32,9 @@ public class ChunkReposRequestDto {
     @Schema(description = "제외 패턴", example = "[\"NAME\",\"HISTORY\"]", defaultValue = "[]", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private List<String> stopPatterns = new ArrayList<>();
 
-    @NotBlank
-    @Pattern(regexp = "law|manual", message = "law 과 manual 만 지원")
-    @Schema(description = "원격 문서 타입", example = "manual", defaultValue = "manual", requiredMode = Schema.RequiredMode.REQUIRED)
-    private String repoType;
-
-    @NotNull
-    @Schema(description = "원격 문서 ID 목록", example = "[27]", defaultValue = "[]", requiredMode = Schema.RequiredMode.REQUIRED)
-    private List<String> repoIds;
+    @NotEmpty
+    @Schema(description = "원격 문서 URI", example = "localhost:8001/document", requiredMode = Schema.RequiredMode.REQUIRED)
+    private List<String> uris;
 
     @Pattern(regexp = "regex|token|none", message = "regex 과 token 만 지원")
     @Schema(description = "전처리 타입", example = "regex", defaultValue = "none", requiredMode = Schema.RequiredMode.NOT_REQUIRED)

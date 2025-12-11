@@ -20,6 +20,7 @@ public class ChunkVo {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long passageId;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long version;
 
     private String title;

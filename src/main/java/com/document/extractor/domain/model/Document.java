@@ -68,7 +68,7 @@ public class Document {
 
         if (!text.trim().isBlank()) {
             this.documentContents.add(DocumentContent.builder()
-                    .contentId(this.documentContents.size())
+                    .contentId(String.valueOf(this.documentContents.size()))
                     .compareText(context)
                     .context(context)
                     .subDocumentContents(Collections.emptyList())
@@ -83,7 +83,7 @@ public class Document {
     public void addTextContent(String title, String simpleTitle, String compareText, String context, List<DocumentContent> subDocumentContents) {
 
         this.documentContents.add(DocumentContent.builder()
-                .contentId(this.documentContents.size())
+                .contentId(String.valueOf(this.documentContents.size()))
                 .title(title)
                 .simpleTitle(simpleTitle)
                 .compareText(compareText)
@@ -102,7 +102,7 @@ public class Document {
 
         if (!table.trim().isBlank()) {
             this.documentContents.add(DocumentContent.builder()
-                    .contentId(this.documentContents.size())
+                    .contentId(String.valueOf(this.documentContents.size()))
                     .compareText(context)
                     .context(context)
                     .subDocumentContents(Collections.emptyList())
@@ -120,7 +120,7 @@ public class Document {
 
         if (!text.trim().isBlank()) {
             this.documentContents.add(DocumentContent.builder()
-                    .contentId(this.documentContents.size())
+                    .contentId(String.valueOf(this.documentContents.size()))
                     .compareText(context)
                     .context(context)
                     .subDocumentContents(Collections.emptyList())

@@ -2,7 +2,7 @@ package com.document.extractor.adapter.in.dto.response;
 
 import com.document.extractor.application.vo.ChunkVo;
 import com.document.extractor.application.vo.PassageVo;
-import com.document.extractor.application.vo.SourceVo;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
@@ -15,11 +15,9 @@ import java.util.List;
 @AllArgsConstructor
 public class ChunkResponseDto {
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @Schema(description = "문서 변환 에러 여부")
     private Boolean isConvertError;
-
-    @Schema(description = "대상 문서")
-    private SourceVo source;
 
     @Schema(description = "이전 버전 패시지")
     private List<PassageVo> previousPassages;

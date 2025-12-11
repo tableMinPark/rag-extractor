@@ -6,7 +6,10 @@ import com.document.extractor.adapter.in.enums.Response;
 import com.document.extractor.adapter.propery.FileProperty;
 import com.document.extractor.application.command.ExtractFileCommand;
 import com.document.extractor.application.command.ExtractFileTextCommand;
+import com.document.extractor.application.command.ExtractLawCommand;
+import com.document.extractor.application.command.ExtractManualCommand;
 import com.document.extractor.application.usecase.ExtractUseCase;
+import com.document.extractor.application.vo.DocumentVo;
 import com.document.extractor.application.vo.ExtractContentVo;
 import com.document.global.utils.FileUtil;
 import com.document.global.vo.UploadFile;
@@ -82,5 +85,29 @@ public class ExtractController {
                 FileUtil.deleteFile(uploadFile.getUrl());
             }
         }
+    }
+
+    @Operation(summary = "법령 문서 추출")
+    @GetMapping("/law/{lawId}")
+    public ResponseEntity<DocumentVo> extractLaw(
+            @Parameter(name = "lawId", description = "법령 ID", required = true)
+            @PathVariable("lawId")
+            String lawId
+    ) {
+        return ResponseEntity.ok(extractUseCase.extractLawUseCase(ExtractLawCommand.builder()
+                .lawId(lawId)
+                .build()));
+    }
+
+    @Operation(summary = "메뉴얼 문서 추출")
+    @GetMapping("/manual/{manualId}")
+    public ResponseEntity<DocumentVo> extractManual(
+            @Parameter(name = "manualId", description = "메뉴얼 ID", required = true)
+            @PathVariable("manualId")
+            String manualId
+    ) {
+        return ResponseEntity.ok(extractUseCase.extractManualUseCase(ExtractManualCommand.builder()
+                .manualId(manualId)
+                .build()));
     }
 }

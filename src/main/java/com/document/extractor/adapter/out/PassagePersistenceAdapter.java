@@ -9,11 +9,13 @@ import com.document.extractor.application.port.PassagePersistencePort;
 import com.document.extractor.domain.model.Chunk;
 import com.document.extractor.domain.model.Passage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PassagePersistenceAdapter implements PassagePersistencePort {
@@ -87,9 +89,9 @@ public class PassagePersistenceAdapter implements PassagePersistencePort {
      */
     @Transactional
     @Override
-    public List<Chunk> getChunkBySortOrderAndVersion(int sortOrder, long version) {
+    public List<Chunk> getChunkBySortOrderAndVersion(Long sourceId, Integer sortOrder, Long version) {
 
-        PassageEntity passageEntity = passageRepository.findBySortOrderAndVersion(sortOrder, version)
+        PassageEntity passageEntity = passageRepository.findBySourceIdAndSortOrderAndVersion(sourceId, sortOrder, version)
                 .orElseThrow(() -> new NotFoundException("패시지"));
 
         return chunkRepository.findByPassageId(passageEntity.getPassageId()).stream()

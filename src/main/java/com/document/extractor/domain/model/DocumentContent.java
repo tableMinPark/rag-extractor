@@ -18,7 +18,7 @@ public class DocumentContent {
         TEXT, TABLE, IMAGE,
     }
 
-    private final long contentId;
+    private final String contentId;
 
     private final String compareText;
 
@@ -35,7 +35,7 @@ public class DocumentContent {
     private final LineType type;
 
     @Builder
-    public DocumentContent(long contentId, String compareText, String title, String simpleTitle, String context, List<DocumentContent> subDocumentContents, LineType type) {
+    public DocumentContent(String contentId, String compareText, String title, String simpleTitle, String context, List<DocumentContent> subDocumentContents, LineType type) {
         this.contentId = contentId;
         this.compareText = compareText;
         this.prefix = "";

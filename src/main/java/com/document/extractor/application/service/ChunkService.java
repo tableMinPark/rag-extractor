@@ -19,9 +19,9 @@ import com.document.extractor.domain.model.*;
 import com.document.extractor.domain.vo.PassageOptionVo;
 import com.document.extractor.domain.vo.PatternVo;
 import com.document.extractor.domain.vo.PrefixVo;
-import com.document.global.utils.StringUtil;
 import com.document.global.vo.UploadFile;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChunkService implements ChunkUseCase {
@@ -79,8 +80,6 @@ public class ChunkService implements ChunkUseCase {
                         .build())
                 .toList();
 
-        // 대상 문서 타입
-        SourceType sourceType = SourceType.FILE;
         // 전처리 타입
         SelectType selectType = SelectType.valueOf(command.getSelectType().toUpperCase());
         // 추출 타입
@@ -104,23 +103,6 @@ public class ChunkService implements ChunkUseCase {
         // 문서 추출
         Document document = extractPort.extractFilePort(fileDetail, extractType.getCode());
 
-        // 대상 문서 생성
-        Source source = Source.builder()
-                .version(0L)
-                .sourceType(sourceType)
-                .selectType(selectType)
-                .categoryCode("TRAIN-TEST-FILE")
-                .name(StringUtil.removeExtension(fileDetail.getOriginFileName()))
-                .content(document.getContent())
-                .collectionId("COLLECTION-TEST-FILE")
-                .fileDetailId(fileDetail.getFileDetailId())
-                .maxTokenSize(command.getMaxTokenSize())
-                .overlapSize(command.getOverlapSize())
-                .isAuto(false)
-                .sourcePatterns(sourcePatterns)
-                .sourceStopPatterns(sourceStopPatterns)
-                .build();
-
         // 패시징 옵션
         PassageOptionVo passageOptionVo = PassageOptionVo.builder()
                 .patterns(sourcePatterns)
@@ -137,9 +119,9 @@ public class ChunkService implements ChunkUseCase {
         for (int sortOrder = 0; sortOrder < currentPassages.size(); sortOrder++) {
             Passage currentPassage = currentPassages.get(sortOrder);
             // 대상 문서 정보 동기화
-            currentPassage.connectSource(source.getSourceId(), source.getName());
+            currentPassage.connectSource(null, document.getName());
             // 정렬 필드 및 버전 저장
-            currentPassage.update(source.getVersion(), sortOrder);
+            currentPassage.update(null, sortOrder);
         }
 
         // 청킹
@@ -148,7 +130,6 @@ public class ChunkService implements ChunkUseCase {
 
         return ChunkResultVo.builder()
                 .isConvertError(document.getConvertError())
-                .source(SourceVo.of(source))
                 .previousPassages(Collections.emptyList())
                 .currentPassages(currentPassages.stream().map(PassageVo::of).toList())
                 .chunks(chunks.stream().map(ChunkVo::of).toList())
@@ -194,31 +175,13 @@ public class ChunkService implements ChunkUseCase {
                         .build())
                 .toList();
 
-        // 대상 문서 타입
-        SourceType sourceType = SourceType.REPO;
         // 전처리 타입
         SelectType selectType = SelectType.valueOf(command.getSelectType().toUpperCase());
         // 추출 타입
         ExtractType extractType = ExtractType.valueOf(command.getExtractType().toUpperCase());
 
         // 문서 추출
-        Document document = documentReadPort.getRepoDocumentPort(command.getRepoType(), command.getRepoId(), extractType.getCode());
-
-        // 대상 문서 생성
-        Source source = Source.builder()
-                .version(0L)
-                .sourceType(sourceType)
-                .selectType(selectType)
-                .categoryCode("TRAIN-REPO")
-                .name(document.getName())
-                .content(document.getContent())
-                .collectionId("COLLECTION-REPO")
-                .maxTokenSize(command.getMaxTokenSize())
-                .overlapSize(command.getOverlapSize())
-                .isAuto(false)
-                .sourcePatterns(sourcePatterns)
-                .sourceStopPatterns(sourceStopPatterns)
-                .build();
+        Document document = documentReadPort.getRepoDocumentPort(command.getUri(), extractType.getCode());
 
         // 패시징 옵션
         PassageOptionVo passageOptionVo = PassageOptionVo.builder()
@@ -236,9 +199,9 @@ public class ChunkService implements ChunkUseCase {
         for (int sortOrder = 0; sortOrder < currentPassages.size(); sortOrder++) {
             Passage currentPassage = currentPassages.get(sortOrder);
             // 대상 문서 정보 동기화
-            currentPassage.connectSource(source.getSourceId(), source.getName());
+            currentPassage.connectSource(null, document.getName());
             // 정렬 필드 및 버전 저장
-            currentPassage.update(source.getVersion(), sortOrder);
+            currentPassage.update(null, sortOrder);
         }
 
         // 청킹
@@ -247,7 +210,6 @@ public class ChunkService implements ChunkUseCase {
 
         return ChunkResultVo.builder()
                 .isConvertError(document.getConvertError())
-                .source(SourceVo.of(source))
                 .previousPassages(Collections.emptyList())
                 .currentPassages(currentPassages.stream().map(PassageVo::of).toList())
                 .chunks(chunks.stream().map(ChunkVo::of).toList())
@@ -277,7 +239,7 @@ public class ChunkService implements ChunkUseCase {
         if (SourceType.FILE.equals(source.getSourceType())) {
             document = extractPort.extractFilePort(fileDetail, ExtractType.HTML.getCode());
         } else if (SourceType.REPO.equals(source.getSourceType())) {
-            document = documentReadPort.getRepoDocumentByUriPort(source.getSourceType().getCode(), fileDetail.getUrl(), ExtractType.HTML.getCode());
+            document = documentReadPort.getRepoDocumentPort(fileDetail.getUrl(), ExtractType.HTML.getCode());
         } else throw new InvalidSourceTypeException();
 
         // 패시징 옵션
@@ -322,20 +284,25 @@ public class ChunkService implements ChunkUseCase {
         // 최초 버전인 경우 청크 생성
         List<Chunk> chunks = new ArrayList<>();
         if (source.isFirstVersion()) {
-            // 새로운 청크 생성
             for (Passage passage : currentPassages) {
-                // 청크 적재
+                // 새로운 청크 생성
                 chunks.addAll(passage.chunking(source.getMaxTokenSize(), source.getOverlapSize()));
             }
         }
-        // 최초 버전이 아닌 경우 기존 청크 재매핑
+        // 최초 버전이 아닌 경우
         else {
             for (Passage passage : currentPassages) {
-                // 청크 <-> 패시지 매핑 변경
-                if (UpdateState.CHANGE.equals(passage.getUpdateState()) || UpdateState.STAY.equals(passage.getUpdateState())) {
-                    chunks = passagePersistencePort.getChunkBySortOrderAndVersion(passage.getParentSortOrder(), source.getPreviousVersion()).stream()
-                            .peek(chunk -> chunk.update(passage.getPassageId(), passage.getVersion()))
-                            .toList();
+                // 기존 청크 재매핑 (청크 <-> 패시지 매핑 변경)
+                switch (passage.getUpdateState()) {
+                    case CHANGE, STAY -> {
+                        if (passage.getParentSortOrder() != null) {
+                            chunks.addAll(passagePersistencePort.getChunkBySortOrderAndVersion(passage.getSourceId(), passage.getParentSortOrder(), source.getPreviousVersion()).stream()
+                                    .peek(chunk -> chunk.update(passage.getPassageId(), passage.getVersion()))
+                                    .toList());
+                        }
+                    }
+                    // 새로운 청크 생성
+                    case INSERT -> chunks.addAll(passage.chunking(source.getMaxTokenSize(), source.getOverlapSize()));
                 }
             }
         }
@@ -371,7 +338,7 @@ public class ChunkService implements ChunkUseCase {
         if (SourceType.FILE.equals(source.getSourceType())) {
             document = extractPort.extractFilePort(fileDetail, ExtractType.HTML.getCode());
         } else if (SourceType.REPO.equals(source.getSourceType())) {
-            document = documentReadPort.getRepoDocumentByUriPort(source.getSourceType().getCode(), fileDetail.getUrl(), ExtractType.HTML.getCode());
+            document = documentReadPort.getRepoDocumentPort(fileDetail.getUrl(), ExtractType.HTML.getCode());
         } else throw new InvalidSourceTypeException();
 
         // 패시징 옵션
@@ -403,53 +370,58 @@ public class ChunkService implements ChunkUseCase {
 
         // 패시지 정렬 필드 매핑
         for (Passage previousPassage : previousPassages) {
-            if (UpdateState.STAY.equals(previousPassage.getUpdateState())) continue;
-            if (UpdateState.INSERT.equals(previousPassage.getUpdateState())) continue;
-
-            for (Passage currentPassage : currentPassages) {
-                if (UpdateState.STAY.equals(currentPassage.getUpdateState()) && currentPassage.getParentSortOrder() == null) {
-                    currentPassage.setParentSortOrder(previousPassage.getSortOrder());
-                    break;
+            if (UpdateState.STAY.equals(previousPassage.getUpdateState()) || UpdateState.INSERT.equals(previousPassage.getUpdateState())) {
+                for (Passage currentPassage : currentPassages) {
+                    if (UpdateState.STAY.equals(currentPassage.getUpdateState()) && currentPassage.getParentSortOrder() == null) {
+                        currentPassage.setParentSortOrder(previousPassage.getSortOrder());
+                        break;
+                    }
                 }
             }
         }
 
         // 대상 문서 영속화
-        source = sourcePersistencePort.saveSourcePort(source);
+        Source persistSource = sourcePersistencePort.saveSourcePort(source);
         // 이전 패시지 영속화 (이력 코드 변경)
-        previousPassages = passagePersistencePort.savePassagesPort(previousPassages);
+        List<Passage> persistPreviousPassages = passagePersistencePort.savePassagesPort(previousPassages);
         // 패시지 영속화
-        currentPassages = passagePersistencePort.savePassagesPort(currentPassages);
+        List<Passage> persistCurrentPassages = passagePersistencePort.savePassagesPort(currentPassages);
 
         // 최초 버전인 경우 청크 생성
         List<Chunk> chunks = new ArrayList<>();
-        if (source.isFirstVersion()) {
-            // 새로운 청크 생성
-            for (Passage passage : currentPassages) {
-                // 청크 적재
-                chunks.addAll(passage.chunking(source.getMaxTokenSize(), source.getOverlapSize()));
+        if (persistSource.isFirstVersion()) {
+            for (Passage passage : persistCurrentPassages) {
+                // 새로운 청크 생성
+                chunks.addAll(passage.chunking(persistSource.getMaxTokenSize(), persistSource.getOverlapSize()));
             }
         }
-        // 최초 버전이 아닌 경우 기존 청크 재매핑
+        // 최초 버전이 아닌 경우
         else {
-            for (Passage passage : currentPassages) {
-                // 청크 <-> 패시지 매핑 변경
-                if (UpdateState.CHANGE.equals(passage.getUpdateState()) || UpdateState.STAY.equals(passage.getUpdateState())) {
-                    chunks = passagePersistencePort.getChunkBySortOrderAndVersion(passage.getParentSortOrder(), source.getPreviousVersion()).stream()
-                            .peek(chunk -> chunk.update(passage.getPassageId(), passage.getVersion()))
-                            .toList();
+            for (Passage passage : persistCurrentPassages) {
+                switch (passage.getUpdateState()) {
+                    //  기존 청크 재매핑 (청크 <-> 패시지 매핑 변경)
+                    case CHANGE, STAY -> {
+                        if (passage.getParentSortOrder() != null) {
+                            chunks.addAll(passagePersistencePort.getChunkBySortOrderAndVersion(passage.getSourceId(), passage.getParentSortOrder(), persistSource.getPreviousVersion()).stream()
+                                    .peek(chunk -> chunk.update(passage.getPassageId(), passage.getVersion()))
+                                    .toList());
+                        }
+                    }
+                    // 새로운 청크 생성
+                    case INSERT ->
+                            chunks.addAll(passage.chunking(persistSource.getMaxTokenSize(), persistSource.getOverlapSize()));
                 }
             }
         }
         // 청크 영속화
-        chunks = passagePersistencePort.saveChunksPort(chunks);
+        List<Chunk> persistChunks = passagePersistencePort.saveChunksPort(chunks);
 
         return ChunkResultVo.builder()
                 .isConvertError(document.getConvertError())
-                .source(SourceVo.of(source))
-                .previousPassages(previousPassages.stream().map(PassageVo::of).toList())
-                .currentPassages(currentPassages.stream().map(PassageVo::of).toList())
-                .chunks(chunks.stream().map(ChunkVo::of).toList())
+                .source(SourceVo.of(persistSource))
+                .previousPassages(persistPreviousPassages.stream().map(PassageVo::of).toList())
+                .currentPassages(persistCurrentPassages.stream().map(PassageVo::of).toList())
+                .chunks(persistChunks.stream().map(ChunkVo::of).toList())
                 .build();
     }
 

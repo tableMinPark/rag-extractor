@@ -27,7 +27,7 @@ public enum Response {
     GET_SOURCE_SUCCESS(HttpStatus.OK, 1102, "대상 문서 조회에 성공했습니다.", ""),
     GET_SOURCES_SUCCESS(HttpStatus.OK, 1103, "대상 문서 목록 조회에 성공했습니다.", ""),
 
-    // 파일 추출
+    // 추출
     EXTRACT_FILE_SUCCESS(HttpStatus.OK, 1200, "파일 내용 추출에 성공했습니다.", ""),
     EXTRACT_TEXT_SUCCESS(HttpStatus.OK, 1201, "파일 텍스트 추출에 성공했습니다.", ""),
 
