@@ -9,6 +9,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public class GetPassagesCommand {
 
+    private final long sourceId;
+
     private final int page;
 
     private final int size;

@@ -19,5 +19,5 @@ public class GetSourcesCommand {
 
     private final String keyword;
 
-    private final boolean isAuto;
+    private final Boolean isAuto;
 }

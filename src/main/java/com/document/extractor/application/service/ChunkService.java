@@ -264,7 +264,7 @@ public class ChunkService implements ChunkUseCase {
         }
 
         // 이전 버전 패시지 조회
-        List<Passage> previousPassages = passagePersistencePort.getPassagesByVersion(source.getSourceId(), source.getPreviousVersion());
+        List<Passage> previousPassages = passagePersistencePort.getPassagesByVersionPort(source.getSourceId(), source.getPreviousVersion());
 
         // 패시지 버전 비교
         Passage.compareDiff(previousPassages, currentPassages);
@@ -296,7 +296,7 @@ public class ChunkService implements ChunkUseCase {
                 switch (passage.getUpdateState()) {
                     case CHANGE, STAY -> {
                         if (passage.getParentSortOrder() != null) {
-                            chunks.addAll(passagePersistencePort.getChunkBySortOrderAndVersion(passage.getSourceId(), passage.getParentSortOrder(), source.getPreviousVersion()).stream()
+                            chunks.addAll(passagePersistencePort.getChunkBySortOrderAndVersionPort(passage.getSourceId(), passage.getParentSortOrder(), source.getPreviousVersion()).stream()
                                     .peek(chunk -> chunk.update(passage.getPassageId(), passage.getVersion()))
                                     .toList());
                         }
@@ -363,7 +363,7 @@ public class ChunkService implements ChunkUseCase {
         }
 
         // 이전 버전 패시지 조회
-        List<Passage> previousPassages = passagePersistencePort.getPassagesByVersion(source.getSourceId(), source.getPreviousVersion());
+        List<Passage> previousPassages = passagePersistencePort.getPassagesByVersionPort(source.getSourceId(), source.getPreviousVersion());
 
         // 패시지 버전 비교
         Passage.compareDiff(previousPassages, currentPassages);
@@ -402,7 +402,7 @@ public class ChunkService implements ChunkUseCase {
                     //  기존 청크 재매핑 (청크 <-> 패시지 매핑 변경)
                     case CHANGE, STAY -> {
                         if (passage.getParentSortOrder() != null) {
-                            chunks.addAll(passagePersistencePort.getChunkBySortOrderAndVersion(passage.getSourceId(), passage.getParentSortOrder(), persistSource.getPreviousVersion()).stream()
+                            chunks.addAll(passagePersistencePort.getChunkBySortOrderAndVersionPort(passage.getSourceId(), passage.getParentSortOrder(), persistSource.getPreviousVersion()).stream()
                                     .peek(chunk -> chunk.update(passage.getPassageId(), passage.getVersion()))
                                     .toList());
                         }
@@ -484,7 +484,7 @@ public class ChunkService implements ChunkUseCase {
     }
 
     /**
-     * TODO: 패시지 조회
+     * 패시지 조회
      *
      * @param command 패시지 조회 Command
      * @return 패시지
@@ -492,11 +492,11 @@ public class ChunkService implements ChunkUseCase {
     @Transactional(readOnly = true)
     @Override
     public PassageVo getPassageUseCase(GetPassageCommand command) {
-        return null;
+        return PassageVo.of(passagePersistencePort.getPassagePort(command.getPassageId()));
     }
 
     /**
-     * TODO: 패시지 목록 조회
+     * 패시지 목록 조회
      *
      * @param command 패시지 목록 조회 Command
      * @return 패시지 목록
@@ -504,7 +504,16 @@ public class ChunkService implements ChunkUseCase {
     @Transactional(readOnly = true)
     @Override
     public PageWrapper<PassageVo> getPassagesUseCase(GetPassagesCommand command) {
+
+        PageWrapper<Passage> passagePageWrapper = passagePersistencePort.getLatestPassagesPort(command.getPage(), command.getSize(), command.getSourceId());
+
         return PageWrapper.<PassageVo>builder()
+                .data(passagePageWrapper.getData().stream().map(PassageVo::of).toList())
+                .isLast(passagePageWrapper.isLast())
+                .page(passagePageWrapper.getPage())
+                .size(passagePageWrapper.getSize())
+                .totalCount(passagePageWrapper.getTotalCount())
+                .totalPages(passagePageWrapper.getTotalPages())
                 .build();
     }
 }

@@ -2,7 +2,6 @@ package com.document.extractor.application.service;
 
 import com.document.extractor.adapter.out.dto.ManualAgendaDto;
 import com.document.extractor.adapter.out.dto.ManualContentDto;
-import com.document.extractor.adapter.out.dto.ManualTableContentDto;
 import com.document.extractor.application.command.ExtractFileCommand;
 import com.document.extractor.application.command.ExtractFileTextCommand;
 import com.document.extractor.application.command.ExtractLawCommand;
@@ -23,10 +22,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ExtractService implements ExtractUseCase {
@@ -172,22 +173,22 @@ public class ExtractService implements ExtractUseCase {
             String tableContent = extractDocument.getResult().getRows().getFirst().getFields().get("TABLE_CONTENT");
             String content = extractDocument.getResult().getRows().getFirst().getFields().get("CONTENT");
 
-            List<ManualTableContentDto> manualTableContentDtos = objectMapper.readValue(tableContent, new TypeReference<List<ManualTableContentDto>>() {
+            List<ManualAgendaDto> manualAgendaDtos = objectMapper.readValue(tableContent, new TypeReference<List<ManualAgendaDto>>() {
             });
             List<ManualContentDto> manualContentDtos = objectMapper.readValue(content, new TypeReference<List<ManualContentDto>>() {
             });
 
             // 목차 목록화
-            if (!manualTableContentDtos.isEmpty()) {
+            if (!manualAgendaDtos.isEmpty()) {
                 Map<String, ManualAgendaDto> manualAgendaDtoMap = new HashMap<>();
 
-                for (ManualTableContentDto manualTableContentDto : manualTableContentDtos) {
-                    for (ManualAgendaDto manualAgendaDto : manualTableContentDto.getContents()) {
-                        ManualAgendaDto.toList(manualAgendaDto).forEach(agendaDto -> {
-                            manualAgendaDtoMap.put(agendaDto.getUuid(), agendaDto);
-                        });
-                    }
+                for (ManualAgendaDto manualAgendaDto : manualAgendaDtos) {
+                    manualAgendaDtoMap.put(manualAgendaDto.getUuid(), manualAgendaDto);
+                    ManualAgendaDto.toList(manualAgendaDto).forEach(agendaDto -> {
+                        manualAgendaDtoMap.put(agendaDto.getUuid(), agendaDto);
+                    });
                 }
+
                 // 본문 매핑
                 manualContentDtos.forEach(manualContentDto -> {
                     if (manualAgendaDtoMap.containsKey(manualContentDto.getUuid())) {
@@ -205,7 +206,7 @@ public class ExtractService implements ExtractUseCase {
                         }
 
                         documentContents.add(DocumentContent.builder()
-                                .contentId(manualAgendaDto.getId())
+                                .contentId(manualAgendaDto.getId() == null ? "" : manualAgendaDto.getId())
                                 .compareText(context)
                                 .title(manualAgendaDto.getTitle())
                                 .simpleTitle(manualAgendaDto.getTitle())

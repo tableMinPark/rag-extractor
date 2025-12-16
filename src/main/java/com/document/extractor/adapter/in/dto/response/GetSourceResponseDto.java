@@ -26,6 +26,8 @@ public class GetSourceResponseDto {
 
     private String collectionId;
 
+    private String selectType;
+
     private Boolean isAuto;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
@@ -43,6 +45,7 @@ public class GetSourceResponseDto {
                 .name(sourceVo.getName())
                 .collectionId(sourceVo.getCollectionId())
                 .isAuto(sourceVo.getIsAuto())
+                .selectType(sourceVo.getSelectType())
                 .sysCreateDt(sourceVo.getSysCreateDt())
                 .sysModifyDt(sourceVo.getSysModifyDt())
                 .build();

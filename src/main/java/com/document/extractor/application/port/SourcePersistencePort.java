@@ -42,7 +42,7 @@ public interface SourcePersistencePort {
      * @param isAuto  자동화 여부
      * @return 대상 문서 목록
      */
-    PageWrapper<Source> getSourcesPort(int page, int size, String orderBy, String order, String keyword, boolean isAuto);
+    PageWrapper<Source> getSourcesPort(int page, int size, String orderBy, String order, String keyword, Boolean isAuto);
 
     /**
      * 배치 대상 문서 목록 조회

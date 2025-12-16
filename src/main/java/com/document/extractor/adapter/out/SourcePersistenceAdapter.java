@@ -86,15 +86,20 @@ public class SourcePersistenceAdapter implements SourcePersistencePort {
      * @return 대상 문서 목록
      */
     @Override
-    public PageWrapper<Source> getSourcesPort(int page, int size, String orderBy, String order, String keyword, boolean isAuto) {
+    public PageWrapper<Source> getSourcesPort(int page, int size, String orderBy, String order, String keyword, Boolean isAuto) {
         Sort sort = Sort.by(order.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC, orderBy);
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), size, sort);
 
         String searchKeyword = "%" + keyword.replace(" ", "%") + "%";
 
         Page<SourceEntity> sourceEntities;
-        if (keyword.isBlank()) sourceEntities = sourceRepository.findAllByIsAuto(isAuto, pageable);
-        else sourceEntities = sourceRepository.findAllByIsAutoAndNameLike(isAuto, searchKeyword, pageable);
+        if (isAuto == null) {
+            if (keyword.isBlank()) sourceEntities = sourceRepository.findAll(pageable);
+            else sourceEntities = sourceRepository.findAllByNameLike(searchKeyword, pageable);
+        } else {
+            if (keyword.isBlank()) sourceEntities = sourceRepository.findAllByIsAuto(isAuto, pageable);
+            else sourceEntities = sourceRepository.findAllByIsAutoAndNameLike(isAuto, searchKeyword, pageable);
+        }
 
         return PageWrapper.<Source>builder()
                 .data(sourceEntities.stream().map(SourceEntity::toDomain).toList())

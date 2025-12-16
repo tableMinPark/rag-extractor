@@ -157,7 +157,7 @@ public class SourceService implements SourceUseCase {
     public PageWrapper<SourceVo> getSourcesUseCase(GetSourcesCommand command) {
 
         PageWrapper<Source> sourcePageWrapper = sourcePersistencePort.getSourcesPort(
-                command.getPage(), command.getSize(), command.getOrderBy(), command.getOrder(), command.getKeyword(), command.isAuto());
+                command.getPage(), command.getSize(), command.getOrderBy(), command.getOrder(), command.getKeyword(), command.getIsAuto());
 
         return PageWrapper.<SourceVo>builder()
                 .data(sourcePageWrapper.getData().stream().map(SourceVo::of).toList())

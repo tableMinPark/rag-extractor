@@ -19,5 +19,7 @@ public interface SourceRepository extends JpaRepository<SourceEntity, Long> {
 
     Page<SourceEntity> findAllByIsAuto(boolean isAuto, Pageable pageable);
 
+    Page<SourceEntity> findAllByNameLike(String keyword, Pageable pageable);
+
     Page<SourceEntity> findAllByIsAutoAndNameLike(boolean isAuto, String keyword, Pageable pageable);
 }

@@ -241,10 +241,12 @@ public class ChunkController {
     @GetMapping(path = "/passage")
     public ResponseEntity<ResponseDto<PageResponseDto<GetPassageResponseDto>>> getPassages(
             @RequestParam("page") int page,
-            @RequestParam("size") int size
+            @RequestParam("size") int size,
+            @RequestParam("sourceId") long sourceId
     ) {
 
         PageWrapper<PassageVo> passageVoPageWrapper = chunkUseCase.getPassagesUseCase(GetPassagesCommand.builder()
+                .sourceId(sourceId)
                 .page(page)
                 .size(size)
                 .build());

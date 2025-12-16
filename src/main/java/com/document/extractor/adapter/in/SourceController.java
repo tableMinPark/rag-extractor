@@ -173,8 +173,8 @@ public class SourceController {
             @Min(1) @Max(100)
             @RequestParam("size")
             Integer size,
-            @RequestParam(value = "isAuto", defaultValue = "false", required = false)
-            boolean isAuto,
+            @RequestParam(value = "isAuto", required = false)
+            Boolean isAuto,
             @RequestParam(value = "orderBy", defaultValue = "sourceId", required = false)
             String orderBy,
             @Pattern(regexp = "asc|desc", message = "asc | desc 만 지원")

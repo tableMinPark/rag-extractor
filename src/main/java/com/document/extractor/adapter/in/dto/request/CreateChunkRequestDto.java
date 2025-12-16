@@ -11,5 +11,13 @@ public class CreateChunkRequestDto {
 
     private Long passageId;
 
+    private String title;
+
+    private String subTitle;
+
+    private String thirdTitle;
+
     private String content;
+
+    private String subContent;
 }

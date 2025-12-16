@@ -33,6 +33,12 @@ public class ManualAgendaDto {
     @JsonAlias("sub")
     private List<ManualAgendaDto> contents = new ArrayList<>();
 
+    public ManualAgendaDto(String uuid, String title, String tractionId) {
+        this.uuid = uuid;
+        this.title = title;
+        this.tractionId = tractionId;
+    }
+
     public static List<ManualAgendaDto> toList(ManualAgendaDto now) {
         List<ManualAgendaDto> manualAgendaDtoList = new ArrayList<>();
 

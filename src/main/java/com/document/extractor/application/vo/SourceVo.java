@@ -41,6 +41,8 @@ public class SourceVo {
 
     private final Integer overlapSize;
 
+    private final String selectType;
+
     private final Boolean isAuto;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -67,6 +69,7 @@ public class SourceVo {
                 .fileDetailId(source.getFileDetailId())
                 .maxTokenSize(source.getMaxTokenSize())
                 .overlapSize(source.getOverlapSize())
+                .selectType(source.getSelectType().getCode())
                 .isAuto(source.getIsAuto())
                 .sysCreateDt(source.getSysCreateDt())
                 .sysModifyDt(source.getSysModifyDt())
