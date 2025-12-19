@@ -78,21 +78,4 @@ public interface ChunkUseCase {
      * @param command 청크 삭제 Command
      */
     void deleteChunkUseCase(DeleteChunkCommand command);
-
-    /**
-     * 패시지 조회
-     *
-     * @param command 패시지 조회 Command
-     * @return 패시지
-     */
-    PassageVo getPassageUseCase(GetPassageCommand command);
-
-    /**
-     * 패시지 목록 조회
-     *
-     * @param command 패시지 목록 조회 Command
-     * @return 패시지 목록
-     */
-    PageWrapper<PassageVo> getPassagesUseCase(GetPassagesCommand command);
-
 }

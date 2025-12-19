@@ -44,7 +44,7 @@ public class SourceStopPatternEntity {
         return SourceStopPattern.builder()
                 .sourceStopPatternId(sourceStopPatternId)
                 .sourceId(sourceId)
-                .prefix(prefix)
+                .prefix(prefix == null ? "" : prefix)
                 .build();
     }
 

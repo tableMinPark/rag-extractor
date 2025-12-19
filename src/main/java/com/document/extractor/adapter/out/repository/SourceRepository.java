@@ -15,11 +15,12 @@ public interface SourceRepository extends JpaRepository<SourceEntity, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<SourceEntity> findBySourceId(Long sourceId);
 
-    List<SourceEntity> findByIsAutoTrueOrderBySourceId();
-
-    Page<SourceEntity> findAllByIsAuto(boolean isAuto, Pageable pageable);
+    List<SourceEntity> findByIsBatchTrueOrderBySourceId();
 
     Page<SourceEntity> findAllByNameLike(String keyword, Pageable pageable);
 
-    Page<SourceEntity> findAllByIsAutoAndNameLike(boolean isAuto, String keyword, Pageable pageable);
+    Page<SourceEntity> findAllByCategoryCode(String categoryCode, Pageable pageable);
+
+    Page<SourceEntity> findAllByCategoryCodeAndNameLike(String categoryCode, String keyword, Pageable pageable);
+
 }

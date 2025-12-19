@@ -28,6 +28,9 @@ public class Source {
     private final String categoryCode;
 
     @Getter
+    private final String categoryName;
+
+    @Getter
     private final String name;
 
     @Getter
@@ -47,6 +50,9 @@ public class Source {
 
     @Getter
     private final Boolean isAuto;
+
+    @Getter
+    private final Boolean isBatch;
 
     @Getter
     private final LocalDateTime sysCreateDt;

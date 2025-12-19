@@ -59,6 +59,11 @@ public class GetPassageResponseDto {
                 .subContent(passageVo.getSubContent())
                 .contentTokenSize(passageVo.getContentTokenSize())
                 .subContentTokenSize(passageVo.getSubContentTokenSize())
+                .sysCreateDt(passageVo.getSysCreateDt())
+                .sysModifyDt(passageVo.getSysModifyDt())
+                .updateState(passageVo.getUpdateState())
+                .sortOrder(passageVo.getSortOrder())
+                .parentSortOrder(passageVo.getParentSortOrder())
                 .build();
     }
 

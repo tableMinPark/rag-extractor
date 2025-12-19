@@ -19,5 +19,5 @@ public class GetSourcesCommand {
 
     private final String keyword;
 
-    private final Boolean isAuto;
+    private final String categoryCode;
 }

@@ -1,6 +1,8 @@
 package com.document.extractor.adapter.out;
 
+import com.document.extractor.adapter.out.entity.ComnCodeEntity;
 import com.document.extractor.adapter.out.entity.SourceEntity;
+import com.document.extractor.adapter.out.repository.ComnCodeRepository;
 import com.document.extractor.adapter.out.repository.SourceRepository;
 import com.document.extractor.application.exception.NotFoundException;
 import com.document.extractor.application.port.SourcePersistencePort;
@@ -22,6 +24,7 @@ import java.util.stream.Collectors;
 public class SourcePersistenceAdapter implements SourcePersistencePort {
 
     private final SourceRepository sourceRepository;
+    private final ComnCodeRepository comnCodeRepository;
 
     /**
      * 대상 문서 등록
@@ -33,13 +36,16 @@ public class SourcePersistenceAdapter implements SourcePersistencePort {
     @Override
     public Source saveSourcePort(Source source) {
 
+        ComnCodeEntity categoryEntity = comnCodeRepository.findByCode(source.getCategoryCode())
+                .orElseThrow(() -> new NotFoundException("대상 문서 카테고리"));
+
         SourceEntity sourceEntity;
 
         if (source.getSourceId() == null) {
-            sourceEntity = sourceRepository.save(SourceEntity.fromDomain(source));
+            sourceEntity = sourceRepository.save(SourceEntity.fromDomain(source, categoryEntity));
         } else {
             sourceEntity = sourceRepository.findById(source.getSourceId()).orElseThrow(() -> new NotFoundException("대상 문서"));
-            sourceEntity.update(source);
+            sourceEntity.update(source, categoryEntity);
             sourceEntity = sourceRepository.save(sourceEntity);
         }
 
@@ -77,28 +83,29 @@ public class SourcePersistenceAdapter implements SourcePersistencePort {
     /**
      * 대상 문서 목록 조회
      *
-     * @param page    페이지
-     * @param size    사이즈
-     * @param orderBy 정렬 필드
-     * @param order   정렬 방향 ( asc | desc )
-     * @param keyword 키워드
-     * @param isAuto  자동화 여부
+     * @param page         페이지
+     * @param size         사이즈
+     * @param orderBy      정렬 필드
+     * @param order        정렬 방향 ( asc | desc )
+     * @param keyword      키워드
+     * @param categoryCode 카테고리 코드
      * @return 대상 문서 목록
      */
+    @Transactional
     @Override
-    public PageWrapper<Source> getSourcesPort(int page, int size, String orderBy, String order, String keyword, Boolean isAuto) {
+    public PageWrapper<Source> getSourcesPort(int page, int size, String orderBy, String order, String keyword, String categoryCode) {
         Sort sort = Sort.by(order.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC, orderBy);
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), size, sort);
 
         String searchKeyword = "%" + keyword.replace(" ", "%") + "%";
 
         Page<SourceEntity> sourceEntities;
-        if (isAuto == null) {
+        if ("ALL".equals(categoryCode)) {
             if (keyword.isBlank()) sourceEntities = sourceRepository.findAll(pageable);
             else sourceEntities = sourceRepository.findAllByNameLike(searchKeyword, pageable);
         } else {
-            if (keyword.isBlank()) sourceEntities = sourceRepository.findAllByIsAuto(isAuto, pageable);
-            else sourceEntities = sourceRepository.findAllByIsAutoAndNameLike(isAuto, searchKeyword, pageable);
+            if (keyword.isBlank()) sourceEntities = sourceRepository.findAllByCategoryCode(categoryCode, pageable);
+            else sourceEntities = sourceRepository.findAllByCategoryCodeAndNameLike(categoryCode, searchKeyword, pageable);
         }
 
         return PageWrapper.<Source>builder()
@@ -119,7 +126,7 @@ public class SourcePersistenceAdapter implements SourcePersistencePort {
     @Transactional
     @Override
     public List<Source> getActiveSourcesPort() {
-        return sourceRepository.findByIsAutoTrueOrderBySourceId().stream()
+        return sourceRepository.findByIsBatchTrueOrderBySourceId().stream()
                 .map(SourceEntity::toDomain)
                 .collect(Collectors.toList());
     }

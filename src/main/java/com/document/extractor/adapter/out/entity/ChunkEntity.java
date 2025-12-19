@@ -51,17 +51,17 @@ public class ChunkEntity {
     @Comment("소제목")
     private String thirdTitle;
 
-//    @Lob
+    @Lob
     @Column(name = "content")
     @Comment("본문")
     private String content;
 
-//    @Lob
+    @Lob
     @Column(name = "compact_content")
     @Comment("색인 대상 본문")
     private String compactContent;
 
-//    @Lob
+    @Lob
     @Column(name = "sub_content")
     @Comment("부가 본문")
     private String subContent;
@@ -103,12 +103,12 @@ public class ChunkEntity {
                 .chunkId(chunkId)
                 .passageId(passageId)
                 .version(version)
-                .title(title)
-                .subTitle(subTitle)
-                .thirdTitle(thirdTitle)
-                .content(content)
-                .subContent(subContent)
-                .compactContent(compactContent)
+                .title(title == null ? "" : title)
+                .subTitle(subTitle == null ? "" : subTitle)
+                .thirdTitle(thirdTitle == null ? "" : thirdTitle)
+                .content(content == null ? "" : content)
+                .subContent(subContent == null ? "" : subContent)
+                .compactContent(compactContent == null ? "" : compactContent)
                 .tokenSize(tokenSize)
                 .compactTokenSize(compactTokenSize)
                 .sysCreateDt(sysCreateDt)

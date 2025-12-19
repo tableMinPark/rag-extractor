@@ -26,7 +26,11 @@ public class SourceVo {
 
     private String sourceType;
 
+    private String sourceTypeName;
+
     private String categoryCode;
+
+    private String categoryName;
 
     private String name;
 
@@ -43,7 +47,11 @@ public class SourceVo {
 
     private final String selectType;
 
+    private final String selectTypeName;
+
     private final Boolean isAuto;
+
+    private final Boolean isBatch;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
@@ -62,7 +70,9 @@ public class SourceVo {
                 .sourceId(source.getSourceId())
                 .version(source.getVersion())
                 .sourceType(source.getSourceType().getCode())
+                .sourceTypeName(source.getSourceType().getName())
                 .categoryCode(source.getCategoryCode())
+                .categoryName(source.getCategoryName())
                 .name(source.getName())
                 .content(source.getContent())
                 .collectionId(source.getCollectionId())
@@ -70,7 +80,9 @@ public class SourceVo {
                 .maxTokenSize(source.getMaxTokenSize())
                 .overlapSize(source.getOverlapSize())
                 .selectType(source.getSelectType().getCode())
+                .selectTypeName(source.getSelectType().getName())
                 .isAuto(source.getIsAuto())
+                .isBatch(source.getIsBatch())
                 .sysCreateDt(source.getSysCreateDt())
                 .sysModifyDt(source.getSysModifyDt())
                 .patterns(source.getSourcePatterns().stream()

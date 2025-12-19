@@ -92,7 +92,7 @@ public class Passage {
 
             for (int start = 0; start < this.content.length(); start += step) {
                 int end = Math.min(this.content.length(), start + tokenSize);
-                String content = this.content.substring(start, end);
+                String splitContent = this.content.substring(start, end);
 
                 chunks.add(Chunk.builder()
                         .passageId(this.passageId)
@@ -100,10 +100,10 @@ public class Passage {
                         .title(this.title)
                         .subTitle(this.subTitle)
                         .thirdTitle(this.thirdTitle)
-                        .content(content)
-                        .compactContent(content)
-                        .tokenSize(content.length())
-                        .compactTokenSize(content.length())
+                        .content(splitContent)
+                        .compactContent(splitContent)
+                        .tokenSize(splitContent.length())
+                        .compactTokenSize(splitContent.length())
                         .subContent(this.subContent)
                         .sysCreateDt(this.sysCreateDt)
                         .sysModifyDt(this.sysModifyDt)

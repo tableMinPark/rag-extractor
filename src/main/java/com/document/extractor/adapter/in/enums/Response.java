@@ -26,6 +26,7 @@ public enum Response {
     CREATE_REPO_SOURCE_SUCCESS(HttpStatus.OK, 1101, "원격 대상 문서 등록에 성공했습니다.", ""),
     GET_SOURCE_SUCCESS(HttpStatus.OK, 1102, "대상 문서 조회에 성공했습니다.", ""),
     GET_SOURCES_SUCCESS(HttpStatus.OK, 1103, "대상 문서 목록 조회에 성공했습니다.", ""),
+    GET_SOURCE_CATEGORIES_SUCCESS(HttpStatus.OK, 1104, "대상 문서 카테고리 목록 조회에 성공했습니다.", ""),
 
     // 추출
     EXTRACT_FILE_SUCCESS(HttpStatus.OK, 1200, "파일 내용 추출에 성공했습니다.", ""),
@@ -43,9 +44,9 @@ public enum Response {
     UPDATE_CHUNK_SUCCESS(HttpStatus.OK, 1308, "청크 수정에 성공했습니다.", ""),
     DELETE_CHUNK_SUCCESS(HttpStatus.OK, 1309, "청크 삭제에 성공했습니다.", ""),
 
-    // 청킹 배치
-    CHUNK_BATCH_SUCCESS(HttpStatus.OK, 1400, "대상 문서 청킹 배치 처리에 성공했습니다.", ""),
-    CHUNK_BATCHES_SUCCESS(HttpStatus.OK, 1401, "대상 문서 다중 청킹 배치 처리에 성공했습니다.", ""),
+    // 배치
+    BATCH_CHUNK_SUCCESS(HttpStatus.OK, 1400, "대상 문서 청킹 배치 처리에 성공했습니다.", ""),
+    BATCH_CHUNKS_SUCCESS(HttpStatus.OK, 1401, "대상 문서 다중 청킹 배치 처리에 성공했습니다.", ""),
     ;
 
     private final HttpStatus statusCode;

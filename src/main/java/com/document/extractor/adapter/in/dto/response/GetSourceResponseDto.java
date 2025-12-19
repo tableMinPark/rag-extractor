@@ -20,7 +20,11 @@ public class GetSourceResponseDto {
 
     private String sourceType;
 
+    private String sourceTypeName;
+
     private String categoryCode;
+
+    private String categoryName;
 
     private String name;
 
@@ -28,7 +32,11 @@ public class GetSourceResponseDto {
 
     private String selectType;
 
+    private String selectTypeName;
+
     private Boolean isAuto;
+
+    private Boolean isBatch;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime sysCreateDt;
@@ -41,11 +49,15 @@ public class GetSourceResponseDto {
                 .sourceId(sourceVo.getSourceId())
                 .version(sourceVo.getVersion())
                 .sourceType(sourceVo.getSourceType())
+                .sourceTypeName(sourceVo.getSourceTypeName())
                 .categoryCode(sourceVo.getCategoryCode())
+                .categoryName(sourceVo.getCategoryName())
                 .name(sourceVo.getName())
                 .collectionId(sourceVo.getCollectionId())
                 .isAuto(sourceVo.getIsAuto())
+                .isBatch(sourceVo.getIsBatch())
                 .selectType(sourceVo.getSelectType())
+                .selectTypeName(sourceVo.getSelectTypeName())
                 .sysCreateDt(sourceVo.getSysCreateDt())
                 .sysModifyDt(sourceVo.getSysModifyDt())
                 .build();

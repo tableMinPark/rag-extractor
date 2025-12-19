@@ -24,17 +24,17 @@ import java.util.List;
 
 @Slf4j
 @Validated
-@Tag(name = "ChunkBatchController", description = "대상 문서 청킹 배치 컨트롤러")
+@Tag(name = "BatchController", description = "배치 컨트롤러")
 @RequiredArgsConstructor
-@RequestMapping("/chunk/batch")
+@RequestMapping("/api/batch")
 @RestController
-public class ChunkBatchController {
+public class BatchController {
 
     private final SourceUseCase sourceUseCase;
     private final ChunkUseCase chunkUseCase;
 
     @Operation(summary = "대상 문서 청킹 배치")
-    @PostMapping("/{sourceId}")
+    @PostMapping("/chunk/{sourceId}")
     public ResponseEntity<ResponseDto<ChunkBatchResponseDto>> chunkBatch(
             @Parameter(name = "sourceId", description = "대상 문서 ID", required = true)
             @PathVariable(value = "sourceId")
@@ -54,11 +54,11 @@ public class ChunkBatchController {
 
         log.info("[전처리 완료] {} : {}", chunkResultVo.getSource().getSourceId(), chunkResultVo.getSource().getName());
 
-        return ResponseEntity.ok(Response.CHUNK_BATCH_SUCCESS.toResponseDto(chunkBatchResponseDto));
+        return ResponseEntity.ok(Response.BATCH_CHUNK_SUCCESS.toResponseDto(chunkBatchResponseDto));
     }
 
     @Operation(summary = "대상 문서 청킹 일괄 배치")
-    @PostMapping
+    @PostMapping("/chunk")
     public ResponseEntity<ResponseDto<List<ChunkBatchResponseDto>>> chunkBatches() {
 
         List<ChunkBatchResponseDto> chunkBatchResponseDtos = new ArrayList<>();
@@ -79,6 +79,6 @@ public class ChunkBatchController {
             log.info("[다중 전처리 완료] {} : {}", chunkResultVo.getSource().getSourceId(), chunkResultVo.getSource().getName());
         });
 
-        return ResponseEntity.ok(Response.CHUNK_BATCHES_SUCCESS.toResponseDto(chunkBatchResponseDtos));
+        return ResponseEntity.ok(Response.BATCH_CHUNKS_SUCCESS.toResponseDto(chunkBatchResponseDtos));
     }
 }

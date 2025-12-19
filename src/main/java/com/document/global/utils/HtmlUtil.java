@@ -327,8 +327,11 @@ public class HtmlUtil {
                     cIdx++;
                 }
 
-                int rowspan = cell.hasAttr("rowspan") ? Integer.parseInt(cell.attr("rowspan")) : 1;
-                int colspan = cell.hasAttr("colspan") ? Integer.parseInt(cell.attr("colspan")) : 1;
+                String rowspanStr = cell.attr("rowspan");
+                String colspanStr = cell.attr("colspan");
+
+                int rowspan = cell.hasAttr("rowspan") ? Integer.parseInt(rowspanStr.isBlank() ? "1" : rowspanStr) : 1;
+                int colspan = cell.hasAttr("colspan") ? Integer.parseInt(colspanStr.isBlank() ? "1" : colspanStr) : 1;
 
                 String text = cell.text().trim().replaceAll("\\s+", " ");
 

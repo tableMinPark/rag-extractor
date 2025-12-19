@@ -19,6 +19,7 @@ import com.document.extractor.domain.model.*;
 import com.document.extractor.domain.vo.PassageOptionVo;
 import com.document.extractor.domain.vo.PatternVo;
 import com.document.extractor.domain.vo.PrefixVo;
+import com.document.global.utils.HtmlUtil;
 import com.document.global.vo.UploadFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,7 @@ public class ChunkService implements ChunkUseCase {
     private final FilePersistencePort filePersistencePort;
     private final SourcePersistencePort sourcePersistencePort;
     private final PassagePersistencePort passagePersistencePort;
+    private final ChunkPersistencePort chunkPersistencePort;
 
     /**
      * 파일 청킹
@@ -296,7 +298,7 @@ public class ChunkService implements ChunkUseCase {
                 switch (passage.getUpdateState()) {
                     case CHANGE, STAY -> {
                         if (passage.getParentSortOrder() != null) {
-                            chunks.addAll(passagePersistencePort.getChunkBySortOrderAndVersionPort(passage.getSourceId(), passage.getParentSortOrder(), source.getPreviousVersion()).stream()
+                            chunks.addAll(chunkPersistencePort.getChunkBySortOrderAndVersionPort(passage.getSourceId(), passage.getParentSortOrder(), source.getPreviousVersion()).stream()
                                     .peek(chunk -> chunk.update(passage.getPassageId(), passage.getVersion()))
                                     .toList());
                         }
@@ -402,7 +404,7 @@ public class ChunkService implements ChunkUseCase {
                     //  기존 청크 재매핑 (청크 <-> 패시지 매핑 변경)
                     case CHANGE, STAY -> {
                         if (passage.getParentSortOrder() != null) {
-                            chunks.addAll(passagePersistencePort.getChunkBySortOrderAndVersionPort(passage.getSourceId(), passage.getParentSortOrder(), persistSource.getPreviousVersion()).stream()
+                            chunks.addAll(chunkPersistencePort.getChunkBySortOrderAndVersionPort(passage.getSourceId(), passage.getParentSortOrder(), persistSource.getPreviousVersion()).stream()
                                     .peek(chunk -> chunk.update(passage.getPassageId(), passage.getVersion()))
                                     .toList());
                         }
@@ -414,7 +416,7 @@ public class ChunkService implements ChunkUseCase {
             }
         }
         // 청크 영속화
-        List<Chunk> persistChunks = passagePersistencePort.saveChunksPort(chunks);
+        List<Chunk> persistChunks = chunkPersistencePort.saveChunksPort(chunks);
 
         return ChunkResultVo.builder()
                 .isConvertError(document.getConvertError())
@@ -426,7 +428,7 @@ public class ChunkService implements ChunkUseCase {
     }
 
     /**
-     * TODO: 청크 등록
+     * 청크 등록
      *
      * @param command 청크 등록 Command
      */
@@ -434,10 +436,29 @@ public class ChunkService implements ChunkUseCase {
     @Override
     public void createChunkUseCase(CreateChunkCommand command) {
 
+        Passage passage = passagePersistencePort.getPassagePort(command.getPassageId());
+
+        // 표 마크 다운 변환
+        String compactContent = HtmlUtil.convertTableHtmlToMarkdown(command.getContent());
+
+        Chunk chunk = Chunk.builder()
+                .passageId(passage.getPassageId())
+                .version(passage.getVersion())
+                .title(command.getTitle())
+                .subTitle(command.getSubTitle())
+                .thirdTitle(command.getThirdTitle())
+                .content(command.getContent())
+                .compactContent(compactContent)
+                .tokenSize(command.getContent().length())
+                .compactTokenSize(compactContent.length())
+                .subContent(command.getSubContent())
+                .build();
+
+        chunkPersistencePort.saveChunkPort(chunk);
     }
 
     /**
-     * TODO: 청크 조회
+     * 청크 조회
      *
      * @param command 청크 조회 Command
      * @return 청크
@@ -445,11 +466,11 @@ public class ChunkService implements ChunkUseCase {
     @Transactional(readOnly = true)
     @Override
     public ChunkVo getChunkUseCase(GetChunkCommand command) {
-        return null;
+        return ChunkVo.of(chunkPersistencePort.getChunkPort(command.getChunkId()));
     }
 
     /**
-     * TODO: 청크 목록 조회
+     * 청크 목록 조회
      *
      * @param command 청크 목록 조회 Command
      * @return 청크 목록
@@ -457,12 +478,21 @@ public class ChunkService implements ChunkUseCase {
     @Transactional(readOnly = true)
     @Override
     public PageWrapper<ChunkVo> getChunksUseCase(GetChunksCommand command) {
+
+        PageWrapper<Chunk> chunkPageWrapper = chunkPersistencePort.getChunksPort(command.getPage(), command.getSize(), command.getPassageId());
+
         return PageWrapper.<ChunkVo>builder()
+                .data(chunkPageWrapper.getData().stream().map(ChunkVo::of).toList())
+                .isLast(chunkPageWrapper.isLast())
+                .page(chunkPageWrapper.getPage())
+                .size(chunkPageWrapper.getSize())
+                .totalCount(chunkPageWrapper.getTotalCount())
+                .totalPages(chunkPageWrapper.getTotalPages())
                 .build();
     }
 
     /**
-     * TODO: 청크 수정
+     * 청크 수정
      *
      * @param command 청크 수정 Command
      */
@@ -470,50 +500,31 @@ public class ChunkService implements ChunkUseCase {
     @Override
     public void updateChunkUseCase(UpdateChunkCommand command) {
 
+        Chunk chunk = chunkPersistencePort.getChunkPort(command.getChunkId());
+
+        String compactContent = HtmlUtil.convertTableHtmlToMarkdown(command.getContent());
+
+        chunk.update(
+                command.getTitle(),
+                command.getSubTitle(),
+                command.getThirdTitle(),
+                command.getContent(),
+                command.getSubContent(),
+                compactContent,
+                command.getContent().length(),
+                compactContent.length());
+
+        chunkPersistencePort.saveChunkPort(chunk);
     }
 
     /**
-     * TODO: 청크 삭제
+     * 청크 삭제
      *
      * @param command 청크 삭제 Command
      */
     @Transactional
     @Override
     public void deleteChunkUseCase(DeleteChunkCommand command) {
-
-    }
-
-    /**
-     * 패시지 조회
-     *
-     * @param command 패시지 조회 Command
-     * @return 패시지
-     */
-    @Transactional(readOnly = true)
-    @Override
-    public PassageVo getPassageUseCase(GetPassageCommand command) {
-        return PassageVo.of(passagePersistencePort.getPassagePort(command.getPassageId()));
-    }
-
-    /**
-     * 패시지 목록 조회
-     *
-     * @param command 패시지 목록 조회 Command
-     * @return 패시지 목록
-     */
-    @Transactional(readOnly = true)
-    @Override
-    public PageWrapper<PassageVo> getPassagesUseCase(GetPassagesCommand command) {
-
-        PageWrapper<Passage> passagePageWrapper = passagePersistencePort.getLatestPassagesPort(command.getPage(), command.getSize(), command.getSourceId());
-
-        return PageWrapper.<PassageVo>builder()
-                .data(passagePageWrapper.getData().stream().map(PassageVo::of).toList())
-                .isLast(passagePageWrapper.isLast())
-                .page(passagePageWrapper.getPage())
-                .size(passagePageWrapper.getSize())
-                .totalCount(passagePageWrapper.getTotalCount())
-                .totalPages(passagePageWrapper.getTotalPages())
-                .build();
+        chunkPersistencePort.deleteChunkPort(command.getChunkId());
     }
 }

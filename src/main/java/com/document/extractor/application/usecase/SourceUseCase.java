@@ -3,6 +3,7 @@ package com.document.extractor.application.usecase;
 import com.document.extractor.application.command.CreateSourceCommand;
 import com.document.extractor.application.command.GetSourceCommand;
 import com.document.extractor.application.command.GetSourcesCommand;
+import com.document.extractor.application.vo.ComnCodeVo;
 import com.document.extractor.application.vo.SourceVo;
 import com.document.extractor.application.wrapper.PageWrapper;
 
@@ -39,4 +40,11 @@ public interface SourceUseCase {
      * @return 대상 문서 목록
      */
     PageWrapper<SourceVo> getSourcesUseCase(GetSourcesCommand command);
+
+    /**
+     * 대상 문서 카테고리 목록 조회
+     *
+     * @return 대상 문서 카테고리 목록
+     */
+    List<ComnCodeVo> getCategoriesSourceUseCase();
 }

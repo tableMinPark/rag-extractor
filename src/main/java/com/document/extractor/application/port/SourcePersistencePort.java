@@ -34,15 +34,15 @@ public interface SourcePersistencePort {
     /**
      * 대상 문서 목록 조회
      *
-     * @param page    페이지
-     * @param size    사이즈
-     * @param orderBy 정렬 필드
-     * @param order   정렬 방향 ( asc | desc )
-     * @param keyword 키워드
-     * @param isAuto  자동화 여부
+     * @param page         페이지
+     * @param size         사이즈
+     * @param orderBy      정렬 필드
+     * @param order        정렬 방향 ( asc | desc )
+     * @param keyword      키워드
+     * @param categoryCode 카테고리 코드
      * @return 대상 문서 목록
      */
-    PageWrapper<Source> getSourcesPort(int page, int size, String orderBy, String order, String keyword, Boolean isAuto);
+    PageWrapper<Source> getSourcesPort(int page, int size, String orderBy, String order, String keyword, String categoryCode);
 
     /**
      * 배치 대상 문서 목록 조회

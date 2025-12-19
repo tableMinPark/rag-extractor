@@ -7,11 +7,13 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum SourceType {
 
-    FILE("SOURCE-TYPE-FILE"),
-    REPO("SOURCE-TYPE-REPO"),
+    FILE("SOURCE-TYPE-FILE", "파일"),
+    REPO("SOURCE-TYPE-REPO", "원격"),
     ;
 
     private final String code;
+
+    private final String name;
 
     public static SourceType find(String code) {
         for (SourceType sourceType : SourceType.values()) {

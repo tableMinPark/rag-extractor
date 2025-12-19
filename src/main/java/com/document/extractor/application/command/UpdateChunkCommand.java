@@ -11,5 +11,13 @@ public class UpdateChunkCommand {
 
     private Long chunkId;
 
-    private String content;
+    private final String title;
+
+    private final String subTitle;
+
+    private final String thirdTitle;
+
+    private final String content;
+
+    private final String subContent;
 }

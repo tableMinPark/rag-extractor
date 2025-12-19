@@ -50,29 +50,4 @@ public interface PassagePersistencePort {
      * @return 패시지 목록
      */
     List<Passage> savePassagesPort(List<Passage> passages);
-
-    /**
-     * 정렬 필드, 버전 코드 기준 청크 목록 조회
-     *
-     * @param sortOrder 정렬 필드
-     * @param version   버전 코드
-     * @return 청크 목록
-     */
-    List<Chunk> getChunkBySortOrderAndVersionPort(Long sourceId, Integer sortOrder, Long version);
-
-    /**
-     * 청크 저장
-     *
-     * @param chunk 청크
-     * @return 청크
-     */
-    Chunk saveChunkPortPort(Chunk chunk);
-
-    /**
-     * 청크 목록 저장
-     *
-     * @param chunks 청크 목록
-     * @return 청크 목록
-     */
-    List<Chunk> saveChunksPort(List<Chunk> chunks);
 }

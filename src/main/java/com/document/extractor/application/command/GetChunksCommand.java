@@ -9,6 +9,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public class GetChunksCommand {
 
+    private final long passageId;
+
     private final int page;
 
     private final int size;

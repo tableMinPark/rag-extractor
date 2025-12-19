@@ -2,14 +2,16 @@ package com.document.extractor.adapter.in;
 
 import com.document.extractor.adapter.in.dto.etc.PatternDto;
 import com.document.extractor.adapter.in.dto.request.*;
-import com.document.extractor.adapter.in.dto.response.*;
+import com.document.extractor.adapter.in.dto.response.ChunkResponseDto;
+import com.document.extractor.adapter.in.dto.response.GetChunkResponseDto;
+import com.document.extractor.adapter.in.dto.response.PageResponseDto;
+import com.document.extractor.adapter.in.dto.response.ResponseDto;
 import com.document.extractor.adapter.in.enums.Response;
 import com.document.extractor.adapter.propery.FileProperty;
 import com.document.extractor.application.command.*;
 import com.document.extractor.application.usecase.ChunkUseCase;
 import com.document.extractor.application.vo.ChunkResultVo;
 import com.document.extractor.application.vo.ChunkVo;
-import com.document.extractor.application.vo.PassageVo;
 import com.document.extractor.application.wrapper.PageWrapper;
 import com.document.global.utils.FileUtil;
 import com.document.global.vo.UploadFile;
@@ -33,13 +35,14 @@ import java.util.List;
 @Tag(name = "ChunkController", description = "청킹 컨트롤러")
 @RequiredArgsConstructor
 @RestController
+@RequestMapping("/api/chunk")
 public class ChunkController {
 
     private final ChunkUseCase chunkUseCase;
     private final FileProperty fileProperty;
 
     @Operation(summary = "파일 청킹")
-    @PostMapping(path = "/chunk/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(path = "/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ResponseDto<List<ChunkResponseDto>>> chunkFiles(
             @Valid
             @Parameter(name = "chunkFilesRequestDto", description = "파일 청킹 정보", required = true)
@@ -83,7 +86,7 @@ public class ChunkController {
     }
 
     @Operation(summary = "원격 문서 청킹")
-    @PostMapping(path = "/chunk/repo")
+    @PostMapping(path = "/repo")
     public ResponseEntity<ResponseDto<List<ChunkResponseDto>>> chunkRepos(
             @Valid
             @Parameter(name = "chunkReposRequestDto", description = "원격 문서 청킹 정보", required = true)
@@ -114,7 +117,7 @@ public class ChunkController {
     }
 
     @Operation(summary = "대상 문서 청킹")
-    @PostMapping(path = "/chunk/source")
+    @PostMapping(path = "/source")
     public ResponseEntity<ResponseDto<List<ChunkResponseDto>>> chunkSources(
             @Valid
             @Parameter(name = "chunkSourcesRequestDto", description = "대상 문서 청킹 정보", required = true)
@@ -140,7 +143,7 @@ public class ChunkController {
     }
 
     @Operation(summary = "청크 등록 (패시지 ID 기준)")
-    @PostMapping(path = "/chunk")
+    @PostMapping
     public ResponseEntity<ResponseDto<?>> createChunk(
             @Valid
             @Parameter(name = "createChunkRequestDto", description = "청크 등록 정보", required = true)
@@ -150,6 +153,11 @@ public class ChunkController {
 
         chunkUseCase.createChunkUseCase(CreateChunkCommand.builder()
                 .passageId(createChunkRequestDto.getPassageId())
+                .title(createChunkRequestDto.getTitle())
+                .subTitle(createChunkRequestDto.getSubTitle())
+                .thirdTitle(createChunkRequestDto.getThirdTitle())
+                .content(createChunkRequestDto.getContent())
+                .subContent(createChunkRequestDto.getSubContent())
                 .content(createChunkRequestDto.getContent())
                 .build());
 
@@ -157,7 +165,7 @@ public class ChunkController {
     }
 
     @Operation(summary = "청크 조회 (청크 ID 기준)")
-    @GetMapping(path = "/chunk/{chunkId}")
+    @GetMapping(path = "/{chunkId}")
     public ResponseEntity<ResponseDto<GetChunkResponseDto>> getChunk(@PathVariable("chunkId") Long chunkId) {
 
         ChunkVo chunkVo = chunkUseCase.getChunkUseCase(GetChunkCommand.builder()
@@ -170,13 +178,15 @@ public class ChunkController {
     }
 
     @Operation(summary = "청크 목록 조회 (패시지 ID 기준, 페이징)")
-    @GetMapping(path = "/chunk")
+    @GetMapping
     public ResponseEntity<ResponseDto<PageResponseDto<GetChunkResponseDto>>> getChunks(
             @RequestParam("page") int page,
-            @RequestParam("size") int size
+            @RequestParam("size") int size,
+            @RequestParam("passageId") long passageId
     ) {
 
         PageWrapper<ChunkVo> chunkVoPageWrapper = chunkUseCase.getChunksUseCase(GetChunksCommand.builder()
+                .passageId(passageId)
                 .page(page)
                 .size(size)
                 .build());
@@ -207,6 +217,11 @@ public class ChunkController {
 
         chunkUseCase.updateChunkUseCase(UpdateChunkCommand.builder()
                 .chunkId(chunkId)
+                .title(updateChunkRequestDto.getTitle())
+                .subTitle(updateChunkRequestDto.getSubTitle())
+                .thirdTitle(updateChunkRequestDto.getThirdTitle())
+                .content(updateChunkRequestDto.getContent())
+                .subContent(updateChunkRequestDto.getSubContent())
                 .content(updateChunkRequestDto.getContent())
                 .build());
 
@@ -222,44 +237,5 @@ public class ChunkController {
                 .build());
 
         return ResponseEntity.ok(Response.DELETE_CHUNK_SUCCESS.toResponseDto());
-    }
-
-    @Operation(summary = "패시지 조회 (패시지 ID 기준)")
-    @GetMapping(path = "/passage/{passageId}")
-    public ResponseEntity<ResponseDto<GetPassageResponseDto>> getPassage(@PathVariable("passageId") Long passageId) {
-
-        PassageVo passageVo = chunkUseCase.getPassageUseCase(GetPassageCommand.builder()
-                .passageId(passageId)
-                .build());
-
-        GetPassageResponseDto getPassageResponseDto = GetPassageResponseDto.of(passageVo);
-
-        return ResponseEntity.ok(Response.GET_PASSAGE_SUCCESS.toResponseDto(getPassageResponseDto));
-    }
-
-    @Operation(summary = "패시지 목록 조회 (대상 문서 ID 기준, 페이징)")
-    @GetMapping(path = "/passage")
-    public ResponseEntity<ResponseDto<PageResponseDto<GetPassageResponseDto>>> getPassages(
-            @RequestParam("page") int page,
-            @RequestParam("size") int size,
-            @RequestParam("sourceId") long sourceId
-    ) {
-
-        PageWrapper<PassageVo> passageVoPageWrapper = chunkUseCase.getPassagesUseCase(GetPassagesCommand.builder()
-                .sourceId(sourceId)
-                .page(page)
-                .size(size)
-                .build());
-
-        PageResponseDto<GetPassageResponseDto> pageResponseDto = PageResponseDto.<GetPassageResponseDto>builder()
-                .content(GetPassageResponseDto.toList(passageVoPageWrapper.getData()))
-                .isLast(passageVoPageWrapper.isLast())
-                .pageNo(passageVoPageWrapper.getPage())
-                .pageSize(passageVoPageWrapper.getSize())
-                .totalCount(passageVoPageWrapper.getTotalCount())
-                .totalPages(passageVoPageWrapper.getTotalPages())
-                .build();
-
-        return ResponseEntity.ok(Response.GET_PASSAGES_SUCCESS.toResponseDto(pageResponseDto));
     }
 }

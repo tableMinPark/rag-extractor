@@ -54,7 +54,7 @@ public class SourcePrefixEntity {
         return SourcePrefix.builder()
                 .sourcePrefixId(sourcePrefixId)
                 .sourcePatternId(sourcePatternId)
-                .prefix(prefix)
+                .prefix(prefix == null ? "" : prefix)
                 .order(order)
                 .isTitle(isTitle)
                 .build();

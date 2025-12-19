@@ -17,21 +17,21 @@ public class Chunk {
 
     private Long version;
 
-    private final String title;
+    private String title;
 
-    private final String subTitle;
+    private String subTitle;
 
-    private final String thirdTitle;
+    private String thirdTitle;
 
-    private final String content;
+    private String content;
 
-    private final String subContent;
+    private String subContent;
 
-    private final String compactContent;
+    private String compactContent;
 
-    private final Integer tokenSize;
+    private Integer tokenSize;
 
-    private final Integer compactTokenSize;
+    private Integer compactTokenSize;
 
     private final LocalDateTime sysCreateDt;
 
@@ -40,5 +40,18 @@ public class Chunk {
     public void update(Long passageId, Long version) {
         this.passageId = passageId;
         this.version = version;
+    }
+
+    public void update(String title, String subTitle, String thirdTitle,
+                       String content, String subContent, String compactContent,
+                       int tokenSize, int compactTokenSize) {
+        this.title = title;
+        this.subTitle = subTitle;
+        this.thirdTitle = thirdTitle;
+        this.content = content;
+        this.subContent = subContent;
+        this.compactContent = compactContent;
+        this.tokenSize = tokenSize;
+        this.compactTokenSize = compactTokenSize;
     }
 }

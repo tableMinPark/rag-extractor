@@ -6,10 +6,12 @@ import com.document.extractor.application.command.GetSourceCommand;
 import com.document.extractor.application.command.GetSourcesCommand;
 import com.document.extractor.application.enums.SelectType;
 import com.document.extractor.application.enums.SourceType;
+import com.document.extractor.application.port.ComnCodePersistencePort;
 import com.document.extractor.application.port.ExtractPort;
 import com.document.extractor.application.port.FilePersistencePort;
 import com.document.extractor.application.port.SourcePersistencePort;
 import com.document.extractor.application.usecase.SourceUseCase;
+import com.document.extractor.application.vo.ComnCodeVo;
 import com.document.extractor.application.vo.SourceVo;
 import com.document.extractor.application.wrapper.PageWrapper;
 import com.document.extractor.domain.model.*;
@@ -30,6 +32,7 @@ public class SourceService implements SourceUseCase {
 
     private final SourcePersistencePort sourcePersistencePort;
     private final FilePersistencePort filePersistencePort;
+    private final ComnCodePersistencePort comnCodePersistencePort;
     private final ExtractPort extractPort;
 
     /**
@@ -157,7 +160,8 @@ public class SourceService implements SourceUseCase {
     public PageWrapper<SourceVo> getSourcesUseCase(GetSourcesCommand command) {
 
         PageWrapper<Source> sourcePageWrapper = sourcePersistencePort.getSourcesPort(
-                command.getPage(), command.getSize(), command.getOrderBy(), command.getOrder(), command.getKeyword(), command.getIsAuto());
+                command.getPage(), command.getSize(), command.getOrderBy(), command.getOrder(),
+                command.getKeyword(), command.getCategoryCode());
 
         return PageWrapper.<SourceVo>builder()
                 .data(sourcePageWrapper.getData().stream().map(SourceVo::of).toList())
@@ -167,5 +171,18 @@ public class SourceService implements SourceUseCase {
                 .totalCount(sourcePageWrapper.getTotalCount())
                 .totalPages(sourcePageWrapper.getTotalPages())
                 .build();
+    }
+
+    /**
+     * 대상 문서 카테고리 목록 조회
+     *
+     * @return 대상 문서 카테고리 목록
+     */
+    @Transactional(readOnly = true)
+    @Override
+    public List<ComnCodeVo> getCategoriesSourceUseCase() {
+        return comnCodePersistencePort.getComnCodesByCodeGroupPort("TRAIN").stream()
+                .map(ComnCodeVo::of)
+                .toList();
     }
 }

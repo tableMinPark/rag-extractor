@@ -49,15 +49,16 @@ public class SourceEntity {
     @Comment("전처리 타입")
     private String selectType;
 
-    @Column(name = "category_code")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_code", referencedColumnName = "code")
     @Comment("대상 문서 분류")
-    private String categoryCode;
+    private ComnCodeEntity category;
 
     @Column(name = "name")
     @Comment("대상 문서명")
     private String name;
 
-//    @Lob
+    @Lob
     @Column(name = "content")
     @Comment("대상 문서 본문")
     private String content;
@@ -82,6 +83,10 @@ public class SourceEntity {
     @Comment("자동화 처리 여부")
     private Boolean isAuto;
 
+    @Column(name = "is_batch")
+    @Comment("배치 처리 여부")
+    private Boolean isBatch;
+
     @CreatedDate
     @Column(name = "sys_create_dt")
     @Comment("생성 일자")
@@ -100,11 +105,11 @@ public class SourceEntity {
     @JoinColumn(name = "source_id")
     private List<SourceStopPatternEntity> sourceStopPatterns;
 
-    public void update(Source source) {
+    public void update(Source source, ComnCodeEntity category) {
         this.version = source.getVersion();
         this.sourceType = source.getSourceType().getCode();
         this.selectType = source.getSelectType().getCode();
-        this.categoryCode = source.getCategoryCode();
+        this.category = category;
         this.name = source.getName();
         this.content = source.getContent();
         this.collectionId = source.getCollectionId();
@@ -112,6 +117,7 @@ public class SourceEntity {
         this.maxTokenSize = source.getMaxTokenSize();
         this.overlapSize = source.getOverlapSize();
         this.isAuto = source.getIsAuto();
+        this.isBatch = source.getIsBatch();
 
         for (SourcePattern sourcePattern : source.getSourcePatterns()) {
             Optional<SourcePatternEntity> sourcePatternEntityOptional = this.getSourcePattern(sourcePattern.getSourcePatternId());
@@ -156,14 +162,16 @@ public class SourceEntity {
                 .version(version)
                 .sourceType(SourceType.find(sourceType))
                 .selectType(SelectType.find(selectType))
-                .categoryCode(categoryCode)
-                .name(name)
-                .content(content)
+                .categoryCode(category == null ? "" : category.getCode())
+                .categoryName(category == null ? "" : category.getCodeName())
+                .name(name == null ? "" : name)
+                .content(content == null ? "" : content)
                 .collectionId(collectionId)
                 .fileDetailId(fileDetailId)
                 .maxTokenSize(maxTokenSize)
                 .overlapSize(overlapSize)
                 .isAuto(isAuto)
+                .isBatch(isBatch)
                 .sysCreateDt(sysCreateDt)
                 .sysModifyDt(sysModifyDt)
                 .sourcePatterns(sourcePatterns.stream()
@@ -175,13 +183,13 @@ public class SourceEntity {
                 .build();
     }
 
-    public static SourceEntity fromDomain(Source source) {
+    public static SourceEntity fromDomain(Source source, ComnCodeEntity category) {
         return SourceEntity.builder()
                 .sourceId(source.getSourceId())
                 .version(source.getVersion())
                 .sourceType(source.getSourceType().getCode())
                 .selectType(source.getSelectType().getCode())
-                .categoryCode(source.getCategoryCode())
+                .category(category)
                 .name(source.getName())
                 .content(source.getContent())
                 .collectionId(source.getCollectionId())
@@ -189,6 +197,7 @@ public class SourceEntity {
                 .maxTokenSize(source.getMaxTokenSize())
                 .overlapSize(source.getOverlapSize())
                 .isAuto(source.getIsAuto())
+                .isBatch(source.getIsBatch())
                 .sourcePatterns(source.getSourcePatterns().stream()
                         .map(SourcePatternEntity::fromDomain)
                         .toList())

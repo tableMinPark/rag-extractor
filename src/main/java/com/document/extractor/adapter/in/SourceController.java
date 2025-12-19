@@ -3,6 +3,7 @@ package com.document.extractor.adapter.in;
 import com.document.extractor.adapter.in.dto.etc.RepoResourceDto;
 import com.document.extractor.adapter.in.dto.request.CreateFileSourceRequestDto;
 import com.document.extractor.adapter.in.dto.request.CreateRepoSourceRequestDto;
+import com.document.extractor.adapter.in.dto.response.GetSourceCategoriesResponseDto;
 import com.document.extractor.adapter.in.dto.response.GetSourceResponseDto;
 import com.document.extractor.adapter.in.dto.response.PageResponseDto;
 import com.document.extractor.adapter.in.dto.response.ResponseDto;
@@ -38,7 +39,7 @@ import java.util.List;
 @Validated
 @Tag(name = "SourceController", description = "대상 문서 컨트롤러")
 @RequiredArgsConstructor
-@RequestMapping("/source")
+@RequestMapping("/api/source")
 @RestController
 public class SourceController {
 
@@ -173,23 +174,23 @@ public class SourceController {
             @Min(1) @Max(100)
             @RequestParam("size")
             Integer size,
-            @RequestParam(value = "isAuto", required = false)
-            Boolean isAuto,
             @RequestParam(value = "orderBy", defaultValue = "sourceId", required = false)
             String orderBy,
             @Pattern(regexp = "asc|desc", message = "asc | desc 만 지원")
             @RequestParam(value = "order", defaultValue = "desc", required = false)
             String order,
             @RequestParam(value = "keyword", defaultValue = "", required = false)
-            String keyword
+            String keyword,
+            @RequestParam(value = "categoryCode", defaultValue = "", required = false)
+            String categoryCode
     ) {
         PageWrapper<SourceVo> sourceVoPageWrapper = sourceUseCase.getSourcesUseCase(GetSourcesCommand.builder()
                 .page(page)
                 .size(size)
-                .isAuto(isAuto)
                 .orderBy(orderBy)
                 .order(order)
                 .keyword(keyword)
+                .categoryCode(categoryCode)
                 .build());
 
         PageResponseDto<GetSourceResponseDto> pageResponseDto = PageResponseDto.<GetSourceResponseDto>builder()
@@ -202,5 +203,19 @@ public class SourceController {
                 .build();
 
         return ResponseEntity.ok(Response.GET_SOURCES_SUCCESS.toResponseDto(pageResponseDto));
+    }
+
+    @Operation(summary = "대상 문서 카테고리 목록 조회")
+    @GetMapping("/category")
+    public ResponseEntity<ResponseDto<List<GetSourceCategoriesResponseDto>>> getSourceCategories() {
+
+        List<GetSourceCategoriesResponseDto> getSourceCategoriesResponseDtos = sourceUseCase.getCategoriesSourceUseCase().stream()
+                .map(comnCodeVo -> GetSourceCategoriesResponseDto.builder()
+                        .code(comnCodeVo.getCode())
+                        .name(comnCodeVo.getCodeName())
+                        .build())
+                .toList();
+
+        return ResponseEntity.ok(Response.GET_SOURCE_CATEGORIES_SUCCESS.toResponseDto(getSourceCategoriesResponseDtos));
     }
 }

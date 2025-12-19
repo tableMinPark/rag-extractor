@@ -1,6 +1,6 @@
 package com.document.extractor.adapter.in.exception;
 
-import com.document.extractor.adapter.in.ChunkBatchController;
+import com.document.extractor.adapter.in.BatchController;
 import com.document.extractor.adapter.in.ChunkController;
 import com.document.extractor.adapter.in.ExtractController;
 import com.document.extractor.adapter.in.SourceController;
@@ -25,7 +25,7 @@ import java.util.Set;
         SourceController.class,
         ExtractController.class,
         ChunkController.class,
-        ChunkBatchController.class,
+        BatchController.class,
 })
 public class GlobalExceptionHandler {
 
