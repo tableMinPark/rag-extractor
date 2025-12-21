@@ -1,19 +1,15 @@
 package com.document.extractor.adapter.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
-
-    @Value("${server.cross-origin}")
-    private String[] crossOrigin;
 
     private final OctetStreamReadMsgConverter octetStreamReadMsgConverter;
 
@@ -28,14 +24,7 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        if (crossOrigin.length > 0) {
-            registry.addMapping("/**")
-                    .allowedOrigins(crossOrigin)
-                    .allowedMethods("*")
-                    .allowedHeaders("*")
-                    .allowCredentials(false)
-                    .maxAge(3600);
-        }
+    public void configurePathMatch(PathMatchConfigurer configurer) {
+        configurer.addPathPrefix("/api", c -> c.getPackageName().startsWith("com.document.extractor.adapter.in"));
     }
 }

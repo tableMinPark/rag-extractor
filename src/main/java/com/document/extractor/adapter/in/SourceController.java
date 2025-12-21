@@ -39,7 +39,7 @@ import java.util.List;
 @Validated
 @Tag(name = "SourceController", description = "대상 문서 컨트롤러")
 @RequiredArgsConstructor
-@RequestMapping("/api/source")
+@RequestMapping("/source")
 @RestController
 public class SourceController {
 

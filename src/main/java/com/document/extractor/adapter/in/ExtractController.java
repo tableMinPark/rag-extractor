@@ -29,7 +29,7 @@ import java.util.List;
 @Validated
 @Tag(name = "ExtractController", description = "추출 컨트롤러")
 @RequiredArgsConstructor
-@RequestMapping("/api/extract")
+@RequestMapping("/extract")
 @RestController
 public class ExtractController {
 

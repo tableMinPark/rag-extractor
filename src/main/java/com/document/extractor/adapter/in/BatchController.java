@@ -26,7 +26,7 @@ import java.util.List;
 @Validated
 @Tag(name = "BatchController", description = "배치 컨트롤러")
 @RequiredArgsConstructor
-@RequestMapping("/api/batch")
+@RequestMapping("/batch")
 @RestController
 public class BatchController {
 

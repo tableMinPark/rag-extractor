@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "PassageController", description = "패시지 컨트롤러")
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/passage")
+@RequestMapping("/passage")
 public class PassageController {
 
     private final PassageUseCase passageUseCase;

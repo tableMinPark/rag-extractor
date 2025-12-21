@@ -35,7 +35,7 @@ import java.util.List;
 @Tag(name = "ChunkController", description = "청킹 컨트롤러")
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/chunk")
+@RequestMapping("/chunk")
 public class ChunkController {
 
     private final ChunkUseCase chunkUseCase;
