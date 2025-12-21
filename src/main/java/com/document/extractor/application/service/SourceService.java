@@ -116,6 +116,7 @@ public class SourceService implements SourceUseCase {
                 .maxTokenSize(command.getMaxTokenSize())
                 .overlapSize(command.getOverlapSize())
                 .isAuto(command.getIsAuto())
+                .isBatch(false)
                 .sourcePatterns(sourcePatterns)
                 .sourceStopPatterns(sourceStopPatterns)
                 .build();
