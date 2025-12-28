@@ -10,6 +10,12 @@ export interface GetSourcesResponse extends PageResponse {
 
 export interface GetCategorySource extends Category {}
 
+export interface GetSourceTotalCountResponse {
+  sourceTotalCount: number
+  passageTotalCount: number
+  chunkTotalCount: number
+}
+
 /**
  * 문서 목록 조회 API
  *
@@ -156,6 +162,18 @@ export const createRepoSourcesApi = async (
     port,
     repoResources,
   })
+
+  return response.data
+}
+
+/**
+ * 문서 총 카운트 정보 조회 API
+ */
+export const getSourceTotalCountApi = async (): Promise<
+  ApiResponse<GetSourceTotalCountResponse>
+> => {
+  const response =
+    await client.get<ApiResponse<GetSourceTotalCountResponse>>(`/source/count`)
 
   return response.data
 }

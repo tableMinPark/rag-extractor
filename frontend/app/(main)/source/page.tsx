@@ -6,6 +6,7 @@ import { FolderOpen, Loader2, AlertCircle, RefreshCw } from 'lucide-react'
 import { Category, Source } from '@/types/domain'
 import { getCategoriesSourceApi, getSourcesApi } from '@/api/source'
 import { CreateSourceModal } from '@/components/modal/CreateSourceModal'
+import { getRole } from '@/public/ts/storageUtil'
 
 export default function SourceListPage() {
   const router = useRouter()
@@ -116,12 +117,14 @@ export default function SourceListPage() {
             <p className="mt-1 text-xs text-gray-500">대상 문서 목록</p>
           </div>
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-primary hover:bg-primary-hover flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white shadow-sm transition-all active:scale-95"
-        >
-          <span>+ 문서 등록</span>
-        </button>
+        {getRole() === 'ROLE_ADMIN' && (
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-primary hover:bg-primary-hover flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white shadow-sm transition-all active:scale-95"
+          >
+            <span>+ 문서 등록</span>
+          </button>
+        )}
       </div>
       {/* 2. 검색 및 필터 영역 (새로 추가됨) */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">

@@ -22,6 +22,8 @@ import {
   Search,
   SearchCode,
 } from 'lucide-react'
+import { getSourceTotalCountApi } from '@/api/source'
+import { getUserName } from '@/public/ts/storageUtil'
 
 // ###################################################
 // 상수 및 타입 정의 (Constants & Types)
@@ -31,66 +33,6 @@ interface DashboardStats {
   totalDocuments: number
   totalPassages: number
   totalChunks: number
-  vectorDbStatus: 'ONLINE' | 'OFFLINE'
-  llmStatus: 'ONLINE' | 'OFFLINE'
-}
-
-interface RecentDocument {
-  id: number
-  name: string
-  type: string
-  date: string
-  status: 'Complete' | 'Processing' | 'Failed'
-}
-
-// [API Mock] 대시보드 데이터 조회
-const fetchDashboardData = async (): Promise<{
-  stats: DashboardStats
-  recentDocs: RecentDocument[]
-}> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        stats: {
-          totalDocuments: 128,
-          totalPassages: 4052,
-          totalChunks: 12405,
-          vectorDbStatus: 'ONLINE',
-          llmStatus: 'ONLINE',
-        },
-        recentDocs: [
-          {
-            id: 1,
-            name: '2024년_인사규정_개정안.pdf',
-            type: 'PDF',
-            date: '2024-03-15 14:30',
-            status: 'Complete',
-          },
-          {
-            id: 2,
-            name: '신규_입사자_가이드.docx',
-            type: 'DOCX',
-            date: '2024-03-15 11:20',
-            status: 'Processing',
-          },
-          {
-            id: 3,
-            name: 'AI_서비스_기획서_v2.hwp',
-            type: 'HWP',
-            date: '2024-03-14 18:00',
-            status: 'Complete',
-          },
-          {
-            id: 4,
-            name: '3월_마케팅_보고서.txt',
-            type: 'TXT',
-            date: '2024-03-14 09:15',
-            status: 'Failed',
-          },
-        ],
-      })
-    }, 800)
-  })
 }
 
 export default function HomePage() {
@@ -103,10 +45,7 @@ export default function HomePage() {
     totalDocuments: 0,
     totalPassages: 0,
     totalChunks: 0,
-    vectorDbStatus: 'OFFLINE',
-    llmStatus: 'OFFLINE',
   })
-  const [recentDocs, setRecentDocs] = useState<RecentDocument[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   // ###################################################
@@ -114,15 +53,18 @@ export default function HomePage() {
   // ###################################################
   useEffect(() => {
     const loadData = async () => {
-      try {
-        const data = await fetchDashboardData()
-        setStats(data.stats)
-        setRecentDocs(data.recentDocs)
-      } catch (error) {
-        console.error('Failed to load dashboard data', error)
-      } finally {
-        setIsLoading(false)
-      }
+      await getSourceTotalCountApi()
+        .then((response) => {
+          setStats({
+            totalDocuments: response.result.sourceTotalCount,
+            totalPassages: response.result.passageTotalCount,
+            totalChunks: response.result.chunkTotalCount,
+          })
+        })
+        .catch((error) => {
+          console.error('Failed to load dashboard data', error)
+        })
+      setIsLoading(false)
     }
     loadData()
   }, [])
@@ -135,16 +77,15 @@ export default function HomePage() {
       {/* 1. 헤더 영역 */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800">
-          안녕하세요, 관리자님 👋
+          안녕하세요, {getUserName()} 님 👋
         </h1>
         <p className="mt-2 text-gray-500">
-          <span className="text-primary font-bold">RAG System</span>의 현황을
-          확인하고 작업을 시작하세요.
+          문서 처리 현황을 확인하고 작업을 시작하세요.
         </p>
       </div>
 
       {/* 2. 통계 카드 영역 (KPIs) - Primary 컬러 테마 적용 */}
-      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         <StatCard
           title="총 문서 (Sources)"
           value={stats.totalDocuments.toLocaleString()}
@@ -161,13 +102,6 @@ export default function HomePage() {
           title="총 청크 (Chunks)"
           value={stats.totalChunks.toLocaleString()}
           icon={<Layers className="text-primary h-6 w-6" />}
-          isLoading={isLoading}
-        />
-        <StatCard
-          title="Vector DB Status"
-          value={stats.vectorDbStatus}
-          icon={<Database className="text-primary h-6 w-6" />}
-          isStatus
           isLoading={isLoading}
         />
       </div>
@@ -252,8 +186,7 @@ export default function HomePage() {
 // ###################################################
 // [Sub Components]
 // ###################################################
-
-const StatCard = ({ title, value, icon, isStatus = false, isLoading }: any) => (
+const StatCard = ({ title, value, icon, isLoading }: any) => (
   <div className="hover:border-primary/30 flex flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all hover:shadow-md">
     <div className="mb-4 flex items-center justify-between">
       <span className="text-sm font-bold text-gray-500">{title}</span>
@@ -266,31 +199,7 @@ const StatCard = ({ title, value, icon, isStatus = false, isLoading }: any) => (
       <div className="h-8 w-24 animate-pulse rounded bg-gray-200" />
     ) : (
       <div className="flex items-end gap-2">
-        <span
-          className={`text-3xl font-extrabold ${
-            isStatus
-              ? value === 'ONLINE'
-                ? 'text-green-500' // 상태값은 의미 전달을 위해 색상 유지
-                : 'text-red-500'
-              : 'text-gray-800'
-          }`}
-        >
-          {value}
-        </span>
-        {isStatus && (
-          <span className="relative mb-1 flex h-3 w-3">
-            <span
-              className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${
-                value === 'ONLINE' ? 'bg-green-400' : 'bg-red-400'
-              }`}
-            ></span>
-            <span
-              className={`relative inline-flex h-3 w-3 rounded-full ${
-                value === 'ONLINE' ? 'bg-green-500' : 'bg-red-500'
-              }`}
-            ></span>
-          </span>
-        )}
+        <span className={`text-3xl font-extrabold text-gray-800`}>{value}</span>
       </div>
     )}
   </div>

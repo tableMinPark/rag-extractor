@@ -47,4 +47,11 @@ public interface SourceUseCase {
      * @return 대상 문서 카테고리 목록
      */
     List<ComnCodeVo> getCategoriesSourceUseCase();
+
+    /**
+     * 총 대상 문서 수 조회
+     *
+     * @return 총 대상 문서 수
+     */
+    long getSourceTotalCountUseCase();
 }

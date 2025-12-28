@@ -2,10 +2,7 @@ package com.document.extractor.adapter.in;
 
 import com.document.extractor.adapter.in.dto.etc.PatternDto;
 import com.document.extractor.adapter.in.dto.request.*;
-import com.document.extractor.adapter.in.dto.response.ChunkResponseDto;
-import com.document.extractor.adapter.in.dto.response.GetChunkResponseDto;
-import com.document.extractor.adapter.in.dto.response.PageResponseDto;
-import com.document.extractor.adapter.in.dto.response.ResponseDto;
+import com.document.extractor.adapter.in.dto.response.*;
 import com.document.extractor.adapter.in.enums.Response;
 import com.document.extractor.adapter.propery.FileProperty;
 import com.document.extractor.application.command.*;
@@ -204,7 +201,7 @@ public class ChunkController {
     }
 
     @Operation(summary = "청크 수정")
-    @PutMapping(path = "/chunk/{chunkId}")
+    @PutMapping(path = "/{chunkId}")
     public ResponseEntity<ResponseDto<?>> updateChunk(
             @Parameter(name = "chunkId", description = "청크 ID", required = true)
             @PathVariable("chunkId")
@@ -222,14 +219,13 @@ public class ChunkController {
                 .thirdTitle(updateChunkRequestDto.getThirdTitle())
                 .content(updateChunkRequestDto.getContent())
                 .subContent(updateChunkRequestDto.getSubContent())
-                .content(updateChunkRequestDto.getContent())
                 .build());
 
         return ResponseEntity.ok(Response.UPDATE_CHUNK_SUCCESS.toResponseDto());
     }
 
     @Operation(summary = "청크 삭제")
-    @DeleteMapping(path = "/chunk/{chunkId}")
+    @DeleteMapping(path = "/{chunkId}")
     public ResponseEntity<ResponseDto<?>> deleteChunk(@PathVariable("chunkId") Long chunkId) {
 
         chunkUseCase.deleteChunkUseCase(DeleteChunkCommand.builder()

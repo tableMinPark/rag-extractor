@@ -22,4 +22,11 @@ public interface PassageUseCase {
      * @return 패시지 목록
      */
     PageWrapper<PassageVo> getPassagesUseCase(GetPassagesCommand command);
+
+    /**
+     * 총 패시지 수 조회
+     *
+     * @return 총 패시지 수
+     */
+    long getPassageTotalCountUseCase();
 }

@@ -9,7 +9,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class ComnCode {
 
-    private Long codeId;
+    private String codeId;
 
     private String code;
 

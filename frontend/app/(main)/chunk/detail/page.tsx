@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { FolderOpen, Edit, Loader2, AlertCircle, Delete } from 'lucide-react'
 import { Chunk } from '@/types/domain'
 import { deleteChunkApi, getChunkApi } from '@/api/chunk'
+import { getRole } from '@/public/ts/storageUtil'
 
 // ###################################################
 // 상수 및 타입 정의 (Constants & Types)
@@ -149,36 +150,36 @@ function ChunkDetailContent() {
 
         {/* 버튼 그룹 */}
         <div className="flex items-center gap-3">
-          {/* 뒤로가기 버튼 */}
-          <button
-            onClick={() => router.back()}
-            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-bold text-gray-600 shadow-sm transition-colors hover:bg-gray-50"
-          >
-            ← 뒤로가기
-          </button>
-
+          {/* 삭제 버튼 */}
+          {(getRole() === 'ROLE_ADMIN' || getRole() === 'ROLE_MANAGER') && (
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-primary hover:bg-primary-hover flex w-fit items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white shadow-sm transition-all active:scale-95"
+            >
+              {isDeleting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Delete className="h-4 w-4" />
+              )}{' '}
+              삭제
+            </button>
+          )}
           {/* 수정 버튼 */}
-          {/* <button
+          <button
             onClick={handleEdit}
-            className="bg-primary hover:bg-primary-hover flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white shadow-sm transition-all active:scale-95"
+            className="bg-primary hover:bg-primary-hover flex w-fit items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white shadow-sm transition-all active:scale-95"
           >
             <Edit className="h-4 w-4" />
             수정
-          </button> */}
-
-          {/* 삭제 버튼 */}
-          {/* <button
-            onClick={handleDelete}
-            disabled={isDeleting}
-            className="bg-primary hover:bg-primary-hover flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white shadow-sm transition-all active:scale-95"
+          </button>
+          {/* 뒤로가기 버튼 */}
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-bold text-gray-600 shadow-sm transition-colors hover:bg-gray-50 active:scale-95"
           >
-            {isDeleting ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Delete className="h-4 w-4" />
-            )}{' '}
-            삭제
-          </button> */}
+            ← 뒤로가기
+          </button>
         </div>
       </div>
 

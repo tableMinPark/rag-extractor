@@ -51,4 +51,10 @@ public interface SourcePersistencePort {
      */
     List<Source> getActiveSourcesPort();
 
+    /**
+     * 총 대상 문서 수 조회
+     *
+     * @return 총 문서 수
+     */
+    long getSourceTotalCountPort();
 }

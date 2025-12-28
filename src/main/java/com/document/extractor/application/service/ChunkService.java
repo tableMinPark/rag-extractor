@@ -438,8 +438,10 @@ public class ChunkService implements ChunkUseCase {
 
         Passage passage = passagePersistencePort.getPassagePort(command.getPassageId());
 
+        // html 제거
+        String content = HtmlUtil.removeHtmlExceptTable(command.getContent());
         // 표 마크 다운 변환
-        String compactContent = HtmlUtil.convertTableHtmlToMarkdown(command.getContent());
+        String compactContent = HtmlUtil.convertTableHtmlToMarkdown(content);
 
         Chunk chunk = Chunk.builder()
                 .passageId(passage.getPassageId())
@@ -502,7 +504,10 @@ public class ChunkService implements ChunkUseCase {
 
         Chunk chunk = chunkPersistencePort.getChunkPort(command.getChunkId());
 
-        String compactContent = HtmlUtil.convertTableHtmlToMarkdown(command.getContent());
+        // html 제거
+        String content = HtmlUtil.removeHtmlExceptTable(command.getContent());
+        // 표 마크 다운 변환
+        String compactContent = HtmlUtil.convertTableHtmlToMarkdown(content);
 
         chunk.update(
                 command.getTitle(),
@@ -526,5 +531,16 @@ public class ChunkService implements ChunkUseCase {
     @Override
     public void deleteChunkUseCase(DeleteChunkCommand command) {
         chunkPersistencePort.deleteChunkPort(command.getChunkId());
+    }
+
+    /**
+     * 총 청크 수 조회
+     *
+     * @return 총 청크 수
+     */
+    @Transactional(readOnly = true)
+    @Override
+    public long getChunkTotalCountUseCase() {
+        return chunkPersistencePort.getChunkTotalCountPort();
     }
 }

@@ -3,16 +3,15 @@ package com.document.extractor.adapter.in;
 import com.document.extractor.adapter.in.dto.etc.RepoResourceDto;
 import com.document.extractor.adapter.in.dto.request.CreateFileSourceRequestDto;
 import com.document.extractor.adapter.in.dto.request.CreateRepoSourceRequestDto;
-import com.document.extractor.adapter.in.dto.response.GetSourceCategoriesResponseDto;
-import com.document.extractor.adapter.in.dto.response.GetSourceResponseDto;
-import com.document.extractor.adapter.in.dto.response.PageResponseDto;
-import com.document.extractor.adapter.in.dto.response.ResponseDto;
+import com.document.extractor.adapter.in.dto.response.*;
 import com.document.extractor.adapter.in.enums.Response;
 import com.document.extractor.adapter.propery.FileProperty;
 import com.document.extractor.application.command.CreateSourceCommand;
 import com.document.extractor.application.command.GetSourceCommand;
 import com.document.extractor.application.command.GetSourcesCommand;
 import com.document.extractor.application.enums.SourceType;
+import com.document.extractor.application.usecase.ChunkUseCase;
+import com.document.extractor.application.usecase.PassageUseCase;
 import com.document.extractor.application.usecase.SourceUseCase;
 import com.document.extractor.application.vo.SourceVo;
 import com.document.extractor.application.wrapper.PageWrapper;
@@ -44,6 +43,8 @@ import java.util.List;
 public class SourceController {
 
     private final SourceUseCase sourceUseCase;
+    private final PassageUseCase passageUseCase;
+    private final ChunkUseCase chunkUseCase;
     private final FileProperty fileProperty;
 
     @Operation(summary = "파일 대상 문서 등록")
@@ -217,5 +218,18 @@ public class SourceController {
                 .toList();
 
         return ResponseEntity.ok(Response.GET_SOURCE_CATEGORIES_SUCCESS.toResponseDto(getSourceCategoriesResponseDtos));
+    }
+
+    @Operation(summary = "문서 총 카운트 정보 조회")
+    @GetMapping("/count")
+    public ResponseEntity<ResponseDto<GetSourceTotalCountResponseDto>> getSourceTotalCount() {
+
+        GetSourceTotalCountResponseDto getSourceTotalCountResponseDto = GetSourceTotalCountResponseDto.builder()
+                .sourceTotalCount(sourceUseCase.getSourceTotalCountUseCase())
+                .passageTotalCount(passageUseCase.getPassageTotalCountUseCase())
+                .chunkTotalCount(chunkUseCase.getChunkTotalCountUseCase())
+                .build();
+
+        return ResponseEntity.ok(Response.GET_SOURCE_TOTAL_COUNT_SUCCESS.toResponseDto(getSourceTotalCountResponseDto));
     }
 }

@@ -56,4 +56,11 @@ public interface ChunkPersistencePort {
      * @param chunkId 청크 ID
      */
     void deleteChunkPort(Long chunkId);
+
+    /**
+     * 총 청크 수 조회
+     *
+     * @return 총 청크 수
+     */
+    long getChunkTotalCountPort();
 }

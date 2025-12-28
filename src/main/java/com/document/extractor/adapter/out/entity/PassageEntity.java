@@ -71,7 +71,7 @@ public class PassageEntity {
 
     @Column(name = "update_state")
     @Comment("변경 이력 코드")
-    private String updateStateCode;
+    private String updateState;
 
     @Column(name = "parent_sort_order")
     @Comment("부모 정렬 필드")
@@ -98,7 +98,7 @@ public class PassageEntity {
         this.content = passage.getContent();
         this.subContent = passage.getSubContent();
         this.tokenSize = passage.getTokenSize();
-        this.updateStateCode = passage.getUpdateState().getCode();
+        this.updateState = passage.getUpdateState().getCode();
         return this;
     }
 
@@ -115,7 +115,7 @@ public class PassageEntity {
                 .content(content == null ? "" : content)
                 .subContent(subContent == null ? "" : subContent)
                 .tokenSize(tokenSize)
-                .updateState(UpdateState.find(updateStateCode))
+                .updateState(UpdateState.find(updateState))
                 .sysCreateDt(sysCreateDt)
                 .sysModifyDt(sysModifyDt)
                 .build();
@@ -134,7 +134,7 @@ public class PassageEntity {
                 .content(passage.getContent())
                 .subContent(passage.getSubContent())
                 .tokenSize(passage.getTokenSize())
-                .updateStateCode(passage.getUpdateState().getCode())
+                .updateState(passage.getUpdateState().getCode())
                 .build();
     }
 }

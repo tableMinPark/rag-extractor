@@ -130,4 +130,15 @@ public class SourcePersistenceAdapter implements SourcePersistencePort {
                 .map(SourceEntity::toDomain)
                 .collect(Collectors.toList());
     }
+
+    /**
+     * 총 대상 문서 수 조회
+     *
+     * @return 총 문서 수
+     */
+    @Transactional(readOnly = true)
+    @Override
+    public long getSourceTotalCountPort() {
+        return sourceRepository.count();
+    }
 }

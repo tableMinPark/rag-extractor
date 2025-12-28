@@ -136,4 +136,15 @@ public class ChunkPersistenceAdapter implements ChunkPersistencePort {
     public void deleteChunkPort(Long chunkId) {
         chunkRepository.deleteById(chunkId);
     }
+
+    /**
+     * 총 청크 수 조회
+     *
+     * @return 총 청크 수
+     */
+    @Transactional(readOnly = true)
+    @Override
+    public long getChunkTotalCountPort() {
+        return chunkRepository.count();
+    }
 }

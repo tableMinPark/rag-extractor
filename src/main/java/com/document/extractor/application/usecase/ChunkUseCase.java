@@ -78,4 +78,11 @@ public interface ChunkUseCase {
      * @param command 청크 삭제 Command
      */
     void deleteChunkUseCase(DeleteChunkCommand command);
+
+    /**
+     * 총 청크 수 조회
+     *
+     * @return 총 청크 수
+     */
+    long getChunkTotalCountUseCase();
 }

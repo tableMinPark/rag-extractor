@@ -50,4 +50,11 @@ public interface PassagePersistencePort {
      * @return 패시지 목록
      */
     List<Passage> savePassagesPort(List<Passage> passages);
+
+    /**
+     * 총 패시지 수 조회
+     *
+     * @return 총 패시지 수
+     */
+    long getPassageTotalCountPort();
 }

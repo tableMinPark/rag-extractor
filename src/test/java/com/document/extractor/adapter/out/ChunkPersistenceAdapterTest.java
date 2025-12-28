@@ -60,11 +60,13 @@ class ChunkPersistenceAdapterTest {
         int updateCount = 0;
 
         Page<ChunkOriginEntityForTest> originTemps;
+        Page<ChunkTmpEntityForTest> temps;
 
         do {
             page++;
             Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.ASC, "chunkId"));
 
+            /*
             originTemps = chunkOriginRepository.findAll(pageable);
 
             for (ChunkOriginEntityForTest originTemp : originTemps) {
@@ -88,10 +90,31 @@ class ChunkPersistenceAdapterTest {
                     createCount++;
                 }
             }
+            */
+            temps = chunkTmpRepository.findAll(pageable);
+            for (ChunkTmpEntityForTest temp : temps) {
+                ChunkEntity chunkEntity = ChunkEntity.builder()
+                        .passageId(1L)
+                        .version(999L)
+                        .subContent(temp.getSubContent())
+                        .compactContent("")
+                        .compactTokenSize(0)
+                        .title(temp.getTitle())
+                        .subTitle(temp.getSubTitle())
+                        .thirdTitle(temp.getThirdTitle())
+                        .content(temp.getContent())
+                        .tokenSize(temp.getTokenSize())
+                        .build();
+                chunkRepository.save(chunkEntity);
+                createCount++;
+            }
 
-            log.info("W) page: {}/{}, size: {}, totalCount: {}", page, originTemps.getTotalPages(), size, totalCount);
 
-        } while (page < originTemps.getTotalPages());
+//            log.info("W) page: {}/{}, size: {}, totalCount: {}", page, originTemps.getTotalPages(), size, totalCount);
+            log.info("W) page: {}/{}, size: {}, totalCount: {}", page, temps.getTotalPages(), size, totalCount);
+
+//        } while (page < originTemps.getTotalPages());
+        } while (page < temps.getTotalPages());
 
         log.info("update: {}, create: {}, total: {}", updateCount, createCount, updateCount + createCount);
     }

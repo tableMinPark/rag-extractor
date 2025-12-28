@@ -186,4 +186,15 @@ public class SourceService implements SourceUseCase {
                 .map(ComnCodeVo::of)
                 .toList();
     }
+
+    /**
+     * 총 대상 문서 수 조회
+     *
+     * @return 총 대상 문서 수
+     */
+    @Transactional(readOnly = true)
+    @Override
+    public long getSourceTotalCountUseCase() {
+        return sourcePersistencePort.getSourceTotalCountPort();
+    }
 }

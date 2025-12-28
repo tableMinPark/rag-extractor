@@ -11,18 +11,12 @@ import org.hibernate.annotations.Comment;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "WN_COMN_CODE")
-@SequenceGenerator(
-        name = "WN_CODE_ID_SEQ",
-        sequenceName = "WN_CODE_ID_SEQ",
-        allocationSize = 1
-)
 public class ComnCodeEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WN_CODE_ID_SEQ")
     @Column(name = "code_id", nullable = false, updatable = false)
     @Comment("공통 코드 ID")
-    private Long codeId;
+    private String codeId;
 
     @Column(name = "code", unique = true)
     @Comment("공통 코드")

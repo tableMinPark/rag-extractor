@@ -418,130 +418,134 @@ export const CreateSourceModal = ({
                 </div>
               </div>
               {formData.selectType === 'regex' && (
-                <div className="mt-2 flex flex-col gap-5 rounded-xl border border-blue-100 bg-blue-50/50 p-5">
-                  <div className="flex items-center gap-2 text-xs font-bold text-blue-700">
-                    <Settings className="h-3 w-3" /> 정규식 계층 구조 설정 (3
-                    Depth)
-                  </div>
-                  {(['depth1', 'depth2', 'depth3'] as const).map(
-                    (depth, idx) => (
-                      <div key={depth} className="flex flex-col gap-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-bold tracking-wider text-gray-500 uppercase">
-                            Level {idx + 1} Patterns
-                          </span>
-                          <button
-                            onClick={() => addPattern(depth)}
-                            className="hover:text-primary hover:border-primary/30 flex items-center gap-1 rounded border border-gray-200 bg-white px-2 py-1 text-[10px] font-medium text-gray-600 shadow-sm transition-all hover:bg-gray-50"
-                          >
-                            <Plus className="h-3 w-3" /> 추가
-                          </button>
-                        </div>
-                        {formData.patterns[depth].prefixes.length === 0 && (
-                          <div className="rounded border border-dashed border-gray-300 bg-white/50 p-2 text-center text-[10px] text-gray-400">
-                            등록된 패턴이 없습니다.
+                <>
+                  <div className="mt-2 flex flex-col gap-5 rounded-xl border border-blue-100 bg-blue-50/50 p-5">
+                    <div className="flex items-center gap-2 text-xs font-bold text-blue-700">
+                      <Settings className="h-3 w-3" /> 정규식 계층 구조 설정 (3
+                      Depth)
+                    </div>
+                    {(['depth1', 'depth2', 'depth3'] as const).map(
+                      (depth, idx) => (
+                        <div key={depth} className="flex flex-col gap-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold tracking-wider text-gray-500 uppercase">
+                              Level {idx + 1} Patterns
+                            </span>
+                            <button
+                              onClick={() => addPattern(depth)}
+                              className="hover:text-primary hover:border-primary/30 flex items-center gap-1 rounded border border-gray-200 bg-white px-2 py-1 text-[10px] font-medium text-gray-600 shadow-sm transition-all hover:bg-gray-50"
+                            >
+                              <Plus className="h-3 w-3" /> 추가
+                            </button>
                           </div>
-                        )}
-                        <div className="flex flex-col gap-2">
-                          {formData.patterns[depth].prefixes.map(
-                            (prefixType, pIdx) => (
-                              <div
-                                key={pIdx}
-                                className="animate-in fade-in slide-in-from-top-1 flex items-center gap-2 duration-200"
-                              >
-                                <div className="relative flex-1">
-                                  <span className="absolute top-1/2 left-3 -translate-y-1/2 text-xs font-bold text-gray-400">
-                                    /
-                                  </span>
-                                  <input
-                                    type="text"
-                                    placeholder="^제\d+조"
-                                    value={prefixType.prefix}
-                                    onChange={(e) =>
-                                      handlePatternChange(
-                                        depth,
-                                        pIdx,
-                                        'prefix',
-                                        e.target.value,
-                                      )
-                                    }
-                                    className="focus:border-primary focus:ring-primary w-full rounded-md border border-gray-200 py-1.5 pr-3 pl-6 text-xs outline-none focus:ring-1"
-                                  />
-                                  <span className="absolute top-1/2 right-3 -translate-y-1/2 text-xs font-bold text-gray-400">
-                                    /gm
-                                  </span>
-                                </div>
-                                <label className="flex cursor-pointer items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2 py-1.5 hover:bg-gray-50">
-                                  <input
-                                    type="checkbox"
-                                    checked={prefixType.isTitle}
-                                    onChange={(e) =>
-                                      handlePatternChange(
-                                        depth,
-                                        pIdx,
-                                        'isTitle',
-                                        e.target.checked,
-                                      )
-                                    }
-                                    className="text-primary focus:ring-primary h-3 w-3 rounded border-gray-300"
-                                  />
-                                  <span className="text-[10px] font-medium text-gray-600">
-                                    제목 추출
-                                  </span>
-                                </label>
-                                <button
-                                  onClick={() => removePattern(depth, pIdx)}
-                                  className="flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-gray-400 transition-colors hover:border-red-100 hover:bg-red-50 hover:text-red-500"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </button>
-                              </div>
-                            ),
+                          {formData.patterns[depth].prefixes.length === 0 && (
+                            <div className="rounded border border-dashed border-gray-300 bg-white/50 p-2 text-center text-[10px] text-gray-400">
+                              등록된 패턴이 없습니다.
+                            </div>
                           )}
+                          <div className="flex flex-col gap-2">
+                            {formData.patterns[depth].prefixes.map(
+                              (prefixType, pIdx) => (
+                                <div
+                                  key={pIdx}
+                                  className="animate-in fade-in slide-in-from-top-1 flex items-center gap-2 duration-200"
+                                >
+                                  <div className="relative flex-1">
+                                    <span className="absolute top-1/2 left-3 -translate-y-1/2 text-xs font-bold text-gray-400">
+                                      /
+                                    </span>
+                                    <input
+                                      type="text"
+                                      placeholder="^제\d+조"
+                                      value={prefixType.prefix}
+                                      onChange={(e) =>
+                                        handlePatternChange(
+                                          depth,
+                                          pIdx,
+                                          'prefix',
+                                          e.target.value,
+                                        )
+                                      }
+                                      className="focus:border-primary focus:ring-primary w-full rounded-md border border-gray-200 py-1.5 pr-3 pl-6 text-xs outline-none focus:ring-1"
+                                    />
+                                    <span className="absolute top-1/2 right-3 -translate-y-1/2 text-xs font-bold text-gray-400">
+                                      /gm
+                                    </span>
+                                  </div>
+                                  <label className="flex cursor-pointer items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2 py-1.5 hover:bg-gray-50">
+                                    <input
+                                      type="checkbox"
+                                      checked={prefixType.isTitle}
+                                      onChange={(e) =>
+                                        handlePatternChange(
+                                          depth,
+                                          pIdx,
+                                          'isTitle',
+                                          e.target.checked,
+                                        )
+                                      }
+                                      className="text-primary focus:ring-primary h-3 w-3 rounded border-gray-300"
+                                    />
+                                    <span className="text-[10px] font-medium text-gray-600">
+                                      제목 추출
+                                    </span>
+                                  </label>
+                                  <button
+                                    onClick={() => removePattern(depth, pIdx)}
+                                    className="flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-gray-400 transition-colors hover:border-red-100 hover:bg-red-50 hover:text-red-500"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              ),
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ),
-                  )}
-                </div>
-              )}
-              {/* Stop Patterns */}
-              <div className="rounded-xl border border-red-100 bg-red-50/50 p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold text-red-700">
-                    <X className="h-3 w-3" /> 중단 패턴
+                      ),
+                    )}
                   </div>
-                  <button
-                    onClick={addStopPattern}
-                    className="flex items-center gap-1 rounded border border-gray-200 bg-white px-2 py-1 text-[10px] font-medium text-gray-600 shadow-sm transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-600"
-                  >
-                    <Plus className="h-3 w-3" /> 추가
-                  </button>
-                </div>
-                <div className="flex flex-col gap-2">
-                  {formData.stopPatterns.map((pattern, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        placeholder="stop regex..."
-                        value={pattern}
-                        onChange={(e) => updateStopPattern(idx, e.target.value)}
-                        className="w-full rounded-md border border-gray-200 px-3 py-1.5 text-xs outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400"
-                      />
+                  {/* Stop Patterns */}
+                  <div className="rounded-xl border border-red-100 bg-red-50/50 p-4">
+                    <div className="mb-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-xs font-bold text-red-700">
+                        <X className="h-3 w-3" /> 중단 패턴
+                      </div>
                       <button
-                        onClick={() => removeStopPattern(idx)}
-                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-transparent text-gray-400 transition-colors hover:border-red-100 hover:bg-red-50 hover:text-red-500"
+                        onClick={addStopPattern}
+                        className="flex items-center gap-1 rounded border border-gray-200 bg-white px-2 py-1 text-[10px] font-medium text-gray-600 shadow-sm transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-600"
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Plus className="h-3 w-3" /> 추가
                       </button>
                     </div>
-                  ))}
-                  {formData.stopPatterns.length === 0 && (
-                    <div className="rounded border border-dashed border-gray-300 bg-white/50 p-2 text-center text-[10px] text-gray-400">
-                      등록된 패턴이 없습니다.
+                    <div className="flex flex-col gap-2">
+                      {formData.stopPatterns.map((pattern, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            placeholder="stop regex..."
+                            value={pattern}
+                            onChange={(e) =>
+                              updateStopPattern(idx, e.target.value)
+                            }
+                            className="w-full rounded-md border border-gray-200 px-3 py-1.5 text-xs outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400"
+                          />
+                          <button
+                            onClick={() => removeStopPattern(idx)}
+                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-transparent text-gray-400 transition-colors hover:border-red-100 hover:bg-red-50 hover:text-red-500"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                      {formData.stopPatterns.length === 0 && (
+                        <div className="rounded border border-dashed border-gray-300 bg-white/50 p-2 text-center text-[10px] text-gray-400">
+                          등록된 패턴이 없습니다.
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
+                  </div>
+                </>
+              )}
             </section>
 
             {/* 3. 데이터 소스 설정 섹션 (조건부 렌더링 적용) */}

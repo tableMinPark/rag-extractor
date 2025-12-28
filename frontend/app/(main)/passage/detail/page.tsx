@@ -39,13 +39,18 @@ function PassageDetailContent() {
     setIsLoading(true)
     setError(null)
 
-    try {
-      await getPassageApi(passageId).then((response) => {
+    await getPassageApi(passageId)
+      .then((response) => {
         console.log(`📡 ${response.message}`)
         setPassage(response.result)
       })
+      .catch((error) => {
+        console.error(error)
+        setError('패시지를 불러올 수 없습니다.')
+      })
 
-      await getChunksApi(page, size, passageId).then((response) => {
+    await getChunksApi(page, size, passageId)
+      .then((response) => {
         console.log(`📡 ${response.message}`)
         setPage(response.result.pageNo)
         setSize(response.result.pageSize)
@@ -53,12 +58,10 @@ function PassageDetailContent() {
         setTotalCounts(response.result.totalCount)
         setChunkList(response.result.content)
       })
-    } catch (err) {
-      console.error(err)
-      setError('패시지 및 청크를 불러올 수 없습니다.')
-    } finally {
-      setIsLoading(false)
-    }
+      .catch((error) => {
+        console.error(error)
+        setError('청크를 불러올 수 없습니다.')
+      })
 
     setIsLoading(false)
   }
@@ -159,7 +162,7 @@ function PassageDetailContent() {
         {/* 뒤로가기 버튼 */}
         <button
           onClick={() => router.back()}
-          className="bg-primary hover:bg-primary-hover flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white shadow-sm transition-all active:scale-95"
+          className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-bold text-gray-600 shadow-sm transition-colors hover:bg-gray-50 active:scale-95"
         >
           <span>← 뒤로가기</span>
         </button>
@@ -235,13 +238,13 @@ function PassageDetailContent() {
             </div>
 
             {/* 청크 등록 버튼 */}
-            {/* <button
+            <button
               onClick={handleCreateChunk}
               className="hover:border-primary hover:text-primary flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-600 shadow-sm transition-all active:scale-95"
             >
               <Plus className="h-3.5 w-3.5" />
               청크 등록
-            </button> */}
+            </button>
           </div>
 
           <div className="flex-1 overflow-auto bg-gray-50/50 p-4">

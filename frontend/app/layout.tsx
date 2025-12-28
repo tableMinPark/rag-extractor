@@ -1,11 +1,13 @@
-import type { Metadata } from 'next'
 import '@/public/css/globals.css'
-import LayoutWrapper from '@/components/LayoutWrapper'
-import Providers from './providers'
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import Providers from '@/components/providers'
+
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Rag Gen AI',
-  description: 'RAG based Generative AI Service',
+  title: 'RAG Admin System',
+  description: 'AI Knowledge Base Management',
 }
 
 export default function RootLayout({
@@ -14,12 +16,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <Providers>
-      <html lang="ko">
-        <body className="flex">
-          <LayoutWrapper>{children}</LayoutWrapper>
-        </body>
-      </html>
-    </Providers>
+    <html lang="ko">
+      <body className={inter.className}>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
   )
 }

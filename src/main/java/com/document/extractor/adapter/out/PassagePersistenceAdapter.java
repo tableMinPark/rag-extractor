@@ -126,4 +126,15 @@ public class PassagePersistenceAdapter implements PassagePersistencePort {
 
         return passageRepository.saveAll(passageEntities).stream().map(PassageEntity::toDomain).toList();
     }
+
+    /**
+     * 총 패시지 수 조회
+     *
+     * @return 총 패시지 수
+     */
+    @Transactional(readOnly = true)
+    @Override
+    public long getPassageTotalCountPort() {
+        return passageRepository.count();
+    }
 }

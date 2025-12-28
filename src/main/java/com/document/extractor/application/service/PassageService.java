@@ -52,4 +52,15 @@ public class PassageService implements PassageUseCase {
                 .totalPages(passagePageWrapper.getTotalPages())
                 .build();
     }
+
+    /**
+     * 총 패시지 수 조회
+     *
+     * @return 총 패시지 수
+     */
+    @Transactional(readOnly = true)
+    @Override
+    public long getPassageTotalCountUseCase() {
+        return passagePersistencePort.getPassageTotalCountPort();
+    }
 }

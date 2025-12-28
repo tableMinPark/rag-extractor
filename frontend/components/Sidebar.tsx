@@ -10,6 +10,7 @@ import {
   FileCode,
   Search,
   SearchCode,
+  Sparkles,
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -19,10 +20,10 @@ interface SidebarProps {
 
 export const MENU_ITEMS = [
   { name: '문서 추출', path: '/extract/text', icon: FileCode },
-  { name: '파일 문서 청킹', path: '/extract/file', icon: FileText },
-  { name: '원격 문서 청킹', path: '/extract/repo', icon: FileText },
-  { name: '키워드 검색', path: '/search/keyword', icon: SearchCode },
-  { name: '벡터 검색', path: '/search/vector', icon: Search },
+  { name: '파일 문서 청킹 (개발중)', path: '/extract/file', icon: FileText },
+  { name: '원격 문서 청킹 (개발중)', path: '/extract/repo', icon: FileText },
+  { name: '키워드 검색 (개발중)', path: '/search/keyword', icon: SearchCode },
+  { name: '벡터 검색 (개발중)', path: '/search/vector', icon: Search },
   { name: 'RAG 문서 관리', path: '/source', icon: Database },
 ]
 
@@ -46,13 +47,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
             href="/"
             className="flex items-center gap-2 rounded-md p-1 hover:bg-gray-200"
           >
-            <Image
-              src="/img/logo.png"
-              alt="Rag Gen AI Logo"
-              width={20}
-              height={20}
-              priority
-            />
+            <Sparkles className="text-primary fill-primary/20 h-6 w-6" />
           </Link>
         )}
 

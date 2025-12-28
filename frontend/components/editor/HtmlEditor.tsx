@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
 
 // SSR 방지
