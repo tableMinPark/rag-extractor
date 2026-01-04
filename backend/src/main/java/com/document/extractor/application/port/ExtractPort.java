@@ -1,7 +1,6 @@
 package com.document.extractor.application.port;
 
 import com.document.extractor.domain.model.Document;
-import com.document.extractor.domain.model.ExtractDocument;
 import com.document.extractor.domain.model.FileDetail;
 
 public interface ExtractPort {
@@ -22,56 +21,4 @@ public interface ExtractPort {
      * @return 문서 텍스트
      */
     String extractTextPort(FileDetail fileDetail);
-
-    /**
-     * 법령 문서 추출
-     *
-     * @param lawId 법령 ID
-     * @return 추출 결과
-     */
-    ExtractDocument extractLawPort(String lawId);
-
-    /**
-     * 법령 이력 추출
-     *
-     * @param lawId 법령 ID
-     * @return 추출 결과
-     */
-    ExtractDocument extractLawHistoryPort(String lawId);
-
-    /**
-     * 법령 본문 추출
-     *
-     * @param lawId      법령 ID
-     * @param lawHistory 법령 이력 코드
-     * @return 추출 결과
-     */
-    ExtractDocument extractLawContentPort(String lawId, String lawHistory);
-
-    /**
-     * 법령 본문 추출
-     *
-     * @param lawId        법령 ID
-     * @param lawHistory   법령 이력 코드
-     * @param lawContentId 본문 ID
-     * @return 추출 결과
-     */
-    ExtractDocument extractLawContentPort(String lawId, String lawHistory, String lawContentId);
-
-    /**
-     * 법령 연결 정보 추출
-     *
-     * @param lawId      법령 ID
-     * @param lawHistory 법령 이력 코드
-     * @return 추출 결과
-     */
-    ExtractDocument extractLawQuotationPort(String lawId, String lawHistory);
-
-    /**
-     * 메뉴얼 문서 추출
-     *
-     * @param manualId 메뉴얼 ID
-     * @return 추출 결과
-     */
-    ExtractDocument extractManualPort(String manualId);
 }
