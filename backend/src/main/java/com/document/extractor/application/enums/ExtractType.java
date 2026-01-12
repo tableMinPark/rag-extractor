@@ -7,7 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ExtractType {
 
-    MARK_DOWN("markdown"),
+    MARKDOWN("markdown"),
     HTML("html")
     ;
 

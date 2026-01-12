@@ -8,7 +8,9 @@ import com.document.extractor.domain.model.HwpxDocument;
 import com.document.extractor.domain.model.PdfDocument;
 import com.document.extractor.domain.vo.HwpxImageVo;
 import com.document.extractor.domain.vo.HwpxSectionVo;
+import com.document.extractor.domain.vo.PdfSectionVo;
 import com.document.global.utils.FileUtil;
+import com.document.global.utils.PdfUtil;
 import com.document.global.utils.StringUtil;
 import com.document.global.utils.XmlUtil;
 import kr.dogfoot.hwp2hwpx.Hwp2Hwpx;
@@ -52,7 +54,8 @@ public class ExtractAdapter implements ExtractPort {
         if (!fileDetail.getExt().contains("hwp") && !fileDetail.getExt().contains("hwpx")) {
             return PdfDocument.builder()
                     .name(fileDetail.getOriginFileName())
-                    .content(FileUtil.readFile(fileProperty.getReadBinary(), fileDetail.getUrl()).trim())
+                    .extractTypeCode(extractTypeCode)
+                    .sections(PdfUtil.extractByPage(fileDetail.getUrl()))
                     .build();
         }
 
@@ -70,11 +73,7 @@ public class ExtractAdapter implements ExtractPort {
                 HWPXWriter.toFilepath(toFile, zipFilePath.toString());
             } catch (Exception e) {
                 // 변환 실패
-                return PdfDocument.builder()
-                        .name(fileDetail.getOriginFileName())
-                        .content(FileUtil.readFile(fileProperty.getReadBinary(), fileDetail.getUrl()).trim())
-                        .convertError(true)
-                        .build();
+                throw new RuntimeException("not support hwp file");
             }
         }
         // 원본 문서 복사
@@ -126,7 +125,7 @@ public class ExtractAdapter implements ExtractPort {
                 File imageFile = unZipDirPath.resolve(resourceFilePath).toFile();
 
                 // TODO: Image -> Text 추출 (OCR)
-                String content = "<img id=\"" + resourceId + "\"/>";
+                String content = "";
 
                 if (imageFile.exists()) {
                     images.put(resourceId, HwpxImageVo.builder()
@@ -160,6 +159,6 @@ public class ExtractAdapter implements ExtractPort {
      */
     @Override
     public String extractTextPort(FileDetail fileDetail) {
-        return FileUtil.readFile(fileProperty.getReadBinary(), fileDetail.getUrl()).trim();
+        return this.extractFilePort(fileDetail, "html").getContent();
     }
 }
