@@ -56,7 +56,7 @@ public class HwpxDocument extends Document {
                                 tableContent = HtmlUtil.removeHtmlExceptTable(tableContent);
 
                                 // 마크 다운 타입인 경우 표 변환
-                                if (ExtractType.MARK_DOWN.equals(extractType)) {
+                                if (ExtractType.MARKDOWN.equals(extractType)) {
                                     tableContent = HtmlUtil.convertTableHtmlToMarkdown(tableContent);
                                 }
 

@@ -1,10 +1,12 @@
 package com.document.global.utils;
 
-import com.document.global.vo.FileReadBinary;
 import com.document.global.vo.UploadFile;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -171,48 +173,6 @@ public class FileUtil {
 
         try {
             return new String(Files.readAllBytes(targetPath));
-        } catch (IOException e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
-    }
-
-    /**
-     * 파일 내용 추출
-     *
-     * @param fileReadBinary 파일 수집 바이너리 파일 경로
-     * @param target         파일 경로
-     * @return 추출 문자열
-     */
-    public static String readFile(FileReadBinary fileReadBinary, String target) {
-        try {
-            Path targetPath = Paths.get(target);
-
-            StringBuilder contentBuilder = new StringBuilder();
-            String os = System.getProperty("os.name").toLowerCase();
-
-            String[] cmd;
-            if (os.contains("windows")) {
-                if (!new File(fileReadBinary.getWindows()).exists())
-                    throw new RuntimeException("read binary not exists");
-                cmd = new String[]{"cmd.exe", "/c", fileReadBinary.getWindows(), "-NO_WITHPAGE", "-C", "utf8", targetPath.toString()};
-            } else if (os.contains("mac")) {
-                if (!new File(fileReadBinary.getMac()).exists()) throw new RuntimeException("read binary not exists");
-                cmd = new String[]{fileReadBinary.getMac(), "-NO_WITHPAGE", "-C", "utf8", targetPath.toString()};
-            } else {
-                if (!new File(fileReadBinary.getLinux()).exists()) throw new RuntimeException("read binary not exists");
-                cmd = new String[]{fileReadBinary.getLinux(), "-NO_WITHPAGE", "-C", "utf8", targetPath.toString()};
-            }
-
-            Process process = Runtime.getRuntime().exec(cmd);
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                contentBuilder.append(line).append("\n");
-            }
-
-            return contentBuilder.toString();
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage(), e);
         }

@@ -29,6 +29,10 @@ configurations {
     }
 }
 
+configurations.configureEach {
+    exclude group: 'commons-logging', module: 'commons-logging'
+}
+
 repositories {
     mavenLocal()
     mavenCentral()
@@ -59,11 +63,18 @@ dependencies {
 
     // hwpx lib
     implementation 'kr.dogfoot:hwplib:1.1.10'
-    implementation 'kr.dogfoot:hwpxlib:1.0.7'
-    implementation fileTree(dir: 'libs', includes: ['*.jar'])
+    implementation 'kr.dogfoot:hwpxlib:1.0.8'
+    implementation fileTree(dir: 'libs', includes: ['hwp2hwpx-1.0.1.jar'])
 
     // html parser
     implementation "org.jsoup:jsoup:${jsoupVersion}"
+
+    // pdf
+    implementation 'com.github.lanit-exp:tabula:1.0.0'
+//    implementation 'fr.neolegal:tabula:1.0.12'
+//    implementation('technology.tabula:tabula:1.0.5') {
+//        exclude group: 'org.slf4j', module: 'slf4j-simple'
+//    }
 
     // diff
     implementation 'io.github.java-diff-utils:java-diff-utils:4.16'
