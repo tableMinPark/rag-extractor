@@ -11,18 +11,18 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "WN_SOURCE_PREFIX")
+@Table(name = "GEN_SOURCE_PREFIX")
 @Comment("대상 문서 패턴 정규식")
 @EntityListeners(AuditingEntityListener.class)
 @SequenceGenerator(
-        name = "WN_SOURCE_PREFIX_ID_SEQ",
-        sequenceName = "WN_SOURCE_PREFIX_ID_SEQ",
+        name = "GEN_SOURCE_PREFIX_ID_SEQ",
+        sequenceName = "GEN_SOURCE_PREFIX_ID_SEQ",
         allocationSize = 1
 )
 public class SourcePrefixEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WN_SOURCE_PREFIX_ID_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GEN_SOURCE_PREFIX_ID_SEQ")
     @Column(name = "source_prefix_id", nullable = false, updatable = false)
     @Comment("패턴 정규식 ID")
     private Long sourcePrefixId;

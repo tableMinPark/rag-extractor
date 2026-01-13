@@ -1,4 +1,4 @@
-package com.document.extractor.adapter.config;
+package com.document.extractor.adapter.in.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;

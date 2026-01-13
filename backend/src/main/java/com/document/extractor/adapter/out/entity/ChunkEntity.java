@@ -15,18 +15,18 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "WN_CHUNK")
+@Table(name = "GEN_CHUNK")
 @Comment("청크")
 @EntityListeners(AuditingEntityListener.class)
 @SequenceGenerator(
-        name = "WN_CHUNK_ID_SEQ",
-        sequenceName = "WN_CHUNK_ID_SEQ",
+        name = "GEN_CHUNK_ID_SEQ",
+        sequenceName = "GEN_CHUNK_ID_SEQ",
         allocationSize = 1
 )
 public class ChunkEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WN_CHUNK_ID_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GEN_CHUNK_ID_SEQ")
     @Column(name = "chunk_id", nullable = false, updatable = false)
     @Comment("청크 ID")
     private Long chunkId;

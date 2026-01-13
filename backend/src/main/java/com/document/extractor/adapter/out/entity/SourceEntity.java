@@ -21,18 +21,18 @@ import java.util.Optional;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "WN_SOURCE")
+@Table(name = "GEN_SOURCE")
 @Comment("대상 문서")
 @EntityListeners(AuditingEntityListener.class)
 @SequenceGenerator(
-        name = "WN_SOURCE_ID_SEQ",
-        sequenceName = "WN_SOURCE_ID_SEQ",
+        name = "GEN_SOURCE_ID_SEQ",
+        sequenceName = "GEN_SOURCE_ID_SEQ",
         allocationSize = 1
 )
 public class SourceEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WN_SOURCE_ID_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GEN_SOURCE_ID_SEQ")
     @Column(name = "source_id", nullable = false, updatable = false)
     @Comment("대상 문서 ID")
     private Long sourceId;
@@ -52,7 +52,7 @@ public class SourceEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_code", referencedColumnName = "code")
     @Comment("대상 문서 분류")
-    private ComnCodeEntity category;
+    private CommonCodeEntity category;
 
     @Column(name = "name")
     @Comment("대상 문서명")
@@ -105,7 +105,7 @@ public class SourceEntity {
     @JoinColumn(name = "source_id")
     private List<SourceStopPatternEntity> sourceStopPatterns;
 
-    public void update(Source source, ComnCodeEntity category) {
+    public void update(Source source, CommonCodeEntity category) {
         this.version = source.getVersion();
         this.sourceType = source.getSourceType().getCode();
         this.selectType = source.getSelectType().getCode();
@@ -183,7 +183,7 @@ public class SourceEntity {
                 .build();
     }
 
-    public static SourceEntity fromDomain(Source source, ComnCodeEntity category) {
+    public static SourceEntity fromDomain(Source source, CommonCodeEntity category) {
         return SourceEntity.builder()
                 .sourceId(source.getSourceId())
                 .version(source.getVersion())

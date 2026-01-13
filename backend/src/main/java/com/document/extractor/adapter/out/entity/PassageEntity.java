@@ -16,18 +16,18 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "WN_PASSAGE")
+@Table(name = "GEN_PASSAGE")
 @Comment("패시지")
 @EntityListeners(AuditingEntityListener.class)
 @SequenceGenerator(
-        name = "WN_PASSAGE_ID_SEQ",
-        sequenceName = "WN_PASSAGE_ID_SEQ",
+        name = "GEN_PASSAGE_ID_SEQ",
+        sequenceName = "GEN_PASSAGE_ID_SEQ",
         allocationSize = 1
 )
 public class PassageEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WN_PASSAGE_ID_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GEN_PASSAGE_ID_SEQ")
     @Column(name = "passage_id", nullable = false, updatable = false)
     @Comment("패시지 ID")
     private Long passageId;

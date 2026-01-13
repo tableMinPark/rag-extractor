@@ -16,18 +16,18 @@ import java.util.Optional;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "WN_SOURCE_PATTERN")
+@Table(name = "GEN_SOURCE_PATTERN")
 @Comment("대상 문서 패턴")
 @EntityListeners(AuditingEntityListener.class)
 @SequenceGenerator(
-        name = "WN_SOURCE_PATTERN_ID_SEQ",
-        sequenceName = "WN_SOURCE_PATTERN_ID_SEQ",
+        name = "GEN_SOURCE_PATTERN_ID_SEQ",
+        sequenceName = "GEN_SOURCE_PATTERN_ID_SEQ",
         allocationSize = 1
 )
 public class SourcePatternEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WN_SOURCE_PATTERN_ID_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GEN_SOURCE_PATTERN_ID_SEQ")
     @Column(name = "source_pattern_id", nullable = false, updatable = false)
     @Comment("전처리 패턴 ID")
     private Long sourcePatternId;

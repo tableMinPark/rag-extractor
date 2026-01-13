@@ -1,4 +1,4 @@
-package com.document.extractor.adapter.config;
+package com.document.extractor.adapter.in.config;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;

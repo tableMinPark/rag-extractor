@@ -1,4 +1,4 @@
-package com.document.extractor.adapter.config;
+package com.document.extractor.adapter.in.config;
 
 import com.document.extractor.adapter.in.filter.JwtFilter;
 import com.document.extractor.adapter.in.filter.LoginFilter;

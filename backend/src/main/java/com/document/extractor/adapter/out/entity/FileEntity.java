@@ -15,18 +15,18 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "WN_FILE")
+@Table(name = "GEN_FILE")
 @Comment("파일 이력")
 @EntityListeners(AuditingEntityListener.class)
 @SequenceGenerator(
-        name = "WN_FILE_ID_SEQ",
-        sequenceName = "WN_FILE_ID_SEQ",
+        name = "GEN_FILE_ID_SEQ",
+        sequenceName = "GEN_FILE_ID_SEQ",
         allocationSize = 1
 )
 public class FileEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WN_FILE_ID_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GEN_FILE_ID_SEQ")
     @Column(name = "file_id", nullable = false, updatable = false)
     @Comment("파일 ID")
     private Long fileId;

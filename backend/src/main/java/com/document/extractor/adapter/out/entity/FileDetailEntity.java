@@ -15,18 +15,18 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "WN_FILE_DETAIL")
+@Table(name = "GEN_FILE_DETAIL")
 @Comment("파일 상세")
 @EntityListeners(AuditingEntityListener.class)
 @SequenceGenerator(
-        name = "WN_FILE_DETAIL_ID_SEQ",
-        sequenceName = "WN_FILE_DETAIL_ID_SEQ",
+        name = "GEN_FILE_DETAIL_ID_SEQ",
+        sequenceName = "GEN_FILE_DETAIL_ID_SEQ",
         allocationSize = 1
 )
 public class FileDetailEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WN_FILE_DETAIL_ID_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GEN_FILE_DETAIL_ID_SEQ")
     @Column(name = "file_detail_id", nullable = false, updatable = false)
     @Comment("파일 상세 ID")
     private Long fileDetailId;
