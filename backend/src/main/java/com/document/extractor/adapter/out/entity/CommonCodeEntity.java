@@ -1,6 +1,6 @@
 package com.document.extractor.adapter.out.entity;
 
-import com.document.extractor.domain.model.ComnCode;
+import com.document.extractor.domain.model.CommonCode;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Comment;
@@ -10,8 +10,8 @@ import org.hibernate.annotations.Comment;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "WN_COMN_CODE")
-public class ComnCodeEntity {
+@Table(name = "GEN_COMMON_CODE")
+public class CommonCodeEntity {
 
     @Id
     @Column(name = "code_id", nullable = false, updatable = false)
@@ -34,8 +34,8 @@ public class ComnCodeEntity {
     @Comment("정렬 필드")
     private Integer sortOrder;
 
-    public ComnCode toDomain() {
-        return ComnCode.builder()
+    public CommonCode toDomain() {
+        return CommonCode.builder()
                 .codeId(codeId)
                 .code(code)
                 .codeName(codeName)

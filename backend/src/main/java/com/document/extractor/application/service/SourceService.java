@@ -6,12 +6,12 @@ import com.document.extractor.application.command.GetSourceCommand;
 import com.document.extractor.application.command.GetSourcesCommand;
 import com.document.extractor.application.enums.SelectType;
 import com.document.extractor.application.enums.SourceType;
-import com.document.extractor.application.port.ComnCodePersistencePort;
+import com.document.extractor.application.port.CommonCodePersistencePort;
 import com.document.extractor.application.port.ExtractPort;
 import com.document.extractor.application.port.FilePersistencePort;
 import com.document.extractor.application.port.SourcePersistencePort;
 import com.document.extractor.application.usecase.SourceUseCase;
-import com.document.extractor.application.vo.ComnCodeVo;
+import com.document.extractor.application.vo.CommonCodeVo;
 import com.document.extractor.application.vo.SourceVo;
 import com.document.extractor.application.wrapper.PageWrapper;
 import com.document.extractor.domain.model.*;
@@ -32,7 +32,7 @@ public class SourceService implements SourceUseCase {
 
     private final SourcePersistencePort sourcePersistencePort;
     private final FilePersistencePort filePersistencePort;
-    private final ComnCodePersistencePort comnCodePersistencePort;
+    private final CommonCodePersistencePort commonCodePersistencePort;
     private final ExtractPort extractPort;
 
     /**
@@ -181,9 +181,9 @@ public class SourceService implements SourceUseCase {
      */
     @Transactional(readOnly = true)
     @Override
-    public List<ComnCodeVo> getCategoriesSourceUseCase() {
-        return comnCodePersistencePort.getComnCodesByCodeGroupPort("TRAIN").stream()
-                .map(ComnCodeVo::of)
+    public List<CommonCodeVo> getCategoriesSourceUseCase() {
+        return commonCodePersistencePort.getComnCodesByCodeGroupPort("TRAIN").stream()
+                .map(CommonCodeVo::of)
                 .toList();
     }
 

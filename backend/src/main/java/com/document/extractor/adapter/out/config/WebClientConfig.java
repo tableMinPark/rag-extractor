@@ -1,4 +1,4 @@
-package com.document.extractor.adapter.config;
+package com.document.extractor.adapter.out.config;
 
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;

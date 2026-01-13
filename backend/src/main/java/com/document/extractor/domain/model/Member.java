@@ -7,15 +7,13 @@ import lombok.Getter;
 @Builder
 @Getter
 @AllArgsConstructor
-public class ComnCode {
+public class Member {
 
-    private String codeId;
+    private final Long memberId;
 
-    private String code;
+    private final String name;
 
-    private String codeName;
+    private final String password;
 
-    private String codeGroup;
-
-    private Integer sortOrder;
+    private final String role;
 }

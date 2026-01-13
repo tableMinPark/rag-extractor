@@ -1,8 +1,8 @@
 package com.document.extractor.adapter.out;
 
-import com.document.extractor.adapter.out.entity.ComnCodeEntity;
+import com.document.extractor.adapter.out.entity.CommonCodeEntity;
 import com.document.extractor.adapter.out.entity.SourceEntity;
-import com.document.extractor.adapter.out.repository.ComnCodeRepository;
+import com.document.extractor.adapter.out.repository.CommonCodeRepository;
 import com.document.extractor.adapter.out.repository.SourceRepository;
 import com.document.extractor.application.exception.NotFoundException;
 import com.document.extractor.application.port.SourcePersistencePort;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class SourcePersistenceAdapter implements SourcePersistencePort {
 
     private final SourceRepository sourceRepository;
-    private final ComnCodeRepository comnCodeRepository;
+    private final CommonCodeRepository commonCodeRepository;
 
     /**
      * 대상 문서 등록
@@ -36,7 +36,7 @@ public class SourcePersistenceAdapter implements SourcePersistencePort {
     @Override
     public Source saveSourcePort(Source source) {
 
-        ComnCodeEntity categoryEntity = comnCodeRepository.findByCode(source.getCategoryCode())
+        CommonCodeEntity categoryEntity = commonCodeRepository.findByCode(source.getCategoryCode())
                 .orElseThrow(() -> new NotFoundException("대상 문서 카테고리"));
 
         SourceEntity sourceEntity;

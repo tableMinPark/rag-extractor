@@ -29,10 +29,6 @@ configurations {
     }
 }
 
-configurations.configureEach {
-    exclude group: 'commons-logging', module: 'commons-logging'
-}
-
 repositories {
     mavenLocal()
     mavenCentral()
@@ -71,10 +67,6 @@ dependencies {
 
     // pdf
     implementation 'com.github.lanit-exp:tabula:1.0.0'
-//    implementation 'fr.neolegal:tabula:1.0.12'
-//    implementation('technology.tabula:tabula:1.0.5') {
-//        exclude group: 'org.slf4j', module: 'slf4j-simple'
-//    }
 
     // diff
     implementation 'io.github.java-diff-utils:java-diff-utils:4.16'
