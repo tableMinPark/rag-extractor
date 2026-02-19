@@ -1,0 +1,19 @@
+package com.genai.common.vo;
+
+import lombok.*;
+
+@ToString
+@Builder
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+public class CommonCodeVO {
+
+    private String code;
+
+    private String codeName;
+
+    private String codeGroup;
+
+    private Integer sortOrder;
+}

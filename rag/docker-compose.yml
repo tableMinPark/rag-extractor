@@ -1,6 +1,8 @@
 services:
   opensearch:
-    image: opensearchproject/opensearch:2.11.0
+    build:
+      context: ./opensearch
+      dockerfile: ./opensearch-dockerfile
     container_name: opensearch
     environment:
       - discovery.type=single-node
@@ -21,15 +23,27 @@ services:
     restart: unless-stopped
     networks:
       - rag-net
-  embedding-api:
+  embedding:
     build:
-      context: ./docker
-      dockerfile: ./embedding-api-dockerfile
-    container_name: embedding-api
+      context: ./embedding
+      dockerfile: ./embedding-dockerfile
+    container_name: embedding
     environment:
       - MODEL_NAME=BAAI/bge-base-en-v1.5
     ports:
       - "8000:8000"
+    restart: unless-stopped
+    networks:
+      - rag-net
+  reranker:
+    build:
+      context: ./reranker
+      dockerfile: ./reranker-dockerfile
+    container_name: reranker
+    ports:
+      - "8001:8000"
+    environment:
+      - MODEL_NAME=BAAI/bge-reranker-base
     restart: unless-stopped
     networks:
       - rag-net
