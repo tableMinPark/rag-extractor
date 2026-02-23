@@ -1,31 +1,14 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import {
-  FileText,
-  ChevronLeft,
-  Database,
-  FileCode,
-  Search,
-  SearchCode,
-  Sparkles,
-} from 'lucide-react'
+import { ChevronLeft, Sparkles } from 'lucide-react'
+import { menuInfos } from '@/public/const/menu'
 
 interface SidebarProps {
   isOpen: boolean
   onToggle?: () => void
 }
-
-export const MENU_ITEMS = [
-  { name: '문서 추출', path: '/extract/text', icon: FileCode },
-  { name: '파일 문서 청킹 (개발중)', path: '/extract/file', icon: FileText },
-  { name: '원격 문서 청킹 (개발중)', path: '/extract/repo', icon: FileText },
-  { name: '키워드 검색 (개발중)', path: '/search/keyword', icon: SearchCode },
-  { name: '벡터 검색 (개발중)', path: '/search/vector', icon: Search },
-  { name: 'RAG 문서 관리', path: '/source', icon: Database },
-]
 
 export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const pathname = usePathname()
@@ -50,7 +33,6 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
             <Sparkles className="text-primary fill-primary/20 h-6 w-6" />
           </Link>
         )}
-
         <button
           onClick={onToggle}
           className="rounded-md p-1 text-gray-500 hover:bg-gray-200"
@@ -62,20 +44,11 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
           />
         </button>
       </div>
-
       {/* Menu */}
       <nav className="mt-2 flex flex-col gap-1 px-2">
-        {MENU_ITEMS.map((item) => {
-          // [수정됨] RAG 문서 관리 하위 경로(/passage, /chunk) 포함 체크
-          const isSourceRelated =
-            item.path === '/source' &&
-            (pathname.startsWith('/source') ||
-              pathname.startsWith('/passage') ||
-              pathname.startsWith('/chunk'))
-
-          const isActive = pathname.startsWith(item.path) || isSourceRelated
+        {Object.values(menuInfos).map((item) => {
+          const isActive = pathname.startsWith(item.path)
           const Icon = item.icon
-
           return (
             <Link
               key={item.path}
@@ -97,14 +70,12 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
               >
                 <Icon className="h-5 w-5" />
               </span>
-
               {/* Label */}
               {isOpen && (
                 <span className="flex-1 text-sm font-medium whitespace-nowrap">
                   {item.name}
                 </span>
               )}
-
               {/* Active dot */}
               {isActive && isOpen && (
                 <span className="h-2 w-2 rounded-full bg-white" />

@@ -51,23 +51,23 @@ export default function HomePage() {
   // ###################################################
   // 이펙트 및 로직 (Effects)
   // ###################################################
-  useEffect(() => {
-    const loadData = async () => {
-      await getSourceTotalCountApi()
-        .then((response) => {
-          setStats({
-            totalDocuments: response.result.sourceTotalCount,
-            totalPassages: response.result.passageTotalCount,
-            totalChunks: response.result.chunkTotalCount,
-          })
-        })
-        .catch((error) => {
-          console.error('Failed to load dashboard data', error)
-        })
-      setIsLoading(false)
-    }
-    loadData()
-  }, [])
+  // useEffect(() => {
+  //   const loadData = async () => {
+  //     await getSourceTotalCountApi()
+  //       .then((response) => {
+  //         setStats({
+  //           totalDocuments: response.result.sourceTotalCount,
+  //           totalPassages: response.result.passageTotalCount,
+  //           totalChunks: response.result.chunkTotalCount,
+  //         })
+  //       })
+  //       .catch((error) => {
+  //         console.error('Failed to load dashboard data', error)
+  //       })
+  //     setIsLoading(false)
+  //   }
+  //   loadData()
+  // }, [])
 
   // ###################################################
   // 렌더링 (Render)

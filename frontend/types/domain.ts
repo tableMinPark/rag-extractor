@@ -1,4 +1,74 @@
-// 검색 결과
+// 테이블 옵션
+export interface TableOption {
+  page: number
+  size: number
+}
+
+// 승인 여부 타입
+export type ApproveType =
+  | {
+      code: 'REQUEST'
+      name: '승인요청'
+      color: 'blue'
+    }
+  | {
+      code: 'ALLOW'
+      name: '승인'
+      color: 'green'
+    }
+  | {
+      code: 'DENY'
+      name: '반려'
+      color: 'red'
+    }
+  | {
+      code: 'WAIT'
+      name: '대기'
+      color: 'gray'
+    }
+
+// 전처리 타입
+export type SelectType =
+  | {
+      code: 'SELECT-TYPE-EMPTY'
+      name: '미등록'
+      color: 'red'
+    }
+  | {
+      code: 'SELECT-TYPE-TOKEN'
+      name: '토큰'
+      color: 'green'
+    }
+  | {
+      code: 'SELECT-TYPE-REGEX'
+      name: '정규식'
+      color: 'blue'
+    }
+  | {
+      code: 'SELECT-TYPE-NONE'
+      name: '지정안함'
+      color: 'gray'
+    }
+
+// 문서
+export interface Source {
+  sourceId: number
+  version: number
+  name: string
+  collectionId: string
+  sourceType: string
+  sourceTypeName: string
+  categoryCode: string
+  categoryName: string
+  selectCode: string
+  approveCode: string
+  isAuto: boolean
+  isBatch: boolean
+  sysCreateDt: string
+  sysModifyDt: string
+}
+
+// 참고 문서
 export interface Document {
   id: number
   title: string
@@ -23,33 +93,6 @@ export interface PatternType {
 export interface PrefixType {
   prefix: string
   isTitle: boolean
-}
-
-// Repo 리소스 타입
-export interface RepoResource {
-  originFileName: string
-  fileName: string
-  ext: string
-  path: string
-  urn: string
-}
-
-// 문서
-export interface Source {
-  sourceId: number
-  version: string
-  sourceType: string
-  sourceTypeName: string
-  categoryCode: string
-  categoryName: string
-  name: string
-  collectionId: string
-  selectType: string
-  selectTypeName: string
-  isAuto: boolean
-  isBatch: boolean
-  sysCreateDt: string
-  sysModifyDt: string
 }
 
 // 패시지

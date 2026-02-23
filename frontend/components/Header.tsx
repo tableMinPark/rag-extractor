@@ -32,10 +32,7 @@ export default function Header({}: HeaderProps) {
   }
 
   return (
-    <header className="bg-primary z-10 flex h-10 shrink-0 items-center justify-between px-4 text-white shadow-md">
-      {/* 좌측 영역 (로고나 메뉴 토글 등) */}
-      <div className="flex items-center font-bold">RAG Management System</div>
-
+    <header className="bg-primary z-10 flex h-10 shrink-0 items-center justify-end px-4 text-white shadow-md">
       {/* 우측 영역: 사용자 정보 및 로그아웃 */}
       <div className="flex items-center gap-3">
         {/* 사용자 정보 표시 */}

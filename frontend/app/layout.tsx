@@ -1,7 +1,7 @@
 import '@/public/css/globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import Providers from '@/components/providers'
+import Providers from './providers'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -16,10 +16,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="ko">
-      <body className={inter.className}>
-        <Providers>{children}</Providers>
-      </body>
-    </html>
+    <Providers>
+      <html lang="ko">
+        <body className={`flex ${inter.className}`}>{children}</body>
+      </html>
+    </Providers>
   )
 }

@@ -18,7 +18,9 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
     const accessToken = localStorage.getItem('accessToken')
 
-    if (!accessToken) {
+    if (config.mode === 'development') {
+      setIsAuthorized(true)
+    } else if (!accessToken) {
       router.replace('/login')
     } else {
       setIsAuthorized(true)

@@ -14,13 +14,7 @@ import {
   Server,
   Files,
 } from 'lucide-react'
-import {
-  Category,
-  PatternType,
-  PrefixType,
-  RepoResource,
-  Source,
-} from '@/types/domain'
+import { Category, PatternType, PrefixType, Source } from '@/types/domain'
 import {
   createFileSourceApi,
   createRepoSourcesApi,
@@ -46,14 +40,12 @@ interface RegisterFormData {
   repoResources: RepoResource[]
 }
 
-export const CreateSourceModal = ({
+export const ModalModifySource = ({
   isOpen,
   onClose,
-  onSuccess,
 }: {
   isOpen: boolean
   onClose: () => void
-  onSuccess: () => void
 }) => {
   const DEFAULT_REGISTER_FORM: RegisterFormData = {
     collectionId: '',
@@ -267,7 +259,6 @@ export const CreateSourceModal = ({
         ).then((response) => {
           console.log(`📡 ${response.message}`)
           alert('성공적으로 등록되었습니다.')
-          onSuccess()
           onClose()
         })
       } else if (formData.sourceType === 'repo') {
@@ -286,7 +277,6 @@ export const CreateSourceModal = ({
         ).then((response) => {
           console.log(`📡 ${response.message}`)
           alert('성공적으로 등록되었습니다.')
-          onSuccess()
           onClose()
         })
       }

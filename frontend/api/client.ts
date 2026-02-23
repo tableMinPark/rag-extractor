@@ -6,7 +6,8 @@ import axios, {
 } from 'axios'
 
 export const client = axios.create({
-  baseURL: '/api',
+  // baseURL: '/api',
+  baseURL: `http://${config.apiHost}:${config.apiPort}${config.apiBasePath}`,
   // headers: {
   //   'Content-Type': 'application/json',
   // },
