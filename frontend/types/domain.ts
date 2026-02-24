@@ -4,6 +4,18 @@ export interface TableOption {
   size: number
 }
 
+// 색인 컬렉션
+export interface Collection {
+  collectionId: string
+  collectionName: string
+}
+
+// 데이터 카테고리
+export interface Category {
+  code: string
+  name: string
+}
+
 // 승인 여부 타입
 export type ApproveType =
   | {
@@ -68,6 +80,11 @@ export interface Source {
   sysModifyDt: string
 }
 
+export interface RepoResource {
+  targetUrl: string
+  name: string
+}
+
 // 참고 문서
 export interface Document {
   id: number
@@ -130,12 +147,6 @@ export interface Chunk {
   subContentTokenSize: number
   sysCreateDt: string
   sysModifyDt: string
-}
-
-// 데이터 카테고리
-export interface Category {
-  code: string
-  name: string
 }
 
 // 문서 추출 본문

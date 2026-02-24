@@ -18,6 +18,7 @@ import {
   FilePlusIcon,
   FolderPlusIcon,
   Loader2,
+  Plus,
   RefreshCw,
   TrashIcon,
 } from 'lucide-react'
@@ -95,6 +96,7 @@ function DocumentContent() {
   const [createModalIsOpen, setCreateModalIsOpen] = useState(false)
   const [modifySelectTypeModalIsOpen, setModifySelectTypeModalIsOpen] =
     useState(false)
+  const [currentSourceId, setCurrentSourceId] = useState<number | null>(null)
   const [sources, setSources] = useState<Source[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [totalPage, setTotalPage] = useState(0)
@@ -210,6 +212,8 @@ function DocumentContent() {
   }
 
   const handleModifySource = (sourceId: number) => {
+    setCurrentSourceId(sourceId)
+    setModifyModalIsOpen(true)
     console.log('문서 수정 모달 오픈')
   }
 
@@ -228,6 +232,21 @@ function DocumentContent() {
     console.log('문서 전처리 방식 수정 모달 오픈')
   }
 
+  const handleToggleIsBatch = async (sourceId: number, isBatch: boolean) => {
+    console.log('자동화 여부 변경')
+    setSources((prev) => [
+      ...prev.map((source) => {
+        if (source.sourceId === sourceId) {
+          return {
+            ...source,
+            isBatch,
+          }
+        }
+        return source
+      }),
+    ])
+  }
+
   const handleApproveCode = (approveCode: string) => {
     let badge = <></>
     DEFAULT_APPROVE_TYPES.forEach((type: ApproveType) => {
@@ -244,13 +263,14 @@ function DocumentContent() {
     return badge
   }
 
-  const handleSelectCode = (selectCode: string) => {
+  const handleSelectCode = (selectCode: string, sourceId: number) => {
     let badge = <></>
     DEFAULT_SELECT_TYPES.forEach((type: SelectType) => {
       if (selectCode === type.code) {
         badge = (
           <span
-            className={`inline-flex items-center rounded-md bg-${type.color}-50 px-2 py-1 text-sm font-medium text-${type.color}-700 ring-1 ring-${type.color}-700/10 ring-inset`}
+            className={`hover:bg-${type.color}-100 inline-flex items-center rounded-md bg-${type.color}-50 px-2 py-1 text-sm font-medium text-${type.color}-700 ring-1 ring-${type.color}-700/10 cursor-pointer ring-inset`}
+            onClick={() => handleModifySelectType(sourceId)}
           >
             {type.name}
           </span>
@@ -383,13 +403,15 @@ function DocumentContent() {
                 onClick={handleBatchPassaging}
                 className="bg-primary hover:bg-primary-hover flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white shadow-sm transition-all active:scale-95"
               >
-                <span>패시지 분리 배치</span>
+                <RefreshCw className="h-4 w-4" />
+                패시지 분리 배치
               </button>
               <button
                 onClick={() => setCreateModalIsOpen(true)}
                 className="bg-primary hover:bg-primary-hover flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white shadow-sm transition-all active:scale-95"
               >
-                <span>문서 등록</span>
+                <Plus className="h-4 w-4" />
+                문서 등록
               </button>
             </>
           )}
@@ -401,16 +423,15 @@ function DocumentContent() {
             <tr>
               <th className="w-15 px-4 py-4 text-center">ID</th>
               <th className="px-4 py-4">문서명</th>
-              <th className="w-24 px-2 py-4 text-center">카테고리</th>
-              <th className="w-20 px-2 py-4 text-center">문서타입</th>
-              <th className="w-25 px-2 py-4 text-center">전처리타입</th>
-              <th className="w-20 px-2 py-4 text-center">버전</th>
-              <th className="w-20 px-2 py-4 text-center">자동화여부</th>
-              <th className="w-25 px-2 py-4 text-center">배치여부</th>
-              <th className="w-25 px-2 py-4 text-center">승인여부</th>
-              <th className="w-10 px-2 py-4 text-center"></th>
-              <th className="w-10 px-2 py-4 text-center"></th>
-              <th className="w-34 px-2 py-4 text-center"></th>
+              <th className="w-26 px-2 py-4 text-center">카테고리</th>
+              <th className="w-22 px-2 py-4 text-center">문서타입</th>
+              <th className="w-27 px-2 py-4 text-center">전처리타입</th>
+              <th className="w-22 px-2 py-4 text-center">버전</th>
+              <th className="w-22 px-2 py-4 text-center">자동화여부</th>
+              <th className="w-27 px-2 py-4 text-center">승인여부</th>
+              <th className="w-27 px-2 py-4 text-center">배치여부</th>
+              <th className="w-15 px-2 py-4 text-center"></th>
+              <th className="w-15 px-2 py-4 text-center"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
@@ -480,7 +501,7 @@ function DocumentContent() {
                       </span>
                     </td>
                     <td className="px-4 py-4 text-center">
-                      {handleSelectCode(source.selectCode)}
+                      {handleSelectCode(source.selectCode, source.sourceId)}
                     </td>
                     <td className="px-4 py-4 text-center">
                       <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-sm font-medium text-gray-600 ring-1 ring-gray-700/10 ring-inset">
@@ -499,18 +520,23 @@ function DocumentContent() {
                       )}
                     </td>
                     <td className="px-4 py-4 text-center">
-                      {source.isBatch ? (
-                        <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-sm font-medium text-green-700 ring-1 ring-green-700/10 ring-inset">
-                          활성화
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-sm font-medium text-red-800 ring-1 ring-red-600/20 ring-inset">
-                          비활성화
-                        </span>
-                      )}
+                      {handleApproveCode(source.approveCode)}
                     </td>
                     <td className="px-4 py-4 text-center">
-                      {handleApproveCode(source.approveCode)}
+                      <label className="relative inline-flex cursor-pointer items-center">
+                        <input
+                          type="checkbox"
+                          checked={source.isBatch}
+                          onChange={(e) =>
+                            handleToggleIsBatch(
+                              source.sourceId,
+                              e.target.checked,
+                            )
+                          }
+                          className="peer sr-only"
+                        />
+                        <div className="peer peer-checked:bg-primary peer-focus:ring-primary/20 h-6 w-11 rounded-full bg-gray-200 peer-focus:ring-2 peer-focus:outline-none after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
+                      </label>
                     </td>
                     <td className="text-sm text-gray-500">
                       <button
@@ -526,16 +552,6 @@ function DocumentContent() {
                         className="text-gray h-10 rounded-lg text-sm font-bold transition-colors"
                       >
                         <TrashIcon className="h-6 w-6" />
-                      </button>
-                    </td>
-                    <td className="px-2 py-2 text-sm text-gray-500">
-                      <button
-                        onClick={() => handleModifySelectType(source.sourceId)}
-                        className="hover:text-primary h-10 rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm font-bold text-gray-600 transition-colors hover:bg-gray-100"
-                      >
-                        {source.selectCode === EMPTY_SELECT_CODE
-                          ? '전처리타입등록'
-                          : '전처리타입수정'}
                       </button>
                     </td>
                   </tr>
@@ -556,16 +572,15 @@ function DocumentContent() {
       </div>
       {createModalIsOpen && (
         <ModalCreateSource
-          isOpen={createModalIsOpen}
           onClose={() => {
             handleGetSources()
             setCreateModalIsOpen(false)
           }}
         />
       )}
-      {modifyModalIsOpen && (
+      {modifyModalIsOpen && currentSourceId !== null && (
         <ModalModifySource
-          isOpen={modifyModalIsOpen}
+          sourceId={currentSourceId}
           onClose={() => {
             handleGetSources()
             setModifyModalIsOpen(false)
