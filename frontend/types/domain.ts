@@ -80,6 +80,13 @@ export interface Source {
   sysModifyDt: string
 }
 
+export interface FileResource {
+  originFileName: string
+  fileSize: number
+  ext: string
+  url: string
+}
+
 export interface RepoResource {
   targetUrl: string
   name: string

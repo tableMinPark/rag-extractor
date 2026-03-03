@@ -13,10 +13,7 @@ import {
 } from '@/types/domain'
 import {
   AlertCircle,
-  Edit,
   EditIcon,
-  FilePlusIcon,
-  FolderPlusIcon,
   Loader2,
   Plus,
   RefreshCw,
@@ -124,9 +121,11 @@ function DocumentContent() {
   // ###################################################
   // 핸들러
   // ###################################################
+  /**
+   * TODO: 카테고리 목록 조회 핸들러
+   */
   const handleGetCategories = async () => {
     console.log(`카테고리 목록 조회`)
-    // TODO: 카테고리 목록 조회
     setCategories([
       {
         code: 'TRAIN-LAW',
@@ -135,9 +134,11 @@ function DocumentContent() {
     ])
   }
 
+  /**
+   * TODO: 문서 목록 조회 핸들러
+   */
   const handleGetSources = async () => {
     console.log(`문서 목록 조회`)
-    // TODO: 문서 목록 조회
     setIsLoading(true)
     setSources(() => {
       const temp = []
@@ -178,6 +179,11 @@ function DocumentContent() {
     setIsLoading(false)
   }
 
+  /**
+   * 검색어 변경 이벤트 핸들러
+   *
+   * @param keyword 검색어
+   */
   const handleChangeKeyword = (keyword: string) => {
     setTableOption((prev) => {
       return {
@@ -187,6 +193,11 @@ function DocumentContent() {
     })
   }
 
+  /**
+   * 대상 문서 클릭 이벤트 핸들러
+   *
+   * @param source 대상 문서
+   */
   const handleClickSource = (source: Source) => {
     if (source.selectCode === EMPTY_SELECT_CODE) {
       modalStore.setInfo(
@@ -200,6 +211,9 @@ function DocumentContent() {
     }
   }
 
+  /**
+   * 패시지 분리 배치 핸들러
+   */
   const handleBatchPassaging = async () => {
     modalStore.setConfirm(
       '패시지 분리 배치',
@@ -211,12 +225,22 @@ function DocumentContent() {
     )
   }
 
+  /**
+   * 대상 문서 수정 핸들러
+   *
+   * @param sourceId 대상 문서 ID
+   */
   const handleModifySource = (sourceId: number) => {
     setCurrentSourceId(sourceId)
     setModifyModalIsOpen(true)
     console.log('문서 수정 모달 오픈')
   }
 
+  /**
+   * 대상 문서 삭제 핸들러
+   *
+   * @param sourceId 대상 문서 ID
+   */
   const handleDeleteSource = (sourceId: number) => {
     modalStore.setConfirm(
       '문서 삭제',
@@ -228,10 +252,23 @@ function DocumentContent() {
     )
   }
 
+  /**
+   * 대상 문서 전처리 타입 수정 핸들러
+   *
+   * @param sourceId 대상 문서 ID
+   */
   const handleModifySelectType = (sourceId: number) => {
+    setCurrentSourceId(sourceId)
+    setModifySelectTypeModalIsOpen(true)
     console.log('문서 전처리 방식 수정 모달 오픈')
   }
 
+  /**
+   * 대상 문서 배치 여부 수정 핸들러
+   *
+   * @param sourceId 대상 문서 ID
+   * @param isBatch 대상 문서 배치 여부
+   */
   const handleToggleIsBatch = async (sourceId: number, isBatch: boolean) => {
     console.log('자동화 여부 변경')
     setSources((prev) => [
@@ -247,7 +284,14 @@ function DocumentContent() {
     ])
   }
 
-  const handleApproveCode = (approveCode: string) => {
+  /**
+   * 승인 코드 배지 Element 생성 핸들러
+   *
+   * @param approveCode 승인/반려 코드
+   * @param sourceId 대상 문서 ID
+   * @returns 승인/반려 배지 Element
+   */
+  const handleApproveCode = (approveCode: string, sourceId: number) => {
     let badge = <></>
     DEFAULT_APPROVE_TYPES.forEach((type: ApproveType) => {
       if (approveCode === type.code) {
@@ -263,6 +307,13 @@ function DocumentContent() {
     return badge
   }
 
+  /**
+   * 전처리 타입 배지 Element 생성 핸들러
+   *
+   * @param selectCode 전처리 타입 코드
+   * @param sourceId 대상 문서 ID
+   * @returns 전처리 타입 배지 Element
+   */
   const handleSelectCode = (selectCode: string, sourceId: number) => {
     let badge = <></>
     DEFAULT_SELECT_TYPES.forEach((type: SelectType) => {
@@ -426,12 +477,12 @@ function DocumentContent() {
               <th className="w-26 px-2 py-4 text-center">카테고리</th>
               <th className="w-22 px-2 py-4 text-center">문서타입</th>
               <th className="w-27 px-2 py-4 text-center">전처리타입</th>
-              <th className="w-22 px-2 py-4 text-center">버전</th>
+              <th className="w-20 px-2 py-4 text-center">버전</th>
               <th className="w-22 px-2 py-4 text-center">자동화여부</th>
-              <th className="w-27 px-2 py-4 text-center">승인여부</th>
-              <th className="w-27 px-2 py-4 text-center">배치여부</th>
-              <th className="w-15 px-2 py-4 text-center"></th>
-              <th className="w-15 px-2 py-4 text-center"></th>
+              <th className="w-22 px-2 py-4 text-center">승인여부</th>
+              <th className="w-23 px-2 py-4 text-center">배치여부</th>
+              <th className="w-13 px-2 py-4 text-center"></th>
+              <th className="w-13 px-2 py-4 text-center"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
@@ -480,35 +531,35 @@ function DocumentContent() {
                     key={source.sourceId}
                     className="group max-h-4 transition-colors"
                   >
-                    <td className="px-4 py-4 text-center font-mono text-sm text-gray-400 group-hover:text-gray-600">
+                    <td className="px-2 py-2 text-center font-mono text-sm text-gray-400 group-hover:text-gray-600">
                       {source.sourceId}
                     </td>
                     <td
                       onClick={() => handleClickSource(source)}
-                      className="group-hover:text-primary max-w-50 cursor-pointer truncate px-4 py-4 text-sm text-gray-800 transition-colors"
+                      className="group-hover:text-primary max-w-50 cursor-pointer truncate px-2 py-2 text-sm text-gray-800 transition-colors"
                       title={source.name}
                     >
                       {source.name}
                     </td>
-                    <td className="px-4 py-4 text-center">
+                    <td className="px-2 py-2 text-center">
                       <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-sm font-medium text-gray-600 ring-1 ring-gray-700/10 ring-inset">
                         {source.categoryName}
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-center">
+                    <td className="px-2 py-2 text-center">
                       <span className="font-mono text-sm font-bold text-gray-500">
                         {source.sourceTypeName}
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-center">
+                    <td className="px-2 py-2 text-center">
                       {handleSelectCode(source.selectCode, source.sourceId)}
                     </td>
-                    <td className="px-4 py-4 text-center">
+                    <td className="px-2 py-2 text-center">
                       <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-sm font-medium text-gray-600 ring-1 ring-gray-700/10 ring-inset">
                         v{source.version}
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-center">
+                    <td className="px-2 py-2 text-center">
                       {source.isAuto ? (
                         <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-sm font-medium text-blue-700 ring-1 ring-blue-700/10 ring-inset">
                           자동
@@ -519,10 +570,10 @@ function DocumentContent() {
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-4 text-center">
-                      {handleApproveCode(source.approveCode)}
+                    <td className="px-2 py-2 text-center">
+                      {handleApproveCode(source.approveCode, source.sourceId)}
                     </td>
-                    <td className="px-4 py-4 text-center">
+                    <td className="px-2 py-2 text-center">
                       <label className="relative inline-flex cursor-pointer items-center">
                         <input
                           type="checkbox"
@@ -589,7 +640,6 @@ function DocumentContent() {
       )}
       {modifySelectTypeModalIsOpen && (
         <ModalModifySelectType
-          isOpen={modifySelectTypeModalIsOpen}
           onClose={() => {
             handleGetSources()
             setModifySelectTypeModalIsOpen(false)
