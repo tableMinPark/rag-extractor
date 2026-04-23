@@ -1,17 +1,5 @@
-export const getRole = () => {
-  const role = localStorage.getItem('role')
-  if (role) {
-    return role
-  } else {
-    ;('')
-  }
-}
+import { useAuthStore } from '@/stores/authStore'
 
-export const getUserName = () => {
-  const username = localStorage.getItem('username')
-  if (username) {
-    return username
-  } else {
-    ;('')
-  }
-}
+export const getRole = () => useAuthStore.getState().role ?? ''
+
+export const getUserName = () => useAuthStore.getState().username ?? ''

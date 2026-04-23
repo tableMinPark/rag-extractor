@@ -11,9 +11,11 @@ import {
   AlertCircle,
 } from 'lucide-react'
 import { loginApi } from '@/api/auth'
+import { useAuthStore } from '@/stores/authStore'
 
 export default function LoginPage() {
   const router = useRouter()
+  const setAuth = useAuthStore((s) => s.setAuth)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [formData, setFormData] = useState({
@@ -43,8 +45,7 @@ export default function LoginPage() {
       .then((response) => {
         // 로그인 성공
         if (response.code === 0) {
-          localStorage.setItem('username', response.result.username)
-          localStorage.setItem('role', response.result.role)
+          setAuth(response.result.accessToken, response.result.username, response.result.role)
           router.push('/')
         }
       })
