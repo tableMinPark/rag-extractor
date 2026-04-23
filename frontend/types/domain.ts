@@ -73,6 +73,8 @@ export interface Source {
   categoryCode: string
   categoryName: string
   selectCode: string
+  selectType: string
+  selectTypeName: string
   approveCode: string
   isAuto: boolean
   isBatch: boolean

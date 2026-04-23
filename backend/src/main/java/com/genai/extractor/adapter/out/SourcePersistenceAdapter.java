@@ -141,4 +141,31 @@ public class SourcePersistenceAdapter implements SourcePersistencePort {
     public long getSourceTotalCountPort() {
         return sourceRepository.count();
     }
+
+    /**
+     * 대상 문서 삭제
+     *
+     * @param sourceId 대상 문서 ID
+     */
+    @Transactional
+    @Override
+    public void deleteSourcePort(Long sourceId) {
+        SourceEntity sourceEntity = sourceRepository.findById(sourceId)
+                .orElseThrow(() -> new NotFoundException("대상 문서"));
+        sourceRepository.delete(sourceEntity);
+    }
+
+    /**
+     * 대상 문서 배치 여부 수정
+     *
+     * @param sourceId 대상 문서 ID
+     * @param isBatch  배치 여부
+     */
+    @Transactional
+    @Override
+    public void updateIsBatchPort(Long sourceId, boolean isBatch) {
+        SourceEntity sourceEntity = sourceRepository.findById(sourceId)
+                .orElseThrow(() -> new NotFoundException("대상 문서"));
+        sourceEntity.updateIsBatch(isBatch);
+    }
 }

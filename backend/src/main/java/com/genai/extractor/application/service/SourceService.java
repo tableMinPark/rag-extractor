@@ -197,4 +197,27 @@ public class SourceService implements SourceUseCase {
     public long getSourceTotalCountUseCase() {
         return sourcePersistencePort.getSourceTotalCountPort();
     }
+
+    /**
+     * 대상 문서 삭제
+     *
+     * @param sourceId 대상 문서 ID
+     */
+    @Transactional
+    @Override
+    public void deleteSourceUseCase(Long sourceId) {
+        sourcePersistencePort.deleteSourcePort(sourceId);
+    }
+
+    /**
+     * 대상 문서 배치 여부 수정
+     *
+     * @param sourceId 대상 문서 ID
+     * @param isBatch  배치 여부
+     */
+    @Transactional
+    @Override
+    public void updateIsBatchUseCase(Long sourceId, boolean isBatch) {
+        sourcePersistencePort.updateIsBatchPort(sourceId, isBatch);
+    }
 }

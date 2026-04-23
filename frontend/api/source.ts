@@ -177,3 +177,34 @@ export const getSourceTotalCountApi = async (): Promise<
 
   return response.data
 }
+
+/**
+ * 문서 삭제 API
+ *
+ * @param sourceId 문서 ID
+ */
+export const deleteSourceApi = async (
+  sourceId: number,
+): Promise<ApiResponse<void>> => {
+  const response = await client.delete<ApiResponse<void>>(
+    `/source/${sourceId}`,
+  )
+  return response.data
+}
+
+/**
+ * 문서 배치 여부 수정 API
+ *
+ * @param sourceId 문서 ID
+ * @param isBatch 배치 여부
+ */
+export const updateIsBatchApi = async (
+  sourceId: number,
+  isBatch: boolean,
+): Promise<ApiResponse<void>> => {
+  const response = await client.patch<ApiResponse<void>>(
+    `/source/${sourceId}/batch`,
+    { isBatch },
+  )
+  return response.data
+}

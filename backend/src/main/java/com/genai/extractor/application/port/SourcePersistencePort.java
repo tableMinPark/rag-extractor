@@ -57,4 +57,19 @@ public interface SourcePersistencePort {
      * @return 총 문서 수
      */
     long getSourceTotalCountPort();
+
+    /**
+     * 대상 문서 삭제
+     *
+     * @param sourceId 대상 문서 ID
+     */
+    void deleteSourcePort(Long sourceId);
+
+    /**
+     * 대상 문서 배치 여부 수정
+     *
+     * @param sourceId 대상 문서 ID
+     * @param isBatch  배치 여부
+     */
+    void updateIsBatchPort(Long sourceId, boolean isBatch);
 }

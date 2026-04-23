@@ -139,6 +139,10 @@ public class SourceEntity {
         }
     }
 
+    public void updateIsBatch(boolean isBatch) {
+        this.isBatch = isBatch;
+    }
+
     public Optional<SourcePatternEntity> getSourcePattern(Long sourcePatternId) {
         for (SourcePatternEntity sourcePattern : sourcePatterns) {
             if (sourcePatternId.equals(sourcePattern.getSourcePatternId())) {

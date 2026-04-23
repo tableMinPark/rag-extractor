@@ -1,6 +1,7 @@
 'use client'
 
 import { Suspense, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import NotFound from '@/components/NotFound'
 import { menuInfos } from '@/public/const/menu'
 import { getRole } from '@/public/ts/storageUtil'
@@ -25,6 +26,13 @@ import { Pagination } from '@/components/table/Pagination'
 import { ModalCreateSource } from '@/components/modal/ModalCreateSource'
 import { ModalModifySource } from '@/components/modal/ModalModifySource'
 import { ModalModifySelectType } from '@/components/modal/ModalModifySelectType'
+import {
+  getCategoriesSourceApi,
+  getSourcesApi,
+  deleteSourceApi,
+  updateIsBatchApi,
+} from '@/api/source'
+import { batchPassagingApi } from '@/api/batch'
 
 const DEFAULT_APPROVE_TYPES: ApproveType[] = [
   {
@@ -83,6 +91,7 @@ function DocumentContent() {
   const menuInfo = menuInfos.source
   const uiStore = useUiStore()
   const modalStore = useModalStore()
+  const router = useRouter()
 
   // ###################################################
   // 상태 관리
@@ -121,62 +130,40 @@ function DocumentContent() {
   // ###################################################
   // 핸들러
   // ###################################################
-  /**
-   * TODO: 카테고리 목록 조회 핸들러
-   */
   const handleGetCategories = async () => {
-    console.log(`카테고리 목록 조회`)
-    setCategories([
-      {
-        code: 'TRAIN-LAW',
-        name: '법령',
-      },
-    ])
+    try {
+      const response = await getCategoriesSourceApi()
+      setCategories(response.result)
+    } catch (e) {
+      console.error('카테고리 조회 실패', e)
+    }
   }
 
-  /**
-   * TODO: 문서 목록 조회 핸들러
-   */
   const handleGetSources = async () => {
-    console.log(`문서 목록 조회`)
     setIsLoading(true)
-    setSources(() => {
-      const temp = []
-      for (
-        let index = (tableOption.page - 1) * tableOption.size;
-        index < (tableOption.page - 1) * tableOption.size + tableOption.size;
-        index++
-      ) {
-        temp.push({
-          sourceId: index,
-          version: 1,
-          name: '파일명 테스트 파일명 테스트 파일명 테스트 파일명 테스트 파일명 테스트 파일명 테스트 파일명 테스트 파일명 테스트',
-          collectionId: '',
-          sourceType: 'SOURCE-TYPE-FILE',
-          sourceTypeName: '파일',
-          categoryCode: 'TRAIN-LAW',
-          categoryName: '법령',
-          selectCode: 'SELECT-TYPE-EMPTY',
-          approveCode: 'REQUEST',
-          isAuto: true,
-          isBatch: false,
-          sysCreateDt: '2026-01-01 00:00:00',
-          sysModifyDt: '2026-01-01 00:00:00',
-        })
-      }
-      return temp
-    })
-    setTableOption((prev) => {
-      return {
-        ...prev,
-        page: tableOption.page,
-        size: 10,
-      }
-    })
-    setTotalCount(100)
-    setTotalPage(10)
-
-    setIsLoading(false)
+    setIsError(false)
+    try {
+      const keyword =
+        tableOption.keyword.trim() !== '' ? tableOption.keyword : undefined
+      const categoryCode =
+        tableOption.categoryCode !== 'ALL' ? tableOption.categoryCode : undefined
+      const response = await getSourcesApi(
+        tableOption.page,
+        tableOption.size,
+        keyword,
+        categoryCode,
+      )
+      setSources(
+        response.result.content.map((s) => ({ ...s, selectCode: s.selectType })),
+      )
+      setTotalCount(response.result.totalCount)
+      setTotalPage(response.result.totalPages)
+    } catch (e) {
+      console.error('문서 목록 조회 실패', e)
+      setIsError(true)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   /**
@@ -206,21 +193,22 @@ function DocumentContent() {
         '패시지 관리를 위해서는 전처리 타입 등록이 필요합니다.',
       )
       return
-    } else {
-      console.log(`${source.sourceId} 문서행 클릭`)
     }
+    router.push(`/source/detail?sourceId=${source.sourceId}`)
   }
 
-  /**
-   * 패시지 분리 배치 핸들러
-   */
   const handleBatchPassaging = async () => {
     modalStore.setConfirm(
       '패시지 분리 배치',
       '배치 문서의 패시지 분리 배치를 실행하시겠습니까?',
       '배치 대상 문서만 실행되며, 이전 버전의 패시지는 삭제됩니다.',
       async () => {
-        console.log('패시지 분리 배치 ')
+        try {
+          await batchPassagingApi()
+          await handleGetSources()
+        } catch (e) {
+          console.error('패시지 분리 배치 실패', e)
+        }
       },
     )
   }
@@ -236,18 +224,18 @@ function DocumentContent() {
     console.log('문서 수정 모달 오픈')
   }
 
-  /**
-   * 대상 문서 삭제 핸들러
-   *
-   * @param sourceId 대상 문서 ID
-   */
   const handleDeleteSource = (sourceId: number) => {
     modalStore.setConfirm(
       '문서 삭제',
       '정말로 문서를 삭제하시겠습니까?',
       '삭제한 문서는 복구할 수 없습니다.',
       async () => {
-        console.log('문서 삭제')
+        try {
+          await deleteSourceApi(sourceId)
+          await handleGetSources()
+        } catch (e) {
+          console.error('문서 삭제 실패', e)
+        }
       },
     )
   }
@@ -263,25 +251,22 @@ function DocumentContent() {
     console.log('문서 전처리 방식 수정 모달 오픈')
   }
 
-  /**
-   * 대상 문서 배치 여부 수정 핸들러
-   *
-   * @param sourceId 대상 문서 ID
-   * @param isBatch 대상 문서 배치 여부
-   */
   const handleToggleIsBatch = async (sourceId: number, isBatch: boolean) => {
-    console.log('자동화 여부 변경')
-    setSources((prev) => [
-      ...prev.map((source) => {
-        if (source.sourceId === sourceId) {
-          return {
-            ...source,
-            isBatch,
-          }
-        }
-        return source
-      }),
-    ])
+    setSources((prev) =>
+      prev.map((source) =>
+        source.sourceId === sourceId ? { ...source, isBatch } : source,
+      ),
+    )
+    try {
+      await updateIsBatchApi(sourceId, isBatch)
+    } catch (e) {
+      console.error('배치 여부 수정 실패', e)
+      setSources((prev) =>
+        prev.map((source) =>
+          source.sourceId === sourceId ? { ...source, isBatch: !isBatch } : source,
+        ),
+      )
+    }
   }
 
   /**

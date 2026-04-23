@@ -54,4 +54,19 @@ public interface SourceUseCase {
      * @return 총 대상 문서 수
      */
     long getSourceTotalCountUseCase();
+
+    /**
+     * 대상 문서 삭제
+     *
+     * @param sourceId 대상 문서 ID
+     */
+    void deleteSourceUseCase(Long sourceId);
+
+    /**
+     * 대상 문서 배치 여부 수정
+     *
+     * @param sourceId 대상 문서 ID
+     * @param isBatch  배치 여부
+     */
+    void updateIsBatchUseCase(Long sourceId, boolean isBatch);
 }

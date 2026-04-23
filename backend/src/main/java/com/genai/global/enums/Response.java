@@ -36,6 +36,8 @@ public enum Response {
     GET_SOURCES_SUCCESS(HttpStatus.OK, 1203, "대상 문서 목록 조회에 성공했습니다.", ""),
     GET_SOURCE_CATEGORIES_SUCCESS(HttpStatus.OK, 1204, "대상 문서 카테고리 목록 조회에 성공했습니다.", ""),
     GET_SOURCE_TOTAL_COUNT_SUCCESS(HttpStatus.OK, 1205, "총 대상 문서 수 조회에 성공했습니다.", ""),
+    DELETE_SOURCE_SUCCESS(HttpStatus.OK, 1206, "대상 문서 삭제에 성공했습니다.", ""),
+    UPDATE_IS_BATCH_SUCCESS(HttpStatus.OK, 1207, "대상 문서 배치 여부 수정에 성공했습니다.", ""),
 
     // 패시지
     GET_PASSAGE_SUCCESS(HttpStatus.OK, 1301, "패시지 조회에 성공했습니다.", ""),

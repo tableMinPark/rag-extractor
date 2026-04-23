@@ -3,6 +3,7 @@ package com.genai.extractor.controller;
 import com.genai.extractor.adapter.in.dto.etc.RepoResourceDto;
 import com.genai.extractor.adapter.in.dto.request.CreateFileSourceRequestDto;
 import com.genai.extractor.adapter.in.dto.request.CreateRepoSourceRequestDto;
+import com.genai.extractor.adapter.in.dto.request.UpdateIsBatchRequestDto;
 import com.genai.extractor.adapter.in.dto.response.*;
 import com.genai.global.dto.PageResponseDto;
 import com.genai.global.dto.ResponseDto;
@@ -233,5 +234,22 @@ public class SourceController {
                 .build();
 
         return ResponseEntity.ok(Response.GET_SOURCE_TOTAL_COUNT_SUCCESS.toResponseDto(getSourceTotalCountResponseDto));
+    }
+
+    @Operation(summary = "대상 문서 삭제")
+    @DeleteMapping("/{sourceId}")
+    public ResponseEntity<ResponseDto<?>> deleteSource(@PathVariable("sourceId") Long sourceId) {
+        sourceUseCase.deleteSourceUseCase(sourceId);
+        return ResponseEntity.ok(Response.DELETE_SOURCE_SUCCESS.toResponseDto());
+    }
+
+    @Operation(summary = "대상 문서 배치 여부 수정")
+    @PatchMapping("/{sourceId}/batch")
+    public ResponseEntity<ResponseDto<?>> updateIsBatch(
+            @PathVariable("sourceId") Long sourceId,
+            @RequestBody UpdateIsBatchRequestDto requestDto
+    ) {
+        sourceUseCase.updateIsBatchUseCase(sourceId, requestDto.getIsBatch());
+        return ResponseEntity.ok(Response.UPDATE_IS_BATCH_SUCCESS.toResponseDto());
     }
 }

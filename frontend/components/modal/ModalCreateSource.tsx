@@ -15,6 +15,11 @@ import {
   X,
 } from 'lucide-react'
 import { Category, Collection, RepoResource } from '@/types/domain'
+import {
+  getCategoriesSourceApi,
+  createFileSourceApi,
+  createRepoSourcesApi,
+} from '@/api/source'
 
 interface FormData {
   collectionId: string
@@ -55,31 +60,68 @@ export const ModalCreateSource = ({ onClose }: { onClose: () => void }) => {
   // 핸들러
   // ###################################################
   const handleGetCollections = async () => {
-    console.log(`컬렉션 목록 조회`)
-    // TODO: 컬렉션 목록 조회
+    // 컬렉션은 별도 API가 없어 하드코딩
     setCollections([
-      {
-        collectionId: 'NHIS_AI',
-        collectionName: 'AI',
-      },
+      { collectionId: 'NHIS_AI', collectionName: 'AI' },
     ])
   }
 
   const handleGetCategories = async () => {
-    console.log(`카테고리 목록 조회`)
-    // TODO: 카테고리 목록 조회
-    setCategories([
-      {
-        code: 'TRAIN-LAW',
-        name: '법령',
-      },
-    ])
+    try {
+      const response = await getCategoriesSourceApi()
+      setCategories(response.result)
+    } catch (e) {
+      console.error('카테고리 조회 실패', e)
+    }
   }
 
   const handleCreateSource = async () => {
+    if (!formData.categoryCode) return alert('카테고리를 선택해주세요.')
+    if (!formData.collectionId) return alert('색인 테이블을 선택해주세요.')
+    if (formData.sourceType === 'file' && formData.files.length === 0)
+      return alert('파일을 선택해주세요.')
+    if (
+      formData.sourceType === 'repo' &&
+      formData.repoResources.length === 0
+    )
+      return alert('리소스를 추가해주세요.')
+
     setIsLoading(true)
-    console.log('문서 등록')
-    setIsLoading(false)
+    try {
+      if (formData.sourceType === 'file') {
+        await createFileSourceApi(
+          formData.categoryCode,
+          formData.collectionId,
+          1200,
+          0,
+          [],
+          [],
+          'SELECT-TYPE-EMPTY',
+          formData.isAuto,
+          formData.files,
+        )
+      } else {
+        await createRepoSourcesApi(
+          formData.categoryCode,
+          formData.collectionId,
+          1200,
+          0,
+          [],
+          [],
+          'SELECT-TYPE-EMPTY',
+          formData.isAuto,
+          '',
+          0,
+          formData.repoResources,
+        )
+      }
+      onClose()
+    } catch (e) {
+      console.error('문서 등록 실패', e)
+      alert('문서 등록에 실패했습니다.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleChangeIsAuto = (isAuto: boolean) => {
