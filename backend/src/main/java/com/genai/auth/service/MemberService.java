@@ -25,7 +25,7 @@ public class MemberService implements UserDetailsService {
                     .orElseThrow(() ->  new NotFoundException("회원 정보"));
 
             return User.builder()
-                    .username(memberEntity.getName())
+                    .username(memberEntity.getEmail())
                     .password(memberEntity.getPassword())
                     .roles(memberEntity.getRole())
                     .build();

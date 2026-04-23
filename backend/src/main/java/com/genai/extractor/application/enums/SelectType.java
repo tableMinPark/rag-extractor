@@ -8,6 +8,7 @@ import lombok.Getter;
 public enum SelectType {
 
     NONE("SELECT-TYPE-NONE", "미설정"),
+    EMPTY("SELECT-TYPE-EMPTY", "지정안함"),
     REGEX("SELECT-TYPE-REGEX", "정규식"),
     TOKEN("SELECT-TYPE-TOKEN", "토큰"),
     ;

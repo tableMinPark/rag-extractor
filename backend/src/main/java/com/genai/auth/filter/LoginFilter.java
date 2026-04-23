@@ -6,9 +6,10 @@ import com.genai.global.enums.Response;
 import com.genai.auth.utils.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,18 +22,30 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 
-@RequiredArgsConstructor
+@Slf4j
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
+    private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final ObjectMapper objectMapper;
-    private final AuthenticationManager authenticationManager;
 
-    // 1. 로그인 시도
+    public LoginFilter(
+            AuthenticationManager authenticationManager,
+            JwtUtil jwtUtil,
+            ObjectMapper objectMapper
+    ) {
+        super(authenticationManager);
+        this.authenticationManager = authenticationManager;
+        this.jwtUtil = jwtUtil;
+        this.objectMapper = objectMapper;
+        setFilterProcessesUrl("/api/login");
+    }
+
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         try {
             LoginRequestDto userRequestDto = objectMapper.readValue(request.getInputStream(), LoginRequestDto.class);
+            log.info("userRequestDto : {}", userRequestDto);
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userRequestDto.getUsername(), userRequestDto.getPassword());
             return authenticationManager.authenticate(authToken);
         } catch (IOException e) {
@@ -40,10 +53,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         }
     }
 
-    // 2. 인증 성공 시
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException {
-
         String username = authResult.getName();
 
         Collection<? extends GrantedAuthority> authorities = authResult.getAuthorities();
@@ -51,16 +62,22 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         GrantedAuthority auth = iterator.next();
         String role = auth.getAuthority();
 
-        String accessToken = jwtUtil.createToken(username, role);
+        String accessToken = jwtUtil.generateAccessToken(username, role);
+        String refreshToken = jwtUtil.generateRefreshToken(username);
 
-        response.addHeader("Authorization", "Bearer " + accessToken);
+        Cookie cookie = new Cookie(jwtUtil.getRefreshTokenCookieName(), refreshToken);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge((int) (jwtUtil.getRefreshTokenExpiry() / 1000));
+        response.addCookie(cookie);
 
         response.setStatus(HttpStatus.OK.value());
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write(objectMapper.writeValueAsString(Response.LOGIN_SUCCESS.toResponseDto(new LoginResponseDto(username, role))));
+        response.getWriter().write(objectMapper.writeValueAsString(
+                Response.LOGIN_SUCCESS.toResponseDto(new LoginResponseDto(username, role, accessToken))
+        ));
     }
 
-    // 3. 인증 실패 시
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException {
         response.setStatus(HttpStatus.UNAUTHORIZED.value());

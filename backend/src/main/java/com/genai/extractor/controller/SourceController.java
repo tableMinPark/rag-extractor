@@ -65,7 +65,7 @@ public class SourceController {
 
             try {
                 sourceUseCase.createSourcesUseCase(CreateSourceCommand.builder()
-                        .sourceType(SourceType.FILE.name())
+                        .sourceType(SourceType.FILE.getCode())
                         .categoryCode(createFileSourceRequestDto.getCategoryCode())
                         .collectionId(createFileSourceRequestDto.getCollectionId())
                         .maxTokenSize(createFileSourceRequestDto.getMaxTokenSize())

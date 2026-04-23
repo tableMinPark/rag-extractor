@@ -1,57 +1,85 @@
 package com.genai.auth.utils;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
 @Component
-@RequiredArgsConstructor
 public class JwtUtil {
 
-    @Value("${env.jwt.secret}")
-    public String SECRET_KEY;
-    private static final long EXPIRATION_TIME = 86400000;
+    private final Key secretKey;
+    private final long accessTokenExpiry;
+    private final long refreshTokenExpiry;
+    private final String refreshTokenCookieName;
 
-    // 토큰 생성
-    public String createToken(String username, String role) {
+    public JwtUtil(
+            @Value("${env.jwt.secret}") String secret,
+            @Value("${env.jwt.access-token-expiry}") long accessTokenExpiry,
+            @Value("${env.jwt.refresh-token-expiry}") long refreshTokenExpiry,
+            @Value("${env.jwt.refresh-token-cookie-name}") String refreshTokenCookieName
+    ) {
+        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.accessTokenExpiry = accessTokenExpiry;
+        this.refreshTokenExpiry = refreshTokenExpiry;
+        this.refreshTokenCookieName = refreshTokenCookieName;
+    }
+
+    public String generateAccessToken(String username, String role) {
         return Jwts.builder()
                 .setSubject(username)
                 .claim("role", role)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(getKey(), SignatureAlgorithm.HS256)
+                .claim("type", "access")
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + accessTokenExpiry))
+                .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // 토큰에서 Username 추출
-    public String getUsername(String token) {
-        return Jwts.parserBuilder().setSigningKey(getKey()).build()
-                .parseClaimsJws(token).getBody().getSubject();
+    public String generateRefreshToken(String username) {
+        return Jwts.builder()
+                .setSubject(username)
+                .claim("type", "refresh")
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpiry))
+                .signWith(secretKey, SignatureAlgorithm.HS256)
+                .compact();
     }
 
-    // 토큰에서 Role 추출
-    public String getRole(String token) {
-        return Jwts.parserBuilder().setSigningKey(getKey()).build()
-                .parseClaimsJws(token).getBody().get("role", String.class);
+    public Claims parseClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 
-    // 토큰 유효성 검증
-    public boolean validateToken(String token) {
+    public boolean isValid(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(getKey()).build().parseClaimsJws(token);
+            parseClaims(token);
             return true;
-        } catch (Exception e) {
+        } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
 
-    private Key getKey() {
-        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+    public String getUsername(String token) {
+        return parseClaims(token).getSubject();
+    }
+
+    public String getRole(String token) {
+        return parseClaims(token).get("role", String.class);
+    }
+
+    public long getRefreshTokenExpiry() {
+        return refreshTokenExpiry;
+    }
+
+    public String getRefreshTokenCookieName() {
+        return refreshTokenCookieName;
     }
 }

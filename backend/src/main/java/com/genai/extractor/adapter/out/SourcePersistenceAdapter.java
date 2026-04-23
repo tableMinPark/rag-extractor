@@ -100,7 +100,7 @@ public class SourcePersistenceAdapter implements SourcePersistencePort {
         String searchKeyword = "%" + keyword.replace(" ", "%") + "%";
 
         Page<SourceEntity> sourceEntities;
-        if ("ALL".equals(categoryCode)) {
+        if ("".equals(categoryCode)) {
             if (keyword.isBlank()) sourceEntities = sourceRepository.findAll(pageable);
             else sourceEntities = sourceRepository.findAllByNameLike(searchKeyword, pageable);
         } else {

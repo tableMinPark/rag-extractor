@@ -1,67 +1,101 @@
 import { config } from '@/public/ts/config'
-import axios, {
-  AxiosError,
-  AxiosResponse,
-  InternalAxiosRequestConfig,
-} from 'axios'
+import { useAuthStore } from '@/stores/authStore'
+import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
+
+const BASE_URL = `http://${config.apiHost}:${config.apiPort}${config.apiBasePath}`
 
 export const client = axios.create({
-  // baseURL: '/api',
-  baseURL: `http://${config.apiHost}:${config.apiPort}${config.apiBasePath}`,
-  // headers: {
-  //   'Content-Type': 'application/json',
-  // },
+  baseURL: BASE_URL,
   withCredentials: true,
 })
 
-// [요청 인터셉터]
-client.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const accessToken =
-      typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+let isRefreshing = false
+let pendingQueue: Array<{
+  resolve: (token: string) => void
+  reject: (err: unknown) => void
+}> = []
 
-    if (accessToken && config.headers) {
-      config.headers.Authorization = accessToken
+const processPendingQueue = (token: string | null, error: unknown = null) => {
+  pendingQueue.forEach(({ resolve, reject }) => {
+    if (token) resolve(token)
+    else reject(error)
+  })
+  pendingQueue = []
+}
+
+const redirectToLogin = () => {
+  if (typeof window !== 'undefined') {
+    window.location.href = `${config.basePath}/login`
+  }
+}
+
+const reissueToken = async (): Promise<string> => {
+  if (isRefreshing) {
+    return new Promise<string>((resolve, reject) => {
+      pendingQueue.push({ resolve, reject })
+    })
+  }
+
+  isRefreshing = true
+  try {
+    const response = await axios.post<{ accessToken: string }>(
+      `${BASE_URL}/auth/reissue`,
+      {},
+      { withCredentials: true },
+    )
+    const newToken = response.data.accessToken
+    const { username, role } = useAuthStore.getState()
+    useAuthStore.getState().setAuth(newToken, username ?? '', role ?? '')
+    processPendingQueue(newToken)
+    return newToken
+  } catch (err) {
+    processPendingQueue(null, err)
+    useAuthStore.getState().clearAuth()
+    redirectToLogin()
+    throw err
+  } finally {
+    isRefreshing = false
+  }
+}
+
+client.interceptors.request.use(
+  (cfg: InternalAxiosRequestConfig) => {
+    const token = typeof window !== 'undefined'
+      ? useAuthStore.getState().accessToken
+      : null
+
+    if (token && cfg.headers) {
+      cfg.headers.Authorization = `Bearer ${token}`
     }
 
-    return config
+    return cfg
   },
-  (error: AxiosError) => {
-    return Promise.reject(error)
-  },
+  (error: AxiosError) => Promise.reject(error),
 )
 
-// [응답 인터셉터]
 client.interceptors.response.use(
-  (response: AxiosResponse) => {
-    return response
-  },
-  async (error: AxiosError) => {
-    if (error.response) {
-      if (error.response.status === 401) {
-        // 로그인 화면이 아닌 경우
-        if (
-          typeof window !== 'undefined' &&
-          window.location.pathname !== `${config.basePath}/login`
-        ) {
-          // 토큰 삭제
-          localStorage.removeItem('accessToken')
-          localStorage.removeItem('username')
-          localStorage.removeItem('role')
-          // 로그인 화면 이동
-          window.location.href = `${config.basePath}/login`
-        }
-      } else if (error.response.status === 403) {
-        if (typeof window !== 'undefined') {
-          // 토큰 삭제
-          localStorage.removeItem('accessToken')
-          localStorage.removeItem('username')
-          localStorage.removeItem('role')
-          // 로그인 화면 이동
-          window.location.href = `${config.basePath}/login`
-        }
-      }
+  (response: AxiosResponse) => response,
+  async (error: AxiosError & { config?: InternalAxiosRequestConfig & { _retry?: boolean } }) => {
+    const originalRequest = error.config
+
+    if (error.response?.status !== 401 || !originalRequest) {
+      return Promise.reject(error)
     }
-    return Promise.reject(error)
+
+    if (originalRequest._retry) {
+      useAuthStore.getState().clearAuth()
+      redirectToLogin()
+      return Promise.reject(error)
+    }
+
+    originalRequest._retry = true
+
+    try {
+      const newToken = await reissueToken()
+      originalRequest.headers.Authorization = `Bearer ${newToken}`
+      return client(originalRequest)
+    } catch (reissueError) {
+      return Promise.reject(reissueError)
+    }
   },
 )

@@ -45,9 +45,9 @@ public class SourceService implements SourceUseCase {
     public void createSourcesUseCase(CreateSourceCommand command) {
 
         // 대상 문서 타입
-        SourceType sourceType = SourceType.valueOf(command.getSourceType().toUpperCase());
+        SourceType sourceType = SourceType.find(command.getSourceType().toUpperCase());
         // 전처리 타입
-        SelectType selectType = SelectType.valueOf(command.getSelectType().toUpperCase());
+        SelectType selectType = SelectType.find(command.getSelectType().toUpperCase());
 
         // 파일 목록 생성
         UploadFile uploadFile = command.getFile();
