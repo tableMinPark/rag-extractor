@@ -1,8 +1,8 @@
 package com.genai.common.exception;
 
-import com.document.extractor.application.exception.InvalidConnectionException;
-import com.document.extractor.application.exception.InvalidSourceTypeException;
-import com.document.extractor.application.exception.NotFoundException;
+import com.genai.common.exception.InvalidConnectionException;
+import com.genai.common.exception.InvalidSourceTypeException;
+import com.genai.common.exception.NotFoundException;
 import com.genai.global.dto.ResponseDto;
 import com.genai.global.enums.Response;
 import jakarta.validation.ConstraintViolationException;
@@ -73,7 +73,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = NotFoundException.class)
     public ResponseEntity<ResponseDto<?>> handleNotFoundException(NotFoundException e) {
         return ResponseEntity.status(Response.NOT_FOUND.getStatusCode())
-                .body(Response.NOT_FOUND.toResponseDto(Map.of("target", e.getTarget())));
+                .body(Response.NOT_FOUND.toResponseDto(Map.of("message", e.getMessage())));
     }
 
     @ExceptionHandler(value = InvalidSourceTypeException.class)

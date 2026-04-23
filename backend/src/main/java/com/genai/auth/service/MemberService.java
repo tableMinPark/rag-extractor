@@ -1,6 +1,6 @@
 package com.genai.auth.service;
 
-import com.document.extractor.application.exception.NotFoundException;
+import com.genai.common.exception.NotFoundException;
 import com.genai.auth.repository.MemberRepository;
 import com.genai.auth.repository.entity.MemberEntity;
 import lombok.RequiredArgsConstructor;

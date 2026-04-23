@@ -1,0 +1,164 @@
+package com.genai.extractor.adapter.out;
+
+import com.genai.extractor.adapter.propery.FileProperty;
+import com.genai.extractor.application.port.ExtractPort;
+import com.genai.extractor.domain.model.Document;
+import com.genai.extractor.domain.model.FileDetail;
+import com.genai.extractor.domain.model.HwpxDocument;
+import com.genai.extractor.domain.model.PdfDocument;
+import com.genai.extractor.domain.vo.HwpxImageVo;
+import com.genai.extractor.domain.vo.HwpxSectionVo;
+import com.genai.extractor.domain.vo.PdfSectionVo;
+import com.genai.common.utils.FileUtil;
+import com.genai.common.utils.PdfUtil;
+import com.genai.common.utils.StringUtil;
+import com.genai.common.utils.XmlUtil;
+import kr.dogfoot.hwp2hwpx.Hwp2Hwpx;
+import kr.dogfoot.hwplib.object.HWPFile;
+import kr.dogfoot.hwplib.reader.HWPReader;
+import kr.dogfoot.hwpxlib.object.HWPXFile;
+import kr.dogfoot.hwpxlib.writer.HWPXWriter;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class ExtractAdapter implements ExtractPort {
+
+    private final FileProperty fileProperty;
+
+    /**
+     * 문서 추출
+     *
+     * @param fileDetail  원본 문서 정보
+     * @param extractTypeCode 표 추출 타입 코드
+     * @return 문서
+     */
+    @Override
+    public Document extractFilePort(FileDetail fileDetail, String extractTypeCode) {
+
+        // 한글 제외 다른 확장자 파일 추출
+        if (!fileDetail.getExt().contains("hwp") && !fileDetail.getExt().contains("hwpx")) {
+            return PdfDocument.builder()
+                    .name(fileDetail.getOriginFileName())
+                    .extractTypeCode(extractTypeCode)
+                    .sections(PdfUtil.extractByPage(fileDetail.getUrl()))
+                    .build();
+        }
+
+        // 사용 파일 경로
+        String tempFileName = StringUtil.generateRandomId();
+        Path fullFilePath = Paths.get(fileDetail.getUrl());
+        Path unZipDirPath = Paths.get(fileProperty.getFileStorePath(), fileProperty.getTempDir(), tempFileName);
+        Path zipFilePath = Paths.get(fileProperty.getFileStorePath(), fileProperty.getTempDir(), tempFileName + ".zip");
+
+        // HWP 파일 변환
+        if (fileDetail.getExt().equals("hwp")) {
+            try {
+                HWPFile fromFile = HWPReader.fromFile(fullFilePath.toString());
+                HWPXFile toFile = Hwp2Hwpx.toHWPX(fromFile);
+                HWPXWriter.toFilepath(toFile, zipFilePath.toString());
+            } catch (Exception e) {
+                // 변환 실패
+                throw new RuntimeException("not support hwp file");
+            }
+        }
+        // 원본 문서 복사
+        else {
+            FileUtil.copyFile(fullFilePath.toString(), zipFilePath.toString());
+        }
+
+        // 압축 파일 존재 여부 확인
+        if (!zipFilePath.toFile().exists()) {
+            throw new RuntimeException("not exists zip file");
+        }
+
+        // 압축 해제
+        FileUtil.decompression(zipFilePath.toString(), unZipDirPath.toString());
+
+        // metadata 추출
+        Path metaDataPath = unZipDirPath.resolve("Contents").resolve("content.hpf");
+        String metaData = FileUtil.read(metaDataPath.toString());
+
+        // XML DOM 파싱
+        Element root = XmlUtil.parseXml(metaData).getDocumentElement();
+        NodeList items = root.getElementsByTagName("opf:item");
+
+        // 데이터 저장
+        List<HwpxSectionVo> sections = new ArrayList<>();
+        Map<String, HwpxImageVo> images = new HashMap<>();
+
+        for (int itemIndex = 0; itemIndex < items.getLength(); itemIndex++) {
+            Node item = items.item(itemIndex);
+
+            String resourceId = item.getAttributes().getNamedItem("id").getTextContent();
+            String resourceFilePath = item.getAttributes().getNamedItem("href").getTextContent();
+            String mediaType = item.getAttributes().getNamedItem("media-type").getTextContent();
+
+            if (mediaType.endsWith("xml") && resourceId.startsWith("section")) {
+                File xmlFile = unZipDirPath.resolve(resourceFilePath).toFile();
+
+                if (xmlFile.exists()) {
+                    String content = FileUtil.read(xmlFile.toPath().toString())
+                            .replaceAll("<hp:lineBreak/>", "\n")                        // 개행 태그 개행 문자로 치환
+                            .replaceAll("\\s[a-zA-Z_-]+=\"[^\"]*[<>][^\"]*\"", "");     // XML 속성 내에 "<", ">" 가 있는 경우 속성 제거
+
+                    sections.add(HwpxSectionVo.builder()
+                            .id(resourceId)
+                            .content(content)
+                            .build());
+                }
+            } else if (mediaType.startsWith("image/")) {
+                File imageFile = unZipDirPath.resolve(resourceFilePath).toFile();
+
+                // TODO: Image -> Text 추출 (OCR)
+                String content = "";
+
+                if (imageFile.exists()) {
+                    images.put(resourceId, HwpxImageVo.builder()
+                            .id(resourceId)
+                            .content(content)
+                            .path(imageFile.toPath())
+                            .ext(mediaType)
+                            .build());
+                }
+            }
+        }
+
+        // 압축 파일 삭제
+        FileUtil.deleteFile(zipFilePath.toString());
+
+        // 압축 해제 디렉토리 삭제
+        FileUtil.deleteDirectory(unZipDirPath.toString());
+
+        return HwpxDocument.builder()
+                .name(StringUtil.removeExtension(fileDetail.getOriginFileName()))
+                .extractTypeCode(extractTypeCode)
+                .sections(sections)
+                .images(images)
+                .build();
+    }
+
+    /**
+     * 문서 텍스트 추출
+     *
+     * @param fileDetail 원본 문서 정보
+     */
+    @Override
+    public String extractTextPort(FileDetail fileDetail) {
+        return this.extractFilePort(fileDetail, "html").getContent();
+    }
+}

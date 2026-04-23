@@ -1,26 +1,26 @@
 package com.genai.extractor.controller;
 
-import com.document.extractor.adapter.in.dto.etc.RepoResourceDto;
-import com.document.extractor.adapter.in.dto.request.CreateFileSourceRequestDto;
-import com.document.extractor.adapter.in.dto.request.CreateRepoSourceRequestDto;
-import com.document.extractor.adapter.in.dto.response.*;
+import com.genai.extractor.adapter.in.dto.etc.RepoResourceDto;
+import com.genai.extractor.adapter.in.dto.request.CreateFileSourceRequestDto;
+import com.genai.extractor.adapter.in.dto.request.CreateRepoSourceRequestDto;
+import com.genai.extractor.adapter.in.dto.response.*;
 import com.genai.global.dto.PageResponseDto;
 import com.genai.global.dto.ResponseDto;
 import com.genai.global.enums.Response;
-import com.document.extractor.adapter.propery.FileProperty;
-import com.document.extractor.application.command.CreateSourceCommand;
-import com.document.extractor.application.command.GetSourceCommand;
-import com.document.extractor.application.command.GetSourcesCommand;
-import com.document.extractor.application.enums.SourceType;
-import com.document.extractor.application.usecase.ChunkUseCase;
-import com.document.extractor.application.usecase.PassageUseCase;
-import com.document.extractor.application.usecase.SourceUseCase;
-import com.document.extractor.application.vo.SourceVo;
-import com.document.extractor.application.wrapper.PageWrapper;
-import com.document.extractor.domain.vo.PatternVo;
-import com.document.extractor.domain.vo.PrefixVo;
-import com.document.global.utils.FileUtil;
-import com.document.global.vo.UploadFile;
+import com.genai.extractor.adapter.propery.FileProperty;
+import com.genai.extractor.application.command.CreateSourceCommand;
+import com.genai.extractor.application.command.GetSourceCommand;
+import com.genai.extractor.application.command.GetSourcesCommand;
+import com.genai.extractor.application.enums.SourceType;
+import com.genai.extractor.application.usecase.ChunkUseCase;
+import com.genai.extractor.application.usecase.PassageUseCase;
+import com.genai.extractor.application.usecase.SourceUseCase;
+import com.genai.extractor.application.vo.SourceVo;
+import com.genai.global.wrapper.PageWrapper;
+import com.genai.extractor.domain.vo.PatternVo;
+import com.genai.extractor.domain.vo.PrefixVo;
+import com.genai.common.utils.FileUtil;
+import com.genai.common.vo.UploadFile;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -60,7 +60,7 @@ public class SourceController {
             List<MultipartFile> multipartFiles
     ) {
         for (MultipartFile multipartFile : multipartFiles) {
-            UploadFile uploadFile = FileUtil.uploadFile(multipartFile, fileProperty.getFileStorePath());
+            UploadFile uploadFile = FileUtil.uploadFileAsUploadFile(multipartFile, fileProperty.getFileStorePath());
 
             try {
                 sourceUseCase.createSourcesUseCase(CreateSourceCommand.builder()
@@ -197,10 +197,10 @@ public class SourceController {
                 .build());
 
         PageResponseDto<GetSourceResponseDto> pageResponseDto = PageResponseDto.<GetSourceResponseDto>builder()
-                .content(GetSourceResponseDto.toList(sourceVoPageWrapper.getData()))
+                .content(GetSourceResponseDto.toList(sourceVoPageWrapper.getContent()))
                 .isLast(sourceVoPageWrapper.isLast())
-                .pageNo(sourceVoPageWrapper.getPage())
-                .pageSize(sourceVoPageWrapper.getSize())
+                .pageNo(sourceVoPageWrapper.getPageNo())
+                .pageSize(sourceVoPageWrapper.getPageSize())
                 .totalCount(sourceVoPageWrapper.getTotalCount())
                 .totalPages(sourceVoPageWrapper.getTotalPages())
                 .build();

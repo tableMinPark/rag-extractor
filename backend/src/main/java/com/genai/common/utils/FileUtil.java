@@ -1,5 +1,6 @@
 package com.genai.common.utils;
 
+import com.genai.common.vo.UploadFile;
 import com.genai.common.vo.UploadFileVO;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,6 +39,44 @@ public class FileUtil {
     }
 
     /**
+     * 파일 업로드 (임시 디렉토리 포함)
+     *
+     * @param multipartFile 업로드 파일
+     * @param fileStorePath 파일 저장소 경로
+     * @param tempDir       임시 디렉토리
+     */
+    public static UploadFile uploadFile(MultipartFile multipartFile, String fileStorePath, String tempDir) {
+        LocalDate date = LocalDate.now();
+        String filePath = String.format("%02d-%02d-%02d", date.getYear(), date.getMonthValue(), date.getDayOfMonth());
+        Path fullPath = Paths.get(fileStorePath, tempDir, filePath);
+        UploadFileVO vo = uploadFileInternal(multipartFile, fullPath);
+        return toUploadFile(vo);
+    }
+
+    /**
+     * 파일 업로드 (UploadFile 반환)
+     *
+     * @param multipartFile 업로드 파일
+     * @param fileStorePath 파일 저장소 경로
+     * @return UploadFile
+     */
+    public static UploadFile uploadFileAsUploadFile(MultipartFile multipartFile, String fileStorePath) {
+        return toUploadFile(uploadFile(multipartFile, fileStorePath));
+    }
+
+    private static UploadFile toUploadFile(UploadFileVO vo) {
+        return UploadFile.builder()
+                .originFileName(vo.getOriginFileName())
+                .fileName(vo.getFileName())
+                .ip(vo.getIp())
+                .filePath(vo.getFilePath())
+                .fileSize(vo.getFileSize())
+                .ext(vo.getExt())
+                .url(vo.getUrl())
+                .build();
+    }
+
+    /**
      * 파일 업로드
      *
      * @param multipartFile 업로드 파일
@@ -47,7 +86,7 @@ public class FileUtil {
         LocalDate date = LocalDate.now();
         String filePath = String.format("%02d-%02d-%02d", date.getYear(), date.getMonthValue(), date.getDayOfMonth());
         Path fullPath = Paths.get(fileStorePath, filePath);
-        return uploadFile(multipartFile, fullPath);
+        return uploadFileInternal(multipartFile, fullPath);
     }
 
     /**
@@ -56,7 +95,7 @@ public class FileUtil {
      * @param multipartFile 업로드 파일
      * @param fullPath      파일 경로
      */
-    private static UploadFileVO uploadFile(MultipartFile multipartFile, Path fullPath) {
+    private static UploadFileVO uploadFileInternal(MultipartFile multipartFile, Path fullPath) {
         try {
             // 원본 파일명
             String originFileName = multipartFile.getOriginalFilename();
@@ -253,6 +292,54 @@ public class FileUtil {
         }
 
         return true;
+    }
+
+    /**
+     * 파일 압축 해제 (대상 디렉토리 지정)
+     *
+     * @param src 압축 파일
+     * @param dst 압축 해제 디렉토리
+     */
+    public static void decompression(String src, String dst) {
+        Path srcPath = Paths.get(src);
+        Path dstPath = Paths.get(dst);
+
+        if (!srcPath.toFile().exists()) {
+            throw new RuntimeException("not found zip file");
+        }
+
+        if (!dstPath.toFile().exists()) {
+            dstPath.toFile().mkdirs();
+        }
+
+        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(srcPath.toFile()))) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                File newFile = newFile(dstPath.toFile(), entry);
+
+                if (entry.isDirectory()) {
+                    if (!newFile.isDirectory() && !newFile.mkdirs()) {
+                        throw new RuntimeException("failed to create directory " + newFile);
+                    }
+                } else {
+                    File parent = newFile.getParentFile();
+                    if (!parent.isDirectory() && !parent.mkdirs()) {
+                        throw new RuntimeException("failed to create directory " + parent);
+                    }
+
+                    try (FileOutputStream fos = new FileOutputStream(newFile)) {
+                        byte[] buffer = new byte[1024];
+                        int len;
+                        while ((len = zis.read(buffer)) > 0) {
+                            fos.write(buffer, 0, len);
+                        }
+                    }
+                }
+                zis.closeEntry();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("decompression error");
+        }
     }
 
     /**

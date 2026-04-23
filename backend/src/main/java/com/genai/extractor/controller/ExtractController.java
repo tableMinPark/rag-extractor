@@ -1,13 +1,13 @@
 package com.genai.extractor.controller;
 
-import com.document.extractor.adapter.in.dto.response.ExtractResponseDto;
-import com.document.extractor.adapter.propery.FileProperty;
-import com.document.extractor.application.command.ExtractFileCommand;
-import com.document.extractor.application.command.ExtractFileTextCommand;
-import com.document.extractor.application.usecase.ExtractUseCase;
-import com.document.extractor.application.vo.ExtractContentVo;
-import com.document.global.utils.FileUtil;
-import com.document.global.vo.UploadFile;
+import com.genai.extractor.adapter.in.dto.response.ExtractResponseDto;
+import com.genai.extractor.adapter.propery.FileProperty;
+import com.genai.extractor.application.command.ExtractFileCommand;
+import com.genai.extractor.application.command.ExtractFileTextCommand;
+import com.genai.extractor.application.usecase.ExtractUseCase;
+import com.genai.extractor.application.vo.ExtractContentVo;
+import com.genai.common.utils.FileUtil;
+import com.genai.common.vo.UploadFile;
 import com.genai.global.dto.ResponseDto;
 import com.genai.global.enums.Response;
 import io.swagger.v3.oas.annotations.Operation;

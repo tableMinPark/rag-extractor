@@ -1,0 +1,64 @@
+package com.genai.extractor.adapter.out;
+
+import com.genai.extractor.adapter.out.constant.FileConst;
+import com.genai.extractor.adapter.out.entity.FileDetailEntity;
+import com.genai.extractor.adapter.out.entity.FileEntity;
+import com.genai.extractor.adapter.out.repository.FileDetailRepository;
+import com.genai.extractor.adapter.out.repository.FileRepository;
+import com.genai.common.exception.NotFoundException;
+import com.genai.extractor.application.port.FilePersistencePort;
+import com.genai.extractor.domain.model.FileDetail;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+public class FilePersistenceAdapter implements FilePersistencePort {
+
+    private final FileRepository fileRepository;
+    private final FileDetailRepository fileDetailRepository;
+
+    /**
+     * 파일 메타 정보 등록
+     *
+     * @param fileDetail 파일 메타 정보
+     * @return 파일 메타 정보
+     */
+    @Transactional
+    @Override
+    public FileDetail saveFileDetailPort(FileDetail fileDetail) {
+
+        FileDetailEntity fileDetailEntity;
+
+        if (fileDetail.getFileDetailId() == null) {
+            FileEntity fileEntity = fileRepository.save(FileEntity.builder()
+                    .sysCreateUser(FileConst.FILE_PERSIST_USER)
+                    .sysModifyUser(FileConst.FILE_PERSIST_USER)
+                    .build());
+
+            fileDetailEntity = fileDetailRepository.save(FileDetailEntity.fromDomain(fileEntity.getFileId(), fileDetail));
+
+        } else {
+            fileDetailEntity = fileDetailRepository.findById(fileDetail.getFileDetailId()).orElseThrow(() -> new NotFoundException("파일 메타 정보"));
+            fileDetailEntity.update(fileDetail);
+            fileDetailEntity = fileDetailRepository.save(fileDetailEntity);
+        }
+
+        return fileDetailEntity.toDomain();
+    }
+
+    /**
+     * 파일 메타 정보 조회
+     *
+     * @param fileDetailId 파일 메타 정보 ID
+     * @return 파일 메타 정보
+     */
+    @Transactional
+    @Override
+    public FileDetail getFileDetailPort(Long fileDetailId) {
+        return fileDetailRepository.findById(fileDetailId)
+                .orElseThrow(() -> new NotFoundException("파일 메타 정보"))
+                .toDomain();
+    }
+}

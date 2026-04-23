@@ -1,19 +1,19 @@
 package com.genai.extractor.controller;
 
-import com.document.extractor.adapter.in.dto.etc.PatternDto;
-import com.document.extractor.adapter.in.dto.request.*;
-import com.document.extractor.adapter.in.dto.response.*;
+import com.genai.extractor.adapter.in.dto.etc.PatternDto;
+import com.genai.extractor.adapter.in.dto.request.*;
+import com.genai.extractor.adapter.in.dto.response.*;
 import com.genai.global.dto.PageResponseDto;
 import com.genai.global.dto.ResponseDto;
 import com.genai.global.enums.Response;
-import com.document.extractor.adapter.propery.FileProperty;
-import com.document.extractor.application.command.*;
-import com.document.extractor.application.usecase.ChunkUseCase;
-import com.document.extractor.application.vo.ChunkResultVo;
-import com.document.extractor.application.vo.ChunkVo;
-import com.document.extractor.application.wrapper.PageWrapper;
-import com.document.global.utils.FileUtil;
-import com.document.global.vo.UploadFile;
+import com.genai.extractor.adapter.propery.FileProperty;
+import com.genai.extractor.application.command.*;
+import com.genai.extractor.application.usecase.ChunkUseCase;
+import com.genai.extractor.application.vo.ChunkResultVo;
+import com.genai.extractor.application.vo.ChunkVo;
+import com.genai.global.wrapper.PageWrapper;
+import com.genai.common.utils.FileUtil;
+import com.genai.common.vo.UploadFile;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -191,10 +191,10 @@ public class ChunkController {
                 .build());
 
         PageResponseDto<GetChunkResponseDto> pageResponseDto = PageResponseDto.<GetChunkResponseDto>builder()
-                .content(GetChunkResponseDto.toList(chunkVoPageWrapper.getData()))
+                .content(GetChunkResponseDto.toList(chunkVoPageWrapper.getContent()))
                 .isLast(chunkVoPageWrapper.isLast())
-                .pageNo(chunkVoPageWrapper.getPage())
-                .pageSize(chunkVoPageWrapper.getSize())
+                .pageNo(chunkVoPageWrapper.getPageNo())
+                .pageSize(chunkVoPageWrapper.getPageSize())
                 .totalCount(chunkVoPageWrapper.getTotalCount())
                 .totalPages(chunkVoPageWrapper.getTotalPages())
                 .build();

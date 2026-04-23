@@ -1,11 +1,11 @@
 package com.genai.extractor.controller;
 
-import com.document.extractor.adapter.in.dto.response.GetPassageResponseDto;
-import com.document.extractor.application.command.GetPassageCommand;
-import com.document.extractor.application.command.GetPassagesCommand;
-import com.document.extractor.application.usecase.PassageUseCase;
-import com.document.extractor.application.vo.PassageVo;
-import com.document.extractor.application.wrapper.PageWrapper;
+import com.genai.extractor.adapter.in.dto.response.GetPassageResponseDto;
+import com.genai.extractor.application.command.GetPassageCommand;
+import com.genai.extractor.application.command.GetPassagesCommand;
+import com.genai.extractor.application.usecase.PassageUseCase;
+import com.genai.extractor.application.vo.PassageVo;
+import com.genai.global.wrapper.PageWrapper;
 import com.genai.global.dto.PageResponseDto;
 import com.genai.global.dto.ResponseDto;
 import com.genai.global.enums.Response;
@@ -55,10 +55,10 @@ public class PassageController {
                 .build());
 
         PageResponseDto<GetPassageResponseDto> pageResponseDto = PageResponseDto.<GetPassageResponseDto>builder()
-                .content(GetPassageResponseDto.toList(passageVoPageWrapper.getData()))
+                .content(GetPassageResponseDto.toList(passageVoPageWrapper.getContent()))
                 .isLast(passageVoPageWrapper.isLast())
-                .pageNo(passageVoPageWrapper.getPage())
-                .pageSize(passageVoPageWrapper.getSize())
+                .pageNo(passageVoPageWrapper.getPageNo())
+                .pageSize(passageVoPageWrapper.getPageSize())
                 .totalCount(passageVoPageWrapper.getTotalCount())
                 .totalPages(passageVoPageWrapper.getTotalPages())
                 .build();

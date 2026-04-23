@@ -1,6 +1,6 @@
 package com.genai.embed.controller;
 
-import com.document.extractor.adapter.in.dto.response.ChunkBatchResponseDto;
+import com.genai.extractor.adapter.in.dto.response.ChunkBatchResponseDto;
 import com.genai.embed.service.EmbedService;
 import com.genai.global.dto.ResponseDto;
 import com.genai.global.enums.Response;
