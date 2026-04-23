@@ -1,8 +1,9 @@
-package com.genai.auth.filter;
+package com.genai.global.security.filter;
 
+import com.genai.auth.domain.Member;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.genai.auth.service.MemberService;
-import com.genai.auth.utils.JwtUtil;
+import com.genai.global.security.utils.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -10,8 +11,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -41,14 +40,10 @@ public class TokenReissueFilter extends OncePerRequestFilter {
             return;
         }
 
-        String username = jwtUtil.getUsername(refreshToken);
-        UserDetails userDetails = memberService.loadUserByUsername(username);
-        String role = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .findFirst()
-                .orElse("ROLE_USER");
+        String userId = jwtUtil.getUserId(refreshToken);
+        Member member = (Member) memberService.loadUserByUsername(userId);
 
-        String newAccessToken = jwtUtil.generateAccessToken(username, role);
+        String newAccessToken = jwtUtil.generateAccessToken(member.getUserId(), member.getRole());
 
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

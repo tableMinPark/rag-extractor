@@ -1,8 +1,10 @@
 import { config } from '@/public/ts/config'
+import { useModalStore } from '@/stores/modalStore'
 import { useAuthStore } from '@/stores/authStore'
 import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 
 const BASE_URL = `http://${config.apiHost}:${config.apiPort}${config.apiBasePath}`
+const AUTH_PATHS = ['/auth/login', '/auth/register', '/auth/reissue']
 
 export const client = axios.create({
   baseURL: BASE_URL,
@@ -29,6 +31,20 @@ const redirectToLogin = () => {
   }
 }
 
+const redirectToHome = () => {
+  if (typeof window !== 'undefined') {
+    window.location.href = `${config.basePath}/`
+  }
+}
+
+const isAuthRequest = (url?: string) => {
+  if (!url) {
+    return false
+  }
+
+  return AUTH_PATHS.some((path) => url.endsWith(path))
+}
+
 const reissueToken = async (): Promise<string> => {
   if (isRefreshing) {
     return new Promise<string>((resolve, reject) => {
@@ -44,8 +60,8 @@ const reissueToken = async (): Promise<string> => {
       { withCredentials: true },
     )
     const newToken = response.data.accessToken
-    const { username, role } = useAuthStore.getState()
-    useAuthStore.getState().setAuth(newToken, username ?? '', role ?? '')
+    const { userId, name, role } = useAuthStore.getState()
+    useAuthStore.getState().setAuth(newToken, userId ?? '', name ?? '', role ?? '')
     processPendingQueue(newToken)
     return newToken
   } catch (err) {
@@ -78,7 +94,23 @@ client.interceptors.response.use(
   async (error: AxiosError & { config?: InternalAxiosRequestConfig & { _retry?: boolean } }) => {
     const originalRequest = error.config
 
+    if (error.response?.status === 403) {
+      useModalStore.getState().setError(
+        '접근 권한 없음',
+        '요청한 기능을 사용할 권한이 없습니다.',
+        '권한이 있는 계정으로 다시 로그인하거나 관리자에게 문의해 주세요.',
+        async () => {
+          redirectToHome()
+        },
+      )
+      return Promise.reject(error)
+    }
+
     if (error.response?.status !== 401 || !originalRequest) {
+      return Promise.reject(error)
+    }
+
+    if (isAuthRequest(originalRequest.url)) {
       return Promise.reject(error)
     }
 
@@ -92,6 +124,7 @@ client.interceptors.response.use(
 
     try {
       const newToken = await reissueToken()
+      originalRequest.headers = originalRequest.headers ?? {}
       originalRequest.headers.Authorization = `Bearer ${newToken}`
       return client(originalRequest)
     } catch (reissueError) {

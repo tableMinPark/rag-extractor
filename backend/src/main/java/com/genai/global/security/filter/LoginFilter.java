@@ -1,10 +1,10 @@
-package com.genai.auth.filter;
+package com.genai.global.security.filter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.genai.auth.domain.Member;
 import com.genai.auth.dto.request.LoginRequestDto;
 import com.genai.auth.dto.response.LoginResponseDto;
-import com.genai.global.enums.Response;
-import com.genai.auth.utils.JwtUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.genai.global.security.utils.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,12 +15,10 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.Map;
 
 @Slf4j
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
@@ -35,35 +33,31 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
             ObjectMapper objectMapper
     ) {
         super(authenticationManager);
+        setFilterProcessesUrl("/api/auth/login");
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.objectMapper = objectMapper;
-        setFilterProcessesUrl("/api/login");
     }
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         try {
             LoginRequestDto userRequestDto = objectMapper.readValue(request.getInputStream(), LoginRequestDto.class);
-            log.info("userRequestDto : {}", userRequestDto);
-            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userRequestDto.getUsername(), userRequestDto.getPassword());
+            log.info("{}", userRequestDto);
+            UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(userRequestDto.getUserId(), userRequestDto.getPassword());
             return authenticationManager.authenticate(authToken);
         } catch (IOException e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException {
-        String username = authResult.getName();
-
-        Collection<? extends GrantedAuthority> authorities = authResult.getAuthorities();
-        Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
-        GrantedAuthority auth = iterator.next();
-        String role = auth.getAuthority();
-
-        String accessToken = jwtUtil.generateAccessToken(username, role);
-        String refreshToken = jwtUtil.generateRefreshToken(username);
+        Member member = (Member) authResult.getPrincipal();
+        String accessToken = jwtUtil.generateAccessToken(member.getUserId(), member.getRole());
+        String refreshToken = jwtUtil.generateRefreshToken(member.getUserId());
 
         Cookie cookie = new Cookie(jwtUtil.getRefreshTokenCookieName(), refreshToken);
         cookie.setHttpOnly(true);
@@ -74,7 +68,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         response.setStatus(HttpStatus.OK.value());
         response.setContentType("application/json;charset=UTF-8");
         response.getWriter().write(objectMapper.writeValueAsString(
-                Response.LOGIN_SUCCESS.toResponseDto(new LoginResponseDto(username, role, accessToken))
+                new LoginResponseDto(accessToken, member.getUserId(), member.getName(), member.getRole())
         ));
     }
 
@@ -82,6 +76,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException {
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write(objectMapper.writeValueAsString(Response.LOGIN_FAIL.toResponseDto()));
+        response.getWriter().write(objectMapper.writeValueAsString(
+                Map.of("message", "아이디 또는 비밀번호가 올바르지 않습니다.")
+        ));
     }
 }

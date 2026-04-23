@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Comment;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -14,37 +14,32 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "GEN_MEMBER")
+@EntityListeners(AuditingEntityListener.class)
 public class MemberEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "member_id", nullable = false)
-    @Comment("회원 ID")
-    private Long memberId;
+    @Column(name = "user_id", length = 50)
+    @Comment("사용자 ID")
+    private String userId;
 
-    @Column(name = "email", unique = true)
+    @Column(name = "password", length = 200, nullable = false)
+    @Comment("비밀번호 (BCrypt)")
+    private String password;
+
+    @Column(name = "name", length = 100, nullable = false)
+    @Comment("이름")
+    private String name;
+
+    @Column(name = "email", length = 200)
     @Comment("이메일")
     private String email;
 
-    @Column(name = "password")
-    @Comment("비밀번호")
-    private String password;
-
-    @Column(name = "name")
-    @Comment("회원명")
-    private String name;
-
-    @Column(name = "role", nullable = false)
-    @Comment("회원 권한")
+    @Column(name = "role", length = 20, nullable = false)
+    @Comment("권한")
     private String role;
 
     @CreatedDate
-    @Column(name = "sys_create_dt")
+    @Column(name = "created_at", updatable = false)
     @Comment("생성 일자")
-    private LocalDateTime sysCreateDt;
-
-    @LastModifiedDate
-    @Column(name = "sys_modify_dt")
-    @Comment("수정 일자")
-    private LocalDateTime sysModifyDt;
+    private LocalDateTime createdAt;
 }

@@ -1,13 +1,11 @@
 import '@/public/css/globals.css'
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import LayoutWrapper from '@/components/LayoutWrapper'
 import Providers from './providers'
 
-const inter = Inter({ subsets: ['latin'] })
-
 export const metadata: Metadata = {
-  title: 'RAG Admin System',
-  description: 'AI Knowledge Base Management',
+  title: 'RAG Extractor',
+  description: 'RAG Extractor Management',
 }
 
 export default function RootLayout({
@@ -18,7 +16,9 @@ export default function RootLayout({
   return (
     <Providers>
       <html lang="ko">
-        <body className={`flex ${inter.className}`}>{children}</body>
+        <body className="font-sans flex min-h-screen bg-white">
+          <LayoutWrapper>{children}</LayoutWrapper>
+        </body>
       </html>
     </Providers>
   )

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ChevronLeft, Sparkles } from 'lucide-react'
-import { menuInfos } from '@/public/const/menu'
+import { menuInfos, sidebarMenuKeys } from '@/public/const/menu'
 
 interface SidebarProps {
   isOpen: boolean
@@ -12,6 +12,18 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const pathname = usePathname()
+
+  const isActiveMenu = (activePaths: string[] = [], path: string) => {
+    const matchPaths = activePaths.length > 0 ? activePaths : [path]
+
+    return matchPaths.some((activePath) => {
+      if (activePath === '/') {
+        return pathname === '/'
+      }
+
+      return pathname === activePath || pathname.startsWith(`${activePath}/`)
+    })
+  }
 
   return (
     <aside
@@ -31,6 +43,9 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
             className="flex items-center gap-2 rounded-md p-1 hover:bg-gray-200"
           >
             <Sparkles className="text-primary fill-primary/20 h-6 w-6" />
+            <span className="text-sm font-semibold text-gray-700">
+              RAG Extractor
+            </span>
           </Link>
         )}
         <button
@@ -46,9 +61,11 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
       </div>
       {/* Menu */}
       <nav className="mt-2 flex flex-col gap-1 px-2">
-        {Object.values(menuInfos).map((item) => {
-          const isActive = pathname.startsWith(item.path)
+        {sidebarMenuKeys.map((key) => {
+          const item = menuInfos[key]
+          const isActive = isActiveMenu(item.activePaths, item.path)
           const Icon = item.icon
+
           return (
             <Link
               key={item.path}

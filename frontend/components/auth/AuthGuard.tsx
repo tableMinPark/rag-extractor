@@ -8,25 +8,33 @@ import { useAuthStore } from '@/stores/authStore'
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
-  const [isAuthorized, setIsAuthorized] = useState(false)
-  const accessToken = useAuthStore((s) => s.accessToken)
+  const accessToken = useAuthStore((state) => state.accessToken)
+  const [isMounted, setIsMounted] = useState(false)
+  const isLoginPage = pathname === '/login' || pathname === `${config.basePath}/login`
 
   useEffect(() => {
-    if (pathname === '/login' || pathname === `${config.basePath}/login`) {
-      setIsAuthorized(true)
+    setIsMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!isMounted) {
       return
     }
 
-    if (config.mode === 'local') {
-      setIsAuthorized(true)
-    } else if (!accessToken) {
+    if (!isLoginPage && !accessToken) {
       router.replace('/login')
-    } else {
-      setIsAuthorized(true)
     }
-  }, [router, pathname, accessToken])
+  }, [accessToken, isLoginPage, isMounted, router])
 
-  if (!isAuthorized) {
+  if (!isMounted) {
+    return null
+  }
+
+  if (isLoginPage) {
+    return <>{children}</>
+  }
+
+  if (!accessToken) {
     return null
   }
 

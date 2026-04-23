@@ -88,6 +88,12 @@ public class GlobalExceptionHandler {
                 .body(Response.INVALID_CONNECTION.toResponseDto(Map.of("target", e.getTarget())));
     }
 
+    @ExceptionHandler(value = IllegalArgumentException.class)
+    public ResponseEntity<ResponseDto<?>> handleIllegalArgumentException(IllegalArgumentException e) {
+        return ResponseEntity.status(Response.INVALID_REQUEST_BODY.getStatusCode())
+                .body(Response.INVALID_REQUEST_BODY.toResponseDto(Map.of("message", e.getMessage())));
+    }
+
     @ExceptionHandler(value = RuntimeException.class)
     public ResponseEntity<ResponseDto<?>> handleRuntimeException(RuntimeException e) {
         e.printStackTrace();

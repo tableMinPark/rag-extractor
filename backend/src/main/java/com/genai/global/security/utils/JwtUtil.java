@@ -1,4 +1,4 @@
-package com.genai.auth.utils;
+package com.genai.global.security.utils;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -29,9 +29,9 @@ public class JwtUtil {
         this.refreshTokenCookieName = refreshTokenCookieName;
     }
 
-    public String generateAccessToken(String username, String role) {
+    public String generateAccessToken(String userId, String role) {
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(userId)
                 .claim("role", role)
                 .claim("type", "access")
                 .setIssuedAt(new Date())
@@ -40,9 +40,9 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String generateRefreshToken(String username) {
+    public String generateRefreshToken(String userId) {
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(userId)
                 .claim("type", "refresh")
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpiry))
@@ -67,7 +67,7 @@ public class JwtUtil {
         }
     }
 
-    public String getUsername(String token) {
+    public String getUserId(String token) {
         return parseClaims(token).getSubject();
     }
 

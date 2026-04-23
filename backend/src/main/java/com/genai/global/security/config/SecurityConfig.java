@@ -1,11 +1,12 @@
-package com.genai.auth.config;
+package com.genai.global.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.genai.auth.filter.JwtFilter;
-import com.genai.auth.filter.LoginFilter;
-import com.genai.auth.filter.TokenReissueFilter;
+import com.genai.global.security.filter.JwtFilter;
+import com.genai.global.security.filter.LoginFilter;
+import com.genai.global.security.filter.TokenReissueFilter;
 import com.genai.auth.service.MemberService;
-import com.genai.auth.utils.JwtUtil;
+import com.genai.global.security.utils.JwtUtil;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +23,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -72,6 +74,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        AuthenticationManager authManager = authenticationManager(authenticationConfiguration);
 
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
         http.csrf(AbstractHttpConfigurer::disable);
@@ -79,24 +82,28 @@ public class SecurityConfig {
         http.httpBasic(AbstractHttpConfigurer::disable);
 
         http.authorizeHttpRequests((auth) -> auth
-                .requestMatchers("/api/login", "/api/auth/reissue", "/").permitAll()
-                .requestMatchers("/api/batch/**").hasAnyRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/chunk/**").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/reissue", "/api/auth/logout").permitAll()
+                .requestMatchers("/batch/**").hasAnyRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/chunk/**").hasAnyRole("ADMIN", "MANAGER")
                 .anyRequest().authenticated());
 
         http.sessionManagement((session) -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        LoginFilter loginFilter = new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, objectMapper);
-        loginFilter.setFilterProcessesUrl("/api/login");
+        LoginFilter loginFilter = new LoginFilter(authManager, jwtUtil, objectMapper);
 
         TokenReissueFilter tokenReissueFilter = new TokenReissueFilter(jwtUtil, memberService, objectMapper);
 
         http.addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class);
 
-        JwtFilter jwtFilter = new JwtFilter(jwtUtil);
+        JwtFilter jwtFilter = new JwtFilter(jwtUtil, memberService);
         http.addFilterBefore(jwtFilter, LoginFilter.class);
         http.addFilterBefore(tokenReissueFilter, JwtFilter.class);
+        http.exceptionHandling((exception) -> exception
+                .authenticationEntryPoint((request, response, authException) ->
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED))
+                .accessDeniedHandler((request, response, accessDeniedException) ->
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN)));
 
         return http.build();
     }

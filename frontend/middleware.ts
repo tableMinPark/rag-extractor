@@ -1,23 +1,25 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const PUBLIC_PATHS = ['/login']
+const PUBLIC_PATHS = ['/login', '/register']
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const hasRefreshToken = request.cookies.has('refreshToken')
+  const basePath = request.nextUrl.basePath || ''
+  const normalizedPathname =
+    basePath && pathname.startsWith(basePath)
+      ? pathname.slice(basePath.length) || '/'
+      : pathname
 
-  const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p))
+  const isPublic = PUBLIC_PATHS.some((p) => normalizedPathname.startsWith(p))
 
   if (isPublic) {
-    if (hasRefreshToken) {
-      return NextResponse.redirect(new URL('/', request.url))
-    }
     return NextResponse.next()
   }
 
   if (!hasRefreshToken) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    return NextResponse.redirect(new URL(`${basePath}/login`, request.url))
   }
 
   return NextResponse.next()

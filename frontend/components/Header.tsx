@@ -1,40 +1,62 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
-import { User, LogOut } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
+import { config } from '@/public/ts/config'
+import { usePathname } from 'next/navigation'
+import { logoutApi } from '@/api/auth'
+import { useModalStore } from '@/stores/modalStore'
+import { LogOut } from 'lucide-react'
+import { menuInfos } from '@/public/const/menu'
 
 export default function Header() {
-  const router = useRouter()
-  const username = useAuthStore((s) => s.username)
-  const clearAuth = useAuthStore((s) => s.clearAuth)
+  const { name, clearAuth } = useAuthStore()
+  const pathname = usePathname()
+  const { setConfirm } = useModalStore()
 
-  const handleLogout = async () => {
-    if (!confirm('로그아웃 하시겠습니까?')) return
+  const currentMenu = Object.values(menuInfos).find((menu) =>
+    (menu.activePaths ?? [menu.path]).some(
+      (activePath) =>
+        pathname === activePath || pathname.startsWith(`${activePath}/`),
+    ),
+  )
 
-    clearAuth()
-    router.replace('/login')
+  const handleLogout = () => {
+    setConfirm(
+      '로그아웃',
+      '로그아웃 하시겠습니까?',
+      '로그아웃 후 로그인 페이지로 이동합니다.',
+      async () => {
+        try {
+          await logoutApi()
+        } catch {
+          // 쿠키 삭제 실패해도 클라이언트 상태는 초기화
+        }
+        clearAuth()
+        window.location.href = `${config.basePath}/login`
+      },
+    )
   }
 
   return (
-    <header className="bg-primary z-10 flex h-10 shrink-0 items-center justify-end px-4 text-white shadow-md">
-      <div className="flex items-center gap-3">
-        {username && (
-          <div className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs backdrop-blur-sm">
-            <User className="h-3.5 w-3.5 opacity-80" />
-            <span className="font-medium">{username} 님</span>
+    <header className="bg-primary z-10 flex h-10 items-center justify-between px-4 text-white shadow-md">
+      <div className="flex items-center">
+        {currentMenu && (
+          <div className="flex items-center gap-2">
+            <currentMenu.icon className="h-3.5 w-3.5 text-white/80" />
+            <span className="text-sm font-medium text-white/90">
+              {currentMenu.name}
+            </span>
           </div>
         )}
-
-        {username && <div className="h-3 w-px bg-white/20"></div>}
-
+      </div>
+      <div className="flex items-center gap-3">
+        {name && <span className="text-sm font-medium">{name}</span>}
         <button
           onClick={handleLogout}
-          className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-white/90 transition-colors hover:bg-white/20 hover:text-white active:scale-95"
-          title="로그아웃"
+          className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-white/80 hover:bg-white/20 transition"
         >
           <LogOut className="h-3.5 w-3.5" />
-          <span>로그아웃</span>
+          로그아웃
         </button>
       </div>
     </header>

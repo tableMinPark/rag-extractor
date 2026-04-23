@@ -3,9 +3,10 @@ import { persist } from 'zustand/middleware'
 
 interface AuthState {
   accessToken: string | null
-  username: string | null
+  userId: string | null
+  name: string | null
   role: string | null
-  setAuth: (accessToken: string, username: string, role: string) => void
+  setAuth: (accessToken: string, userId: string, name: string, role?: string) => void
   clearAuth: () => void
 }
 
@@ -13,10 +14,13 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       accessToken: null,
-      username: null,
+      userId: null,
+      name: null,
       role: null,
-      setAuth: (accessToken, username, role) => set({ accessToken, username, role }),
-      clearAuth: () => set({ accessToken: null, username: null, role: null }),
+      setAuth: (accessToken, userId, name, role = '') =>
+        set({ accessToken, userId, name, role }),
+      clearAuth: () =>
+        set({ accessToken: null, userId: null, name: null, role: null }),
     }),
     { name: 'auth' },
   ),

@@ -184,6 +184,11 @@ export const ModalCreateSource = ({ onClose }: { onClose: () => void }) => {
         {
           name: '',
           targetUrl: '',
+          originFileName: '',
+          fileName: '',
+          ext: '',
+          path: '',
+          urn: '',
         },
       ],
     }))
@@ -196,7 +201,7 @@ export const ModalCreateSource = ({ onClose }: { onClose: () => void }) => {
         ...prev.repoResources.map((repoResource, i) => {
           if (i === index) {
             return {
-              targetUrl: repoResource.targetUrl,
+              ...repoResource,
               name: name,
             }
           }
@@ -216,8 +221,8 @@ export const ModalCreateSource = ({ onClose }: { onClose: () => void }) => {
         ...prev.repoResources.map((repoResource, i) => {
           if (i === index) {
             return {
+              ...repoResource,
               targetUrl: targetUrl,
-              name: repoResource.name,
             }
           }
           return repoResource

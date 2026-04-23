@@ -3,33 +3,43 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { getAuthErrorMessage, loginApi } from '@/api/auth'
-import { useAuthStore } from '@/stores/authStore'
+import { getAuthErrorMessage, registerApi } from '@/api/auth'
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter()
-  const { setAuth } = useAuthStore()
-  const [userId, setUserId] = useState('')
-  const [password, setPassword] = useState('')
+  const [form, setForm] = useState({ userId: '', password: '', name: '', email: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
     try {
-      const data = await loginApi({ userId, password })
-      setAuth(data.accessToken, data.userId, data.name, data.role)
-      router.replace('/')
+      await registerApi(form)
+      router.push('/login')
     } catch (error) {
       setError(
-        getAuthErrorMessage(error, '아이디 또는 비밀번호가 올바르지 않습니다.'),
+        getAuthErrorMessage(
+          error,
+          '회원가입에 실패했습니다. 아이디가 중복되었거나 입력값을 확인해 주세요.',
+        ),
       )
     } finally {
       setLoading(false)
     }
   }
+
+  const fields = [
+    { name: 'userId', label: '아이디', type: 'text', placeholder: '아이디를 입력하세요 (3~50자)', minLength: 3, maxLength: 50, required: true },
+    { name: 'password', label: '비밀번호', type: 'password', placeholder: '비밀번호를 입력하세요 (8자 이상)', minLength: 8, required: true },
+    { name: 'name', label: '이름', type: 'text', placeholder: '이름을 입력하세요', maxLength: 100, required: true },
+    { name: 'email', label: '이메일', type: 'email', placeholder: '이메일을 입력하세요 (선택)', required: false },
+  ]
 
   return (
     <div className="flex h-screen w-screen overflow-hidden">
@@ -55,12 +65,12 @@ export default function LoginPage() {
 
         <div className="relative z-10">
           <h2 className="text-white text-4xl font-bold leading-tight mb-4">
-            지식을 연결하고
+            함께 시작하는
             <br />
-            AI로 답을 찾다
+            AI 지식 탐구
           </h2>
           <p className="text-white/70 text-base leading-relaxed max-w-xs">
-            문서 기반 AI 검색 플랫폼으로 더 빠르고 정확한 인사이트를 경험하세요.
+            계정을 만들고 문서 기반 AI 검색의 강력한 기능을 바로 경험해 보세요.
           </p>
         </div>
 
@@ -71,7 +81,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* 오른쪽 로그인 폼 */}
+      {/* 오른쪽 회원가입 폼 */}
       <div className="flex-1 flex items-center justify-center px-8 bg-gray-50">
         <div className="w-full max-w-sm">
           <div className="lg:hidden flex items-center gap-2 mb-10">
@@ -83,32 +93,26 @@ export default function LoginPage() {
             <span className="font-bold text-lg text-gray-900">RAG Extractor</span>
           </div>
 
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">다시 오셨군요</h1>
-          <p className="text-sm text-gray-500 mb-8">계정에 로그인하세요</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">계정 만들기</h1>
+          <p className="text-sm text-gray-500 mb-8">아래 정보를 입력해 시작하세요</p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">아이디</label>
-              <input
-                type="text"
-                placeholder="아이디를 입력하세요"
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
-                required
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 outline-none transition-all focus:border-[#c64f4f] focus:ring-3 focus:ring-[#c64f4f]/10"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">비밀번호</label>
-              <input
-                type="password"
-                placeholder="비밀번호를 입력하세요"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 outline-none transition-all focus:border-[#c64f4f] focus:ring-3 focus:ring-[#c64f4f]/10"
-              />
-            </div>
+            {fields.map((field) => (
+              <div key={field.name}>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">{field.label}</label>
+                <input
+                  name={field.name}
+                  type={field.type}
+                  placeholder={field.placeholder}
+                  value={form[field.name as keyof typeof form]}
+                  onChange={handleChange}
+                  required={field.required}
+                  minLength={field.minLength}
+                  maxLength={field.maxLength}
+                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 outline-none transition-all focus:border-[#c64f4f] focus:ring-3 focus:ring-[#c64f4f]/10"
+                />
+              </div>
+            ))}
 
             {error && (
               <div className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2.5">
@@ -129,14 +133,14 @@ export default function LoginPage() {
               onMouseEnter={(e) => { if (!loading) e.currentTarget.style.backgroundColor = '#a54242' }}
               onMouseLeave={(e) => { if (!loading) e.currentTarget.style.backgroundColor = '#c64f4f' }}
             >
-              {loading ? '로그인 중...' : '로그인'}
+              {loading ? '처리 중...' : '가입하기'}
             </button>
           </form>
 
           <p className="mt-6 text-center text-sm text-gray-500">
-            계정이 없으신가요?{' '}
-            <Link href="/register" className="font-semibold transition-colors" style={{ color: '#c64f4f' }}>
-              회원가입
+            이미 계정이 있으신가요?{' '}
+            <Link href="/login" className="font-semibold transition-colors" style={{ color: '#c64f4f' }}>
+              로그인
             </Link>
           </p>
         </div>

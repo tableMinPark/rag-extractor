@@ -92,6 +92,11 @@ export interface FileResource {
 export interface RepoResource {
   targetUrl: string
   name: string
+  originFileName: string
+  fileName: string
+  ext: string
+  path: string
+  urn: string
 }
 
 // 참고 문서
