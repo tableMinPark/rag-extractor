@@ -55,6 +55,10 @@ public enum Response {
 
     // 배치
     BATCH_CHUNK_SUCCESS(HttpStatus.OK, 1500, "대상 문서 청킹 배치 처리에 성공했습니다.", ""),
+
+    // 색인
+    EMBED_SUCCESS(HttpStatus.OK, 1600, "색인 처리에 성공했습니다.", ""),
+    DELETE_EMBED_SUCCESS(HttpStatus.OK, 1601, "색인 삭제에 성공했습니다.", ""),
     ;
 
     private final HttpStatus statusCode;

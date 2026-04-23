@@ -7,10 +7,7 @@ import com.genai.global.enums.Response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Validated
 @RestController
@@ -22,9 +19,13 @@ public class EmbedController {
 
     @PostMapping("/{sourceId}")
     public ResponseEntity<ResponseDto<ChunkBatchResponseDto>> embedChunk(@PathVariable Long sourceId) {
+        ChunkBatchResponseDto result = embedService.embedSource(sourceId);
+        return ResponseEntity.ok(Response.EMBED_SUCCESS.toResponseDto(result));
+    }
 
-        ChunkBatchResponseDto chunkBatchResponseDto = null;
-
-        return ResponseEntity.ok(Response.BATCH_CHUNK_SUCCESS.toResponseDto(chunkBatchResponseDto));
+    @DeleteMapping("/{sourceId}")
+    public ResponseEntity<ResponseDto<Void>> deleteEmbed(@PathVariable Long sourceId) {
+        embedService.deleteEmbedSource(sourceId);
+        return ResponseEntity.ok(Response.DELETE_EMBED_SUCCESS.toResponseDto(null));
     }
 }

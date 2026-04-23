@@ -5,7 +5,7 @@ import com.genai.extractor.application.port.DocumentReadPort;
 import com.genai.extractor.domain.model.Document;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -15,11 +15,15 @@ import org.springframework.web.reactive.function.client.WebClient;
  * DB 기반 법령 정보 조회 어댑터
  */
 @Service
-@RequiredArgsConstructor
 public class DocumentReadAdapter implements DocumentReadPort {
 
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
+
+    public DocumentReadAdapter(@Qualifier("webClient") WebClient webClient, ObjectMapper objectMapper) {
+        this.webClient = webClient;
+        this.objectMapper = objectMapper;
+    }
 
     /**
      * 원격 문서 조회

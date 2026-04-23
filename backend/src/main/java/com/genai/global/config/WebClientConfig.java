@@ -21,7 +21,6 @@ public class WebClientConfig {
 
     @Primary
     @Bean
-    @ConditionalOnMissingBean(WebClient.class)
     public WebClient webClient() {
 
         HttpClient httpClient = HttpClient.create()
