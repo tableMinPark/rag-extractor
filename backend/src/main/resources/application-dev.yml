@@ -1,0 +1,54 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: extractor
+  servlet:
+    multipart:
+      max-file-size: 300MB
+      max-request-size: 300MB
+  datasource:
+    url: jdbc:postgresql://REDACTED_DB_HOST:REDACTED_DB_PORT/genai
+    username: genai
+    password: REDACTED_PASSWORD
+    driverClassName: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+    properties:
+      hibernate:
+        default_schema: nhis
+        show_sql: false
+        format_sql: false
+        hbm2ddl:
+          auto: none
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /api-docs
+engine:
+  search:
+    connect-timeout: 5000
+    response-timeout: 300000
+    read-timeout: 300000
+    write-timeout: 300000
+    host: localhost
+    port: 9200
+  reranker:
+    connect-timeout: 5000
+    response-timeout: 300000
+    read-timeout: 300000
+    write-timeout: 300000
+    host: localhost
+    port: 8001
+    path: /rerank
+env:
+  jwt:
+    secret: REDACTED_JWT_SECRET
+    access-token-expiry: 3600000
+    refresh-token-expiry: 604800000
+    refresh-token-cookie-name: refreshToken
+  file:
+    file-store-path: /Users/tableminpark/IdeaProjects/rag-extractor/fileStoreDev
+    temp-dir: temp
