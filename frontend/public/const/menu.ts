@@ -42,7 +42,7 @@ export const menuInfos: Record<string, MenuInfo> = {
   search: {
     name: 'RAG 검색',
     description: '청크 키워드 & 벡터 검색',
-    path: '/search/keyword',
+    path: '/search',
     icon: FileSearch,
     activePaths: ['/search'],
   },
