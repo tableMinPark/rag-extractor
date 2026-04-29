@@ -1,6 +1,6 @@
 package com.genai.global.security.filter;
 
-import com.genai.auth.domain.Member;
+import com.genai.auth.service.domain.Member;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.genai.auth.service.MemberService;
 import com.genai.global.security.utils.JwtUtil;

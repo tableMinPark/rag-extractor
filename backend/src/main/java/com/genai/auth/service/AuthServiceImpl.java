@@ -1,6 +1,6 @@
 package com.genai.auth.service;
 
-import com.genai.auth.dto.request.RegisterRequestDto;
+import com.genai.auth.controller.dto.request.RegisterRequestDto;
 import com.genai.auth.repository.MemberRepository;
 import com.genai.auth.repository.entity.MemberEntity;
 import lombok.RequiredArgsConstructor;

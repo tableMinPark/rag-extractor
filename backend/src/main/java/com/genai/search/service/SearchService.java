@@ -1,7 +1,7 @@
 package com.genai.search.service;
 
-import com.genai.search.dto.request.SearchRequestDto;
-import com.genai.search.dto.response.SearchResponseDto;
+import com.genai.search.controller.dto.request.SearchRequestDto;
+import com.genai.search.controller.dto.response.SearchResponseDto;
 import com.genai.search.repository.SearchRepository;
 import com.genai.search.repository.entity.DocumentEntity;
 import com.genai.search.repository.wrapper.Search;

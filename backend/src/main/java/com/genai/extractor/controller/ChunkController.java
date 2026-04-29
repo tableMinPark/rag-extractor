@@ -1,16 +1,16 @@
 package com.genai.extractor.controller;
 
-import com.genai.extractor.adapter.in.dto.etc.PatternDto;
-import com.genai.extractor.adapter.in.dto.request.*;
-import com.genai.extractor.adapter.in.dto.response.*;
+import com.genai.extractor.config.FileProperty;
+import com.genai.extractor.controller.dto.request.*;
+import com.genai.extractor.controller.dto.response.ChunkResponseDto;
+import com.genai.extractor.controller.dto.response.GetChunkResponseDto;
+import com.genai.extractor.dto.PatternDto;
+import com.genai.extractor.vo.ChunkResultVo;
+import com.genai.extractor.vo.ChunkVo;
+import com.genai.extractor.service.ChunkService;
 import com.genai.global.dto.PageResponseDto;
 import com.genai.global.dto.ResponseDto;
 import com.genai.global.enums.Response;
-import com.genai.extractor.adapter.propery.FileProperty;
-import com.genai.extractor.application.command.*;
-import com.genai.extractor.application.usecase.ChunkUseCase;
-import com.genai.extractor.application.vo.ChunkResultVo;
-import com.genai.extractor.application.vo.ChunkVo;
 import com.genai.global.wrapper.PageWrapper;
 import com.genai.common.utils.FileUtil;
 import com.genai.common.vo.UploadFile;
@@ -37,7 +37,7 @@ import java.util.List;
 @RequestMapping("/chunk")
 public class ChunkController {
 
-    private final ChunkUseCase chunkUseCase;
+    private final ChunkService chunkService;
     private final FileProperty fileProperty;
 
     @Operation(summary = "파일 청킹")
@@ -56,15 +56,14 @@ public class ChunkController {
             UploadFile uploadFile = FileUtil.uploadFile(multipartFile, fileProperty.getFileStorePath(), fileProperty.getTempDir());
 
             try {
-                chunkResultVos.add(chunkUseCase.chunkFileUseCase(ChunkFileCommand.builder()
-                        .extractType(chunkFilesRequestDto.getExtractType())
-                        .selectType(chunkFilesRequestDto.getSelectType())
-                        .patterns(PatternDto.toPatternVo(chunkFilesRequestDto.getPatterns()))
-                        .stopPatterns(chunkFilesRequestDto.getStopPatterns())
-                        .maxTokenSize(chunkFilesRequestDto.getMaxTokenSize())
-                        .overlapSize(chunkFilesRequestDto.getOverlapSize())
-                        .file(uploadFile)
-                        .build()));
+                chunkResultVos.add(chunkService.chunkFile(
+                        chunkFilesRequestDto.getExtractType(),
+                        chunkFilesRequestDto.getSelectType(),
+                        PatternDto.toPatternVo(chunkFilesRequestDto.getPatterns()),
+                        chunkFilesRequestDto.getStopPatterns(),
+                        chunkFilesRequestDto.getMaxTokenSize(),
+                        chunkFilesRequestDto.getOverlapSize(),
+                        uploadFile));
             } finally {
                 if (uploadFile != null) {
                     FileUtil.deleteFile(uploadFile.getUrl());
@@ -93,15 +92,14 @@ public class ChunkController {
             ChunkReposRequestDto chunkReposRequestDto
     ) {
         List<ChunkResultVo> chunkResultVos = chunkReposRequestDto.getUris().stream()
-                .map(uri -> chunkUseCase.chunkRepoUseCase(ChunkRepoCommand.builder()
-                        .extractType(chunkReposRequestDto.getExtractType())
-                        .selectType(chunkReposRequestDto.getSelectType())
-                        .patterns(PatternDto.toPatternVo(chunkReposRequestDto.getPatterns()))
-                        .stopPatterns(chunkReposRequestDto.getStopPatterns())
-                        .maxTokenSize(chunkReposRequestDto.getMaxTokenSize())
-                        .overlapSize(chunkReposRequestDto.getOverlapSize())
-                        .uri(uri)
-                        .build()))
+                .map(uri -> chunkService.chunkRepo(
+                        chunkReposRequestDto.getExtractType(),
+                        chunkReposRequestDto.getSelectType(),
+                        PatternDto.toPatternVo(chunkReposRequestDto.getPatterns()),
+                        chunkReposRequestDto.getStopPatterns(),
+                        chunkReposRequestDto.getMaxTokenSize(),
+                        chunkReposRequestDto.getOverlapSize(),
+                        uri))
                 .toList();
 
         List<ChunkResponseDto> chunkResponseDtos = chunkResultVos.stream()
@@ -124,9 +122,7 @@ public class ChunkController {
             ChunkSourcesRequestDto chunkSourcesRequestDto
     ) {
         List<ChunkResultVo> chunkResultVos = chunkSourcesRequestDto.getSourceIds().stream()
-                .map(sourceId -> chunkUseCase.chunkSourceUseCase(ChunkSourceCommand.builder()
-                        .sourceId(sourceId)
-                        .build()))
+                .map(chunkService::chunkSource)
                 .toList();
 
         List<ChunkResponseDto> chunkResponseDtos = chunkResultVos.stream()
@@ -149,16 +145,13 @@ public class ChunkController {
             @RequestBody
             CreateChunkRequestDto createChunkRequestDto
     ) {
-
-        chunkUseCase.createChunkUseCase(CreateChunkCommand.builder()
-                .passageId(createChunkRequestDto.getPassageId())
-                .title(createChunkRequestDto.getTitle())
-                .subTitle(createChunkRequestDto.getSubTitle())
-                .thirdTitle(createChunkRequestDto.getThirdTitle())
-                .content(createChunkRequestDto.getContent())
-                .subContent(createChunkRequestDto.getSubContent())
-                .content(createChunkRequestDto.getContent())
-                .build());
+        chunkService.createChunk(
+                createChunkRequestDto.getPassageId(),
+                createChunkRequestDto.getTitle(),
+                createChunkRequestDto.getSubTitle(),
+                createChunkRequestDto.getThirdTitle(),
+                createChunkRequestDto.getContent(),
+                createChunkRequestDto.getSubContent());
 
         return ResponseEntity.ok(Response.CREATE_CHUNK_SUCCESS.toResponseDto());
     }
@@ -166,13 +159,8 @@ public class ChunkController {
     @Operation(summary = "청크 조회 (청크 ID 기준)")
     @GetMapping(path = "/{chunkId}")
     public ResponseEntity<ResponseDto<GetChunkResponseDto>> getChunk(@PathVariable("chunkId") Long chunkId) {
-
-        ChunkVo chunkVo = chunkUseCase.getChunkUseCase(GetChunkCommand.builder()
-                .chunkId(chunkId)
-                .build());
-
+        ChunkVo chunkVo = chunkService.getChunk(chunkId);
         GetChunkResponseDto getChunkResponseDto = GetChunkResponseDto.of(chunkVo);
-
         return ResponseEntity.ok(Response.GET_CHUNK_SUCCESS.toResponseDto(getChunkResponseDto));
     }
 
@@ -183,12 +171,7 @@ public class ChunkController {
             @RequestParam("size") int size,
             @RequestParam("passageId") long passageId
     ) {
-
-        PageWrapper<ChunkVo> chunkVoPageWrapper = chunkUseCase.getChunksUseCase(GetChunksCommand.builder()
-                .passageId(passageId)
-                .page(page)
-                .size(size)
-                .build());
+        PageWrapper<ChunkVo> chunkVoPageWrapper = chunkService.getChunks(page, size, passageId);
 
         PageResponseDto<GetChunkResponseDto> pageResponseDto = PageResponseDto.<GetChunkResponseDto>builder()
                 .content(GetChunkResponseDto.toList(chunkVoPageWrapper.getContent()))
@@ -213,15 +196,13 @@ public class ChunkController {
             @RequestBody
             UpdateChunkRequestDto updateChunkRequestDto
     ) {
-
-        chunkUseCase.updateChunkUseCase(UpdateChunkCommand.builder()
-                .chunkId(chunkId)
-                .title(updateChunkRequestDto.getTitle())
-                .subTitle(updateChunkRequestDto.getSubTitle())
-                .thirdTitle(updateChunkRequestDto.getThirdTitle())
-                .content(updateChunkRequestDto.getContent())
-                .subContent(updateChunkRequestDto.getSubContent())
-                .build());
+        chunkService.updateChunk(
+                chunkId,
+                updateChunkRequestDto.getTitle(),
+                updateChunkRequestDto.getSubTitle(),
+                updateChunkRequestDto.getThirdTitle(),
+                updateChunkRequestDto.getContent(),
+                updateChunkRequestDto.getSubContent());
 
         return ResponseEntity.ok(Response.UPDATE_CHUNK_SUCCESS.toResponseDto());
     }
@@ -229,11 +210,7 @@ public class ChunkController {
     @Operation(summary = "청크 삭제")
     @DeleteMapping(path = "/{chunkId}")
     public ResponseEntity<ResponseDto<?>> deleteChunk(@PathVariable("chunkId") Long chunkId) {
-
-        chunkUseCase.deleteChunkUseCase(DeleteChunkCommand.builder()
-                .chunkId(chunkId)
-                .build());
-
+        chunkService.deleteChunk(chunkId);
         return ResponseEntity.ok(Response.DELETE_CHUNK_SUCCESS.toResponseDto());
     }
 }

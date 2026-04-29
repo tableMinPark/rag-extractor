@@ -1,6 +1,5 @@
 package com.genai.common.repository.entity;
 
-import com.genai.extractor.domain.model.CommonCode;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Comment;
@@ -30,12 +29,4 @@ public class CommonCodeEntity {
     @Comment("정렬 필드")
     private Integer sortOrder;
 
-    public CommonCode toDomain() {
-        return CommonCode.builder()
-                .code(code)
-                .codeName(codeName)
-                .codeGroup(codeGroup)
-                .sortOrder(sortOrder)
-                .build();
-    }
 }

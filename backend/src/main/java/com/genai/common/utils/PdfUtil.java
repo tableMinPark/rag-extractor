@@ -1,6 +1,6 @@
 package com.genai.common.utils;
 
-import com.genai.extractor.domain.vo.PdfSectionVo;
+import com.genai.extractor.service.vo.PdfSectionVo;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;

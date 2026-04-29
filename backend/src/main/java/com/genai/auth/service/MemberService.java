@@ -1,6 +1,6 @@
 package com.genai.auth.service;
 
-import com.genai.auth.domain.Member;
+import com.genai.auth.service.domain.Member;
 import com.genai.auth.repository.MemberRepository;
 import com.genai.auth.repository.entity.MemberEntity;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,6 @@
 package com.genai.auth.controller;
 
-import com.genai.auth.dto.request.RegisterRequestDto;
+import com.genai.auth.controller.dto.request.RegisterRequestDto;
 import com.genai.auth.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;

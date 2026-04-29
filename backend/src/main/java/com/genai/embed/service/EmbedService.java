@@ -2,13 +2,13 @@ package com.genai.embed.service;
 
 import com.genai.embed.repository.CollectionRepository;
 import com.genai.embed.repository.entity.DocumentEntity;
-import com.genai.extractor.adapter.in.dto.response.ChunkBatchResponseDto;
-import com.genai.extractor.adapter.out.repository.ChunkRepository;
-import com.genai.extractor.adapter.out.repository.PassageRepository;
-import com.genai.extractor.adapter.out.entity.ChunkEntity;
-import com.genai.extractor.adapter.out.entity.PassageEntity;
-import com.genai.extractor.application.port.SourcePersistencePort;
-import com.genai.extractor.domain.model.Source;
+import com.genai.extractor.controller.dto.response.ChunkBatchResponseDto;
+import com.genai.extractor.repository.ChunkRepository;
+import com.genai.extractor.repository.PassageRepository;
+import com.genai.extractor.repository.entity.ChunkEntity;
+import com.genai.extractor.repository.entity.PassageEntity;
+import com.genai.extractor.service.SourceService;
+import com.genai.extractor.service.domain.model.Source;
 import com.genai.common.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class EmbedService {
 
-    private final SourcePersistencePort sourcePersistencePort;
+    private final SourceService sourceService;
     private final PassageRepository passageRepository;
     private final ChunkRepository chunkRepository;
     private final CollectionRepository collectionRepository;
@@ -35,7 +35,7 @@ public class EmbedService {
      */
     @Transactional(readOnly = true)
     public ChunkBatchResponseDto embedSource(Long sourceId) {
-        Source source = sourcePersistencePort.getSourcePort(sourceId);
+        Source source = sourceService.getSource(sourceId);
 
         if (source.getCollectionId() == null || source.getCollectionId().isBlank()) {
             throw new NotFoundException("컬렉션 ID");
@@ -82,7 +82,7 @@ public class EmbedService {
      */
     @Transactional(readOnly = true)
     public void deleteEmbedSource(Long sourceId) {
-        Source source = sourcePersistencePort.getSourcePort(sourceId);
+        Source source = sourceService.getSource(sourceId);
 
         if (source.getCollectionId() == null || source.getCollectionId().isBlank()) {
             return;

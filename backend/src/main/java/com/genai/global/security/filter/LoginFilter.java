@@ -1,9 +1,9 @@
 package com.genai.global.security.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.genai.auth.domain.Member;
-import com.genai.auth.dto.request.LoginRequestDto;
-import com.genai.auth.dto.response.LoginResponseDto;
+import com.genai.auth.service.domain.Member;
+import com.genai.auth.controller.dto.request.LoginRequestDto;
+import com.genai.auth.controller.dto.response.LoginResponseDto;
 import com.genai.global.security.utils.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.Cookie;

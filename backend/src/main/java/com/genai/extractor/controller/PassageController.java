@@ -1,10 +1,8 @@
 package com.genai.extractor.controller;
 
-import com.genai.extractor.adapter.in.dto.response.GetPassageResponseDto;
-import com.genai.extractor.application.command.GetPassageCommand;
-import com.genai.extractor.application.command.GetPassagesCommand;
-import com.genai.extractor.application.usecase.PassageUseCase;
-import com.genai.extractor.application.vo.PassageVo;
+import com.genai.extractor.controller.dto.response.GetPassageResponseDto;
+import com.genai.extractor.vo.PassageVo;
+import com.genai.extractor.service.PassageService;
 import com.genai.global.wrapper.PageWrapper;
 import com.genai.global.dto.PageResponseDto;
 import com.genai.global.dto.ResponseDto;
@@ -25,18 +23,13 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/passage")
 public class PassageController {
 
-    private final PassageUseCase passageUseCase;
+    private final PassageService passageService;
 
     @Operation(summary = "패시지 조회 (패시지 ID 기준)")
     @GetMapping(path = "/{passageId}")
     public ResponseEntity<ResponseDto<GetPassageResponseDto>> getPassage(@PathVariable("passageId") Long passageId) {
-
-        PassageVo passageVo = passageUseCase.getPassageUseCase(GetPassageCommand.builder()
-                .passageId(passageId)
-                .build());
-
+        PassageVo passageVo = passageService.getPassageVo(passageId);
         GetPassageResponseDto getPassageResponseDto = GetPassageResponseDto.of(passageVo);
-
         return ResponseEntity.ok(Response.GET_PASSAGE_SUCCESS.toResponseDto(getPassageResponseDto));
     }
 
@@ -47,12 +40,7 @@ public class PassageController {
             @RequestParam("size") int size,
             @RequestParam("sourceId") long sourceId
     ) {
-
-        PageWrapper<PassageVo> passageVoPageWrapper = passageUseCase.getPassagesUseCase(GetPassagesCommand.builder()
-                .sourceId(sourceId)
-                .page(page)
-                .size(size)
-                .build());
+        PageWrapper<PassageVo> passageVoPageWrapper = passageService.getPassageVos(page, size, sourceId);
 
         PageResponseDto<GetPassageResponseDto> pageResponseDto = PageResponseDto.<GetPassageResponseDto>builder()
                 .content(GetPassageResponseDto.toList(passageVoPageWrapper.getContent()))

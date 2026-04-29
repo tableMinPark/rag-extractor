@@ -1,11 +1,11 @@
 package com.genai.extractor.controller;
 
-import com.genai.extractor.adapter.in.dto.response.ExtractResponseDto;
-import com.genai.extractor.adapter.propery.FileProperty;
-import com.genai.extractor.application.command.ExtractFileCommand;
-import com.genai.extractor.application.command.ExtractFileTextCommand;
-import com.genai.extractor.application.usecase.ExtractUseCase;
-import com.genai.extractor.application.vo.ExtractContentVo;
+import com.genai.extractor.config.FileProperty;
+import com.genai.extractor.controller.dto.response.ExtractResponseDto;
+import com.genai.extractor.vo.ExtractContentVo;
+import com.genai.extractor.enums.ExtractType;
+import com.genai.extractor.service.ExtractService;
+import com.genai.extractor.repository.entity.FileDetailEntity;
 import com.genai.common.utils.FileUtil;
 import com.genai.common.vo.UploadFile;
 import com.genai.global.dto.ResponseDto;
@@ -30,7 +30,7 @@ import java.util.List;
 @RestController
 public class ExtractController {
 
-    private final ExtractUseCase extractUseCase;
+    private final ExtractService extractService;
     private final FileProperty fileProperty;
 
     @Operation(summary = "파일 추출")
@@ -47,10 +47,24 @@ public class ExtractController {
         UploadFile uploadFile = FileUtil.uploadFile(multipartFile, fileProperty.getFileStorePath(), fileProperty.getTempDir());
 
         try {
-            List<ExtractContentVo> extractContentVos = extractUseCase.extractFileUseCase(ExtractFileCommand.builder()
-                    .file(uploadFile)
-                    .extractType(extractType)
-                    .build());
+            ExtractType extractTypeEnum = ExtractType.find(extractType);
+
+            FileDetailEntity fileDetail = FileDetailEntity.builder()
+                    .originFileName(uploadFile.getOriginFileName())
+                    .fileName(uploadFile.getFileName())
+                    .url(uploadFile.getUrl())
+                    .filePath(uploadFile.getFilePath())
+                    .fileSize(uploadFile.getFileSize())
+                    .ext(uploadFile.getExt())
+                    .build();
+
+            List<ExtractContentVo> extractContentVos = extractService.extractFile(fileDetail, extractTypeEnum.getCode())
+                    .getDocumentContents().stream()
+                    .map(documentContent -> ExtractContentVo.builder()
+                            .type(documentContent.getType().name())
+                            .content(documentContent.getContext())
+                            .build())
+                    .toList();
 
             return ResponseEntity.ok(Response.EXTRACT_FILE_SUCCESS.toResponseDto(ExtractResponseDto.builder()
                     .name(uploadFile.getOriginFileName())
@@ -74,9 +88,16 @@ public class ExtractController {
         UploadFile uploadFile = FileUtil.uploadFile(multipartFile, fileProperty.getFileStorePath(), fileProperty.getTempDir());
 
         try {
-            return ResponseEntity.ok(Response.EXTRACT_TEXT_SUCCESS.toResponseDto(extractUseCase.extractFileTextUseCase(ExtractFileTextCommand.builder()
-                    .file(uploadFile)
-                    .build())));
+            FileDetailEntity fileDetail = FileDetailEntity.builder()
+                    .originFileName(uploadFile.getOriginFileName())
+                    .fileName(uploadFile.getFileName())
+                    .url(uploadFile.getUrl())
+                    .filePath(uploadFile.getFilePath())
+                    .fileSize(uploadFile.getFileSize())
+                    .ext(uploadFile.getExt())
+                    .build();
+
+            return ResponseEntity.ok(Response.EXTRACT_TEXT_SUCCESS.toResponseDto(extractService.extractText(fileDetail)));
         } finally {
             if (uploadFile != null) {
                 FileUtil.deleteFile(uploadFile.getUrl());

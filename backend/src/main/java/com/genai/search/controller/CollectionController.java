@@ -2,7 +2,7 @@ package com.genai.search.controller;
 
 import com.genai.global.dto.ResponseDto;
 import com.genai.global.enums.Response;
-import com.genai.search.dto.response.CollectionResponseDto;
+import com.genai.search.controller.dto.response.CollectionResponseDto;
 import com.genai.search.type.CollectionTypeFactory;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
