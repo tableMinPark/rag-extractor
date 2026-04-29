@@ -8,9 +8,9 @@ spring:
       max-file-size: 300MB
       max-request-size: 300MB
   datasource:
-    url: jdbc:postgresql://REDACTED_DB_HOST:REDACTED_DB_PORT/genai
+    url: ${DB_URL}
     username: genai
-    password: REDACTED_PASSWORD
+    password: ${DB_PASSWORD}
     driverClassName: org.postgresql.Driver
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -45,7 +45,7 @@ engine:
     path: /rerank
 env:
   jwt:
-    secret: REDACTED_JWT_SECRET
+    secret: ${JWT_SECRET}
     access-token-expiry: 3600000
     refresh-token-expiry: 604800000
     refresh-token-cookie-name: refreshToken
