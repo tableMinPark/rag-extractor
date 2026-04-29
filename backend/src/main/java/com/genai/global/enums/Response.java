@@ -61,6 +61,11 @@ public enum Response {
     // 색인
     EMBED_SUCCESS(HttpStatus.OK, 1600, "색인 처리에 성공했습니다.", ""),
     DELETE_EMBED_SUCCESS(HttpStatus.OK, 1601, "색인 삭제에 성공했습니다.", ""),
+
+    // 검색
+    KEYWORD_SEARCH_SUCCESS(HttpStatus.OK, 1700, "키워드 검색에 성공했습니다.", ""),
+    VECTOR_SEARCH_SUCCESS(HttpStatus.OK, 1701, "벡터 검색에 성공했습니다.", ""),
+    SEARCH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 1702, "검색 중 오류가 발생했습니다.", ""),
     ;
 
     private final HttpStatus statusCode;
