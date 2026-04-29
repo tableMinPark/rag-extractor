@@ -7,7 +7,9 @@ import java.util.List;
 @Component
 public class CollectionTypeFactory {
 
+    private static final List<CollectionType> ALL = List.of(CollectionType.ai(), CollectionType.myai());
+
     public List<CollectionType> getAll() {
-        return List.of(CollectionType.ai(), CollectionType.myai());
+        return ALL;
     }
 }
