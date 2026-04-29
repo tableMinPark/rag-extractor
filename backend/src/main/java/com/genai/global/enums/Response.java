@@ -67,6 +67,7 @@ public enum Response {
     VECTOR_SEARCH_SUCCESS(HttpStatus.OK, 1701, "벡터 검색에 성공했습니다.", ""),
     SEARCH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 1702, "검색 중 오류가 발생했습니다.", ""),
     GET_COLLECTIONS_SUCCESS(HttpStatus.OK, 1703, "컬렉션 목록 조회에 성공했습니다.", ""),
+    GET_SEARCH_CATEGORIES_SUCCESS(HttpStatus.OK, 1704, "검색 카테고리 목록 조회에 성공했습니다.", ""),
     ;
 
     private final HttpStatus statusCode;
