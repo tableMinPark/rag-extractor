@@ -1,5 +1,7 @@
 package com.genai.search.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -22,5 +24,6 @@ public class SearchRequestDto {
     @Positive
     private Integer topK;
 
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
     private List<String> aliases = List.of();
 }

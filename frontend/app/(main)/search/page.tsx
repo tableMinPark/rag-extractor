@@ -227,14 +227,16 @@ export default function SearchPage() {
           {/* 리랭킹 */}
           <div className="flex flex-col gap-1">
             <span className="text-xs font-bold text-gray-500">리랭킹</span>
-            <label className="flex cursor-pointer items-center gap-1.5">
+            <label className="flex cursor-not-allowed items-center gap-1.5 opacity-50">
               <input
                 type="checkbox"
                 checked={useRerank}
                 onChange={(e) => setUseRerank(e.target.checked)}
-                className="text-primary accent-primary h-4 w-4"
+                disabled
+                className="h-4 w-4"
               />
-              <span className="text-sm text-gray-700">리랭킹 적용</span>
+              <span className="text-sm text-gray-500">리랭킹 적용</span>
+              <span className="text-[10px] text-gray-400">(준비 중)</span>
             </label>
           </div>
         </div>
