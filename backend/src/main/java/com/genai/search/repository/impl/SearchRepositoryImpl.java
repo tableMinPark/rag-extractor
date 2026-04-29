@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -114,7 +115,7 @@ public class SearchRepositoryImpl implements SearchRepository {
                 .accept(MediaType.APPLICATION_JSON)
                 .bodyValue(List.of(convertVectorVO))
                 .retrieve()
-                .onStatus(HttpStatus::isError, response ->
+                .onStatus(HttpStatusCode::isError, response ->
                         response.bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                                 .flatMap(errorBody -> Mono.error(
                                         new SearchErrorException("벡터 검색 실패 (" + collectionId + ")"))))
