@@ -73,22 +73,25 @@ export default function SearchPage() {
 
   // ─── 초기 로드 ──────────────────────────────────────────
   useEffect(() => {
+    let cancelled = false
     const load = async () => {
       try {
         const [colRes, catRes] = await Promise.all([
           getCollectionsApi(),
           getSearchCategoriesApi(),
         ])
+        if (cancelled) return
         setCollections(colRes.result)
         setCategories(catRes.result)
         if (colRes.result.length > 0) setCollectionId(colRes.result[0].collectionId)
         // 전체 카테고리 기본 선택
         setSelectedCodes(catRes.result.map((c) => c.code))
       } catch (err) {
-        console.error(err)
+        if (!cancelled) console.error(err)
       }
     }
     load()
+    return () => { cancelled = true }
   }, [])
 
   // ─── 카테고리 토글 ──────────────────────────────────────
@@ -145,6 +148,7 @@ export default function SearchPage() {
           vectorSearchApi(body),
         ])
         merged = deduplicateByChunkId([...kwRes.result, ...vecRes.result])
+          .sort((a, b) => b.score - a.score)
       }
 
       // TODO: useRerank === true 일 때 /search/rerank 호출 (추후 구현)
@@ -159,7 +163,7 @@ export default function SearchPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [query, collectionId, selectedCodes, categories.length, searchMode, useRerank])
+  }, [query, collectionId, selectedCodes, categories, searchMode, useRerank])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') handleSearch()
@@ -415,7 +419,7 @@ export default function SearchPage() {
                     {pNum}
                   </button>
                 )
-              })}
+              }).filter(Boolean)}
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
